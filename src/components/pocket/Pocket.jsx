@@ -5,8 +5,7 @@ import {useParams} from "wouter";
 import {useEffect} from "react";
 import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
-import {thumbHashToDataURL} from "@/utils/Thumbhash.js";
-import {LoaderImage, PageLoader} from "@/components/common/Common.jsx";
+import {HashedImage, PageLoader} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -40,12 +39,9 @@ const Pocket = observer(() => {
 
   return (
     <div className="page-container">
-      <LoaderImage
+      <HashedImage
         src={rootStore.pocket.metadata[backgroundKey].url}
-        style={{
-          background: `center / cover url(${thumbHashToDataURL(rootStore.pocket.metadata[`${backgroundKey}_hash`])})`
-        }}
-        loaderClassName={S("splash__loader")}
+        hash={rootStore.pocket.metadata[`${backgroundKey}_hash`]}
         className={S("splash")}
       />
       <div>

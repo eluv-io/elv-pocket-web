@@ -2,38 +2,21 @@ import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames, SetImageUrlDimensions} from "@/utils/Utils.js";
-import {useEffect, useState} from "react";
+import {useState} from "react";
+import {decodeThumbHash, thumbHashToApproximateAspectRatio, thumbHashToDataURL} from "@/utils/Thumbhash.js";
 
 const S = CreateModuleClassMatcher(CommonStyles);
 
-export const LoaderImage = observer(({
+export const HashedImage = observer(({
   src,
-  alternateSrc,
+  hash,
   width,
-  loaderHeight,
-  loaderWidth,
-  loaderAspectRatio,
   lazy=true,
-  showWithoutSource=false,
-  delay=25,
-  loaderDelay=250,
-  loaderClassName="",
   ...props
 }) => {
   const [loaded, setLoaded] = useState(false);
-  const [showLoader, setShowLoader] = useState(false);
-  const [useAlternateSrc, setUseAlternateSrc] = useState(false);
-
-  useEffect(() => {
-    setLoaded(false);
-    setShowLoader(false);
-
-    setTimeout(() => setShowLoader(true), loaderDelay);
-  }, []);
-
-  if(!src && !showWithoutSource) {
-    return null;
-  }
+  hash = hash && decodeThumbHash(hash);
+  const loaderAspectRatio = hash && thumbHashToApproximateAspectRatio(hash);
 
   if(width) {
     src = SetImageUrlDimensions({url: src, width});
@@ -45,14 +28,14 @@ export const LoaderImage = observer(({
         !src ? null :
           <img
             {...props}
-            key={`img-${src}-${props.key || ""}`}
-            className={loaded ? props.className : JoinClassNames(S("lazy-image__loader-image"), props.className)}
+            style={
+              loaded ? {} :
+                {width: 2, height: 2, position: "absolute", opacity: 0, userSelect: "none"}
+            }
+            className={loaded ? props.className : ""}
             loading={lazy ? "lazy" : "eager"}
-            src={(useAlternateSrc && alternateSrc) || src}
-            onLoad={() => setTimeout(() => setLoaded(true), delay)}
-            onError={() => {
-              setUseAlternateSrc(true);
-            }}
+            src={src}
+            onLoad={() => setLoaded(true)}
           />
       }
       {
@@ -60,18 +43,14 @@ export const LoaderImage = observer(({
           <div
             {...props}
             style={{
-              ...(props.style || {}),
-              ...(loaderWidth ? {width: loaderWidth} : {}),
-              ...(loaderHeight ? {height: loaderHeight} : {}),
-              ...(loaderAspectRatio ? {aspectRatio: loaderAspectRatio} : {})
+              aspectRatio: loaderAspectRatio,
+              background: `center / cover url(${thumbHashToDataURL(hash)})`
             }}
-            key={props.key ? `${props.key}--placeholder` : undefined}
-            className={[S("lazy-image__background", showLoader ? "lazy-image__background--visible" : ""), loaderClassName, props.className || ""].join(" ")}
           />
       }
     </>
   );
-});
+})
 
 export const Loader = observer(({className=""}) => {
   return (
@@ -82,7 +61,7 @@ export const Loader = observer(({className=""}) => {
 export const PageLoader = observer(({containerClassName="", className=""}) => {
   return (
     <div className={JoinClassNames(S("page-loader"), containerClassName)}>
-      <div className={JoinClassNames(S("loader"), className)} />
+      <Loader className={className} />
     </div>
   );
 });

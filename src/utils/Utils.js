@@ -28,6 +28,26 @@ export const SetImageUrlDimensions = ({url, height, width}) => {
   return url.toString();
 };
 
+export const LinkTargetHash = (link) => {
+  if(!link) { return; }
+
+  if(typeof link === "string") {
+    return link.split("/").find(segment => segment.startsWith("hq__"));
+  }
+
+  if(link["."] && link["."].source) {
+    return link["."].source;
+  }
+
+  if(link["/"] && link["/"].startsWith("/qfab/")) {
+    return link["/"].split("/").find(segment => segment.startsWith("hq__"));
+  }
+
+  if(link["."] && link["."].container) {
+    return link["."].container;
+  }
+};
+
 export const SetHTMLMetaTags = (metaTags={}) => {
   const SetMetaTag = (tag, value) => {
     const element = document.getElementById(`__meta-${tag}`);
