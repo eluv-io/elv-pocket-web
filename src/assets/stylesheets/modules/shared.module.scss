@@ -1,8 +1,8 @@
 .splash {
-  position: absolute;
-  height: calc(100 * var(--vh));
-  width: calc(100 * var(--vw));
-  object-fit: cover;
   animation: var(--animation-fadein) 1s ease;
+  height: calc(100 * var(--vh));
+  object-fit: cover;
+  position: absolute;
+  width: calc(100 * var(--vw));
   z-index: -1;
 }
