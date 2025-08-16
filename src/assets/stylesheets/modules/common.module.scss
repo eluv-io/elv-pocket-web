@@ -1,0 +1,59 @@
+.lazy-image {
+  &--loaded {
+    //animation: var(--animation-fadein) 1.5s ease;
+  }
+
+  &__loader-image {
+    animation: var(--animation-fadein) 1.5s ease;
+    display: block;
+    /* stylelint-disable-next-line no-important */
+    height: 2px!important;
+    /* stylelint-disable-next-line no-important */
+    opacity: 0!important;
+    position: absolute;
+    user-select: none;
+    /* stylelint-disable-next-line no-important */
+    width: 2px!important;
+  }
+}
+
+.page-loader {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100 * var(--vh));
+  width: calc(100 * var(--vw));
+  z-index: 100;
+}
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: 60px;
+  height: 20px;
+  display: grid;
+  color: #046D8B;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  --c:#0000 calc(100%/3),#046D8B 0 calc(2*100%/3),#0000 0;
+  --c1:linear-gradient(90deg,var(--c));
+  --c2:linear-gradient( 0deg,var(--c));
+  background: var(--c1),var(--c2),var(--c1),var(--c2);
+  background-size: 300% 4px,4px 300%;
+  background-repeat: no-repeat;
+  animation: l15 1.5s infinite;
+}
+.loader:after {
+  animation-delay: -.75s;
+}
+@keyframes l15 {
+  0%   {background-position: 50%  0,100% 100%,0    100%,0 0}
+  25%  {background-position: 0    0,100% 50% ,0    100%,0 0}
+  50%  {background-position: 0    0,100% 0   ,50%  100%,0 0}
+  75%  {background-position: 0    0,100% 0   ,100% 100%,0 50%}
+  75.01%{background-position: 100% 0,100% 0   ,100% 100%,0 50%}
+  100% {background-position: 50%  0,100% 0   ,100% 100%,0 100%}
+}

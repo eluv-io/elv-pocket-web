@@ -1,0 +1,46 @@
+{
+  "name": "elv-pocket-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "serve": "rm -rf node_modules/.vite; vite",
+    "build": "rm -rf dist/* ; vite build",
+    "bump-version": "npm --git-tag-version --no-commit-hooks version patch",
+    "lint": "npm-run-all -s -c lint-js-fix lint-scss-fix",
+    "lint-js": "eslint ./src --ext js,jsx --report-unused-disable-directives",
+    "lint-js-fix": "eslint ./src --fix --ext js,jsx --report-unused-disable-directives",
+    "lint-scss": "npx stylelint \"src/**/*.{css,scss}\"",
+    "lint-scss-fix": "npx stylelint \"src/**/*.{css,scss}\" --fix"
+  },
+  "dependencies": {
+    "@eluvio/elv-client-js": "^4.2.1",
+    "@eluvio/elv-player-js": "^2.1.0",
+    "mobx": "^6.13.7",
+    "mobx-react-lite": "^4.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "wouter": "^3.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react-swc": "^4.0.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "react-refresh": "^0.14.0",
+    "sass": "^1.51.0",
+    "sass-embedded": "^1.90.0",
+    "sass-lint": "^1.13.1",
+    "stylelint": "^16.14.1",
+    "stylelint-config-standard": "^37.0.0",
+    "stylelint-config-standard-scss": "^14.0.0",
+    "stylelint-order": "^6.0.3",
+    "vite": "^7.1.2",
+    "vite-plugin-static-copy": "^3.1.1"
+  }
+}
