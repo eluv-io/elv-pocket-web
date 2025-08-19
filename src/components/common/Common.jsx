@@ -15,12 +15,15 @@ export const HashedLoaderImage = observer(({
   lazy=true,
   ...props
 }) => {
+  const [error, setError] = useState(null);
   const [loaded, setLoaded] = useState(false);
   hash = hash && decodeThumbHash(hash);
   const loaderAspectRatio = hash && thumbHashToApproximateAspectRatio(hash);
 
-  if(width) {
-    src = SetImageUrlDimensions({url: src, width});
+  if(width && !error) {
+    //src = SetImageUrlDimensions({url: src, width});
+  } else if(error && width) {
+    console.log("SKIPPING", src)
   }
 
   return (
@@ -35,6 +38,7 @@ export const HashedLoaderImage = observer(({
             }
             className={loaded ? props.className : ""}
             loading={lazy ? "lazy" : "eager"}
+            onError={setError}
             src={src}
             onLoad={() => setLoaded(true)}
           />

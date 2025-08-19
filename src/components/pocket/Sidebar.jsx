@@ -6,25 +6,29 @@ import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
+import SVG from "react-inlinesvg";
+
+import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
 const MediaCard = observer(({mediaItem}) => {
-  const {pocketSlugOrId} = useParams();
+  const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
 
-  const imageInfo = MediaItemImageUrl({mediaItem, display: mediaItem.display, width: 400});
-  console.log(imageInfo)
+  const imageInfo = MediaItemImageUrl({mediaItem, display: mediaItem.display});
+  const isActive = mediaItem.slug === pocketMediaSlugOrId || mediaItem.id === pocketMediaSlugOrId;
 
   return (
     <Linkish
       to={UrlJoin("~/", pocketSlugOrId, mediaItem.slug || mediaItem.id)}
-      className={S("media-card")}
+      className={S("media-card", isActive ? "media-card--active" : "")}
     >
       <div className={S("media-card__image-container", `media-card__image-container--${imageInfo.imageAspectRatio}`)}>
         <HashedLoaderImage
           src={imageInfo.imageUrl}
           hash={imageInfo.imageHash}
           alt={imageInfo.alt}
+          width={400}
           className={S("media-card__image")}
         />
         {
@@ -33,10 +37,10 @@ const MediaCard = observer(({mediaItem}) => {
         }
       </div>
       <div className={S("media-card__content")}>
-        <div className={S("media-card__title", "ellipsis")}>
+        <div className={S("media-card__title")}>
           {mediaItem.display.title}
         </div>
-        <div className={S("media-card__subtitle", "ellipsis")}>
+        <div className={S("media-card__subtitle")}>
           {
             !mediaItem.scheduleInfo.isLiveContent ?
               mediaItem.display.subtitle :
@@ -50,13 +54,51 @@ const MediaCard = observer(({mediaItem}) => {
   )
 });
 
+const SidebarContent = observer(() => {
+  const liveContent = rootStore.media.filter(item => item.scheduleInfo.isLiveContent && item.scheduleInfo.started && !item.scheduleInfo.ended);
+  const upcomingContent = rootStore.media.filter(item => item.scheduleInfo.isLiveContent && !item.scheduleInfo.started);
+  const vodContent = rootStore.media.filter(item => !item.scheduleInfo.isLiveContent);
+
+  let content = [
+    liveContent.length === 0 ? null :
+      { title: "TODAY", items: liveContent},
+    upcomingContent.length === 0 ? null :
+      { title: "UPCOMING", items: upcomingContent},
+    vodContent.length === 0 ? null :
+      { title: "VOD", items: vodContent}
+  ].filter(c => c);
+
+  return (
+    <div className={S("media")}>
+      {
+        content.map(({title, items}) =>
+          <div key={title} className={S("media-section")}>
+            <div className={S("media-section__title")}>{title}</div>
+            <div className={S("media-section__media")}>
+              {
+                items.map((mediaItem, index) =>
+                  <MediaCard
+                    key={`${mediaItem.id}-${index}`}
+                    mediaItem={mediaItem}
+                  />
+                )
+              }
+            </div>
+          </div>
+        )
+      }
+    </div>
+  );
+});
+
 const Sidebar = observer(() => {
   const {pocketMediaSlugOrId} = useParams();
 
   const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
 
   if(!mediaItem) {
-    return null; }
+    return null;
+  }
 
   return (
     <div className={S("sidebar")}>
@@ -66,16 +108,17 @@ const Sidebar = observer(() => {
       }
       <div className={S("current-item")}>
         <div className={S("title-container")}>
-          <img
-            src={rootStore.pocket.metadata.splash_screen_background.url}
-            alt={rootStore.pocket.metadata.splash_screen_background_alt || "Title Image"}
-            className={S("title-image")}
-          />
-          <img
-            src={rootStore.pocket.metadata.splash_screen_background_mobile.url}
-            alt={rootStore.pocket.metadata.splash_screen_background_alt || "Title Image"}
-            className={S("title-image")}
-          />
+          {
+            mediaItem.display?.icons?.map(icon =>
+              !icon.icon?.url ? null :
+                <img
+                  key={icon.icon.url}
+                  src={icon.icon.url}
+                  alt={icon.alt_text || "Title Icon"}
+                  className={S("title-icon")}
+                />
+            )
+          }
           <div className={S("title")}>
             {mediaItem.display.title}
           </div>
@@ -96,20 +139,11 @@ const Sidebar = observer(() => {
             className={S("banner__image")}
           />
         </Linkish>
-        <Linkish href="https://google.com" className={S("banner")}>
-          <HashedLoaderImage
-            src={rootStore.pocket.metadata.splash_screen_background_mobile.url}
-            hash={rootStore.pocket.metadata.splash_screen_background_mobile_hash}
-            className={S("banner__image")}
-          />
-        </Linkish>
       </div>
-      <div className={S("media")}>
-        {
-          [...rootStore.media, ...rootStore.media, ...rootStore.media].map((mediaItem, index) =>
-            <MediaCard key={`${mediaItem.id}-${index}`} mediaItem={mediaItem} />
-          )
-        }
+      <SidebarContent/>
+      <div className={S("logo")}>
+        <SVG src={EIcon} alt="Eluvio"/>
+        <span>POCKET TV</span>
       </div>
     </div>
   );

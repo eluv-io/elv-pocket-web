@@ -3,16 +3,23 @@ import {rootStore} from "@/stores/index.js";
 import {Route, Switch} from "wouter";
 import Pocket from "@/components/pocket/Pocket.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
+import SVG from "react-inlinesvg";
+
+import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 
 const S = CreateModuleClassMatcher();
 
 const Base = () => {
   return (
-    <div className="page-container">
-      Eluvio Pocket TV
+    <div className="page-container home-page">
+      <div className={S("logo")}>
+        <SVG src={EIcon} alt="Eluvio" />
+        <span>POCKET TV</span>
+      </div>
     </div>
   );
 };
+
 
 const App = () => {
   useEffect(() => {
@@ -30,10 +37,7 @@ const App = () => {
 
   return (
     <Switch>
-      <Route path="/:pocketSlugOrId/:pocketMediaSlugOrId">
-        <Pocket />
-      </Route>
-      <Route path="/:pocketSlugOrId/*?">
+      <Route path="/:pocketSlugOrId/:pocketMediaSlugOrId?">
         <Pocket />
       </Route>
       <Route>

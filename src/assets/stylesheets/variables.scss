@@ -11,8 +11,9 @@
   --text-highlight: var(--color-highlight);
   --text-highlight-secondary: var(--color-highlight-secondary);
   --text-error: #ce6666;
+  --color-border: #2C2C2C;
   --animation-fadein: fadein;
-  --gutter-size: 5px;
+  --gutter-size: 8px;
 
   @keyframes fadein {
     0% {

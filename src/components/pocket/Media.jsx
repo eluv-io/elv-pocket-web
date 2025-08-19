@@ -22,8 +22,9 @@ const Media = observer(() => {
     "splash_screen_background";
 
   return (
-    <div className={S("media")}>
+    <div key={pocketMediaSlugOrId} className={S("media")}>
       <Video
+        isLive={media.scheduleInfo.currentlyLive}
         videoLink={media.mediaItem.media_link}
         posterImage={rootStore.pocket.metadata[backgroundKey]?.url}
         className={S("video")}

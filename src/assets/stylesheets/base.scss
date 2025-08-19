@@ -1,9 +1,15 @@
  body {
-   background-color: var(--background-primary);
+   background-color: black;
    color: var(--text-secondary);
-   font-family: Inter, "DM Sans", "Helvetica Neue", helvetica, sans-serif;
+   font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;
  }
 
  .page-container {
    position: relative;
+ }
+
+ .home-page {
+   align-items: center;
+   display: flex;
+   justify-content: center;
  }

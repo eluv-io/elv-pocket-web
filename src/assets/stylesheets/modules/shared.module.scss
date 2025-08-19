@@ -4,3 +4,20 @@
   white-space: nowrap;
   word-break: break-all;
 }
+
+.logo {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+
+  svg {
+    height: 40px;
+
+  }
+
+  span {
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 700;
+  }
+}

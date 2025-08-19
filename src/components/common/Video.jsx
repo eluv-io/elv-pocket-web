@@ -21,6 +21,7 @@ const Video = forwardRef(function VideoComponent({
   className="",
   containerProps
 }, ref) {
+  console.log(isLive)
   const [videoDimensions, setVideoDimensions] = useState(undefined);
   const [player, setPlayer] = useState(undefined);
   const [reloadKey, setReloadKey] = useState(0);
@@ -44,7 +45,7 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         delete window.players?.[contentHash];
       } catch(error) {
-         
+
         console.log(error);
       }
     };
@@ -58,7 +59,7 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         setPlayer(undefined);
       } catch(error) {
-         
+
         console.log(error);
       }
     }

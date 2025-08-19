@@ -1,11 +1,25 @@
 .splash {
   animation: var(--animation-fadein) 1s ease;
   height: calc(100 * var(--vh));
-  object-fit: cover;
-  object-position: center;
   position: absolute;
   width: calc(100 * var(--vw));
-  z-index: -1;
+
+  img {
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .logo {
+    animation: var(--animation-fadein) 1.25s ease;
+    background-color: var(--background-primary);
+    border-radius: 10px;
+    bottom: 50px;
+    box-shadow: 0 0 10px black;
+    padding: 10px 20px;
+    position: absolute;
+    right: 50px;
+    z-index: 1;
+  }
 }
 
 .content {
@@ -14,9 +28,11 @@
 
 .size {
   color: red;
+  font-size: 12px;
+  font-weight: bold;
   position: absolute;
-  right: 10px;
-  top: 10px;
+  right: 30px;
+  top: 20px;
   z-index: 10;
 }
 
