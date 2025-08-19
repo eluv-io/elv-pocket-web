@@ -1,0 +1,43 @@
+.splash {
+  animation: var(--animation-fadein) 1s ease;
+  height: calc(100 * var(--vh));
+  object-fit: cover;
+  object-position: center;
+  position: absolute;
+  width: calc(100 * var(--vw));
+  z-index: -1;
+}
+
+.content {
+  animation: var(--animation-fadein) 1s ease;
+}
+
+.size {
+  color: red;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 10;
+}
+
+@media screen and (width >= 1001px) {
+  .content {
+    display: grid;
+    gap: var(--gutter-size);
+    grid-template-columns: 1fr 500px;
+    height: calc(100 * var(--vh));
+    max-height: calc(100 * var(--vh));
+    overflow: hidden;
+    padding: var(--gutter-size);
+  }
+}
+
+
+@media screen and (width <= 1000px) {
+  .content {
+    display: grid;
+    grid-template-rows: max-content 1fr;
+    max-height: calc(100 * var(--vh));
+    overflow: hidden;
+  }
+}

@@ -1,50 +1,151 @@
-import React, {useEffect, useRef} from "react";
+import React, {forwardRef, useEffect, useState} from "react";
 import {rootStore} from "@/stores";
-import {InitializeEluvioPlayer, EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index";
-import {LinkTargetHash} from "@/utils/Utils.js";
-import {observer} from "mobx-react-lite";
+import {InitializeEluvioPlayer, EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
+import {CreateModuleClassMatcher, LinkTargetHash} from "@/utils/Utils.js";
 
-// Fabric video - Default options is muted looping animation
-const Video = observer(({posterUrl, videoLink, videoHash, playerOptions={}, className=""}) => {
-  const targetRef = useRef();
+const S = CreateModuleClassMatcher();
+
+const Video = forwardRef(function VideoComponent({
+  videoHash,
+  videoLink,
+  contentInfo={},
+  playerOptions={},
+  playoutParameters={},
+  posterImage,
+  isLive,
+  callback,
+  readyCallback,
+  errorCallback,
+  settingsUpdateCallback,
+  autoAspectRatio=true,
+  className="",
+  containerProps
+}, ref) {
+  const [videoDimensions, setVideoDimensions] = useState(undefined);
+  const [player, setPlayer] = useState(undefined);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [contentHash, setContentHash] = useState(undefined);
+  const [targetRef, setTargetRef] = useState(undefined);
 
   useEffect(() => {
-    if(!targetRef || !targetRef.current) { return; }
+    if(videoLink) {
+      videoHash = LinkTargetHash(videoLink) || videoHash;
+    }
 
-    const playerPromise = InitializeEluvioPlayer(
-      targetRef.current,
+    rootStore.client.LatestVersionHash({versionHash: videoHash})
+      .then(setContentHash);
+  }, [videoLink, videoHash, reloadKey]);
+
+  useEffect(() => {
+    return () => {
+      if(!player) { return; }
+
+      try {
+        player.Destroy();
+        delete window.players?.[contentHash];
+      } catch(error) {
+         
+        console.log(error);
+      }
+    };
+  }, [player]);
+
+  useEffect(() => {
+    if(!targetRef || !contentHash) { return; }
+
+    if(player) {
+      try {
+        player.Destroy();
+        setPlayer(undefined);
+      } catch(error) {
+         
+        console.log(error);
+      }
+    }
+
+    InitializeEluvioPlayer(
+      targetRef,
       {
         clientOptions: {
-          network: rootStore.walletClient.network === "main" ?
-            EluvioPlayerParameters.networks.MAIN : EluvioPlayerParameters.networks.DEMO,
           client: rootStore.client
         },
         sourceOptions: {
+          contentInfo: {
+            ...contentInfo,
+            type: EluvioPlayerParameters.type[isLive ? "LIVE" : "VOD"],
+            posterImage
+          },
           playoutParameters: {
-            versionHash: videoHash || LinkTargetHash(videoLink)
-          }
+            ...playoutParameters,
+            versionHash: contentHash
+          },
         },
         playerOptions: {
-          posterUrl,
-          watermark: EluvioPlayerParameters.watermark.OFF,
-          muted: EluvioPlayerParameters.muted.ON,
+          showLoader: EluvioPlayerParameters.showLoader.OFF,
+          muted: EluvioPlayerParameters.muted.OFF,
+          controls: EluvioPlayerParameters.controls.AUTO_HIDE,
+          //maxBitrate: 50000,
+          ui: EluvioPlayerParameters.ui.WEB,
+          appName: "Eluvio Pocket TV",
           autoplay: EluvioPlayerParameters.autoplay.ON,
-          controls: EluvioPlayerParameters.controls.OFF,
-          loop: EluvioPlayerParameters.loop.ON,
+          watermark: EluvioPlayerParameters.watermark.OFF,
+          verifyContent: EluvioPlayerParameters.verifyContent.ON,
+          backgroundColor: "black",
+          capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.mobile ? "ON" : "OFF"],
+          errorCallback,
+          // For live content, latest hash instead of allowing player to reload
+          restartCallback: async () => {
+            if(!isLive) { return false; }
+
+            setContentHash(undefined);
+            await new Promise(resolve => setTimeout(resolve, 15000));
+
+            setReloadKey(reloadKey + 1);
+
+            return true;
+          },
           ...playerOptions
         }
       }
-    );
+    ).then(player => {
+      window.players = {
+        ...(window.players || {}),
+        [contentHash]: player,
+      };
 
-    return async () => {
-      if(!playerPromise) { return; }
+      setPlayer(player);
 
-      const player = await playerPromise;
-      player.Destroy();
-    };
-  }, [videoLink, videoHash, targetRef]);
+      player.controls.RegisterVideoEventListener("canplay", event => {
+        setVideoDimensions({width: event.target.videoWidth, height: event.target.videoHeight});
+        readyCallback && readyCallback(player);
+      });
 
-  return <div className={className} ref={targetRef} />;
+      if(settingsUpdateCallback) {
+        player.controls.RegisterSettingsListener(() => settingsUpdateCallback(player));
+      }
+
+      if(callback) {
+        callback(player);
+      }
+    });
+  }, [targetRef, contentHash]);
+
+  return (
+    <div
+      {...(containerProps || {})}
+      ref={ref}
+      className={[S("video"), className].join(" ")}
+      style={
+        !autoAspectRatio ? containerProps?.style || {} :
+          {
+            ...(containerProps?.style || {}),
+            aspectRatio: `${videoDimensions?.width || 16} / ${videoDimensions?.height || 9}`
+          }
+      }
+    >
+      <div ref={setTargetRef} />
+    </div>
+  );
 });
 
 export default Video;

@@ -2,6 +2,8 @@ import {makeAutoObservable, flow} from "mobx";
 import {ElvWalletClient} from "@eluvio/elv-client-js/src/index.js";
 
 class RootStore {
+  preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
+
   client;
   walletClient;
   pocket;
@@ -15,6 +17,21 @@ class RootStore {
 
   get mobile() {
     return this.pageDimensions.width < 600;
+  }
+
+  get media() {
+    if(!this.pocket || !this.pocket.mediaLoaded) { return []; }
+
+    return Object.keys(this.pocket.metadata.media).map(pocketMediaId => ({
+      ...this.pocket.metadata.media[pocketMediaId],
+      pocketMediaId
+    }));
+  }
+
+  PocketMediaItem(pocketMediaSlugOrId) {
+    pocketMediaSlugOrId = this.pocket.metadata.media_slug_map[pocketMediaSlugOrId] || pocketMediaSlugOrId;
+
+    return this.pocket.metadata.media[pocketMediaSlugOrId];
   }
 
   constructor() {
@@ -34,21 +51,127 @@ class RootStore {
     console.timeEnd("init")
   });
 
-  LoadPocket = flow(function * ({pocketIdOrSlug}) {
+  LoadPocket = flow(function * ({pocketSlugOrId}) {
     yield this.InitializeClient();
-    const versionHash = yield this.client.LatestVersionHash({objectId: pocketIdOrSlug});
-    this.pocket = {
-      objectId: pocketIdOrSlug,
+    console.time("Load")
+    const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
+
+    const metadata = yield this.client.ContentObjectMetadata({
       versionHash,
-      metadata: yield this.client.ContentObjectMetadata({
-        versionHash,
-        metadataSubtree: "/public/asset_metadata/info",
-        produceLinkUrls: true
-      })
+      metadataSubtree: "/public/asset_metadata/info",
+      produceLinkUrls: true
+    })
+
+    this.pocket = {
+      objectId: pocketSlugOrId,
+      versionHash,
+      metadata
     };
+
+    console.timeEnd("Load")
+
+    console.time("Load Media")
+    this.LoadMedia()
+      .then(() => console.timeEnd("Load Media"))
+
+    setTimeout(() => this.GenerateKey(), 1000);
 
     return this.pocket;
   });
+
+  LoadMedia = flow(function * () {
+    const metadata = {...this.pocket.metadata};
+    // TODO: Versioned media, maybe build media into pocket
+    const mediaIds = Object.keys(metadata.media || {})
+      .map(pocketMediaId =>
+        metadata.media[pocketMediaId].media_id
+      )
+      .filter(t => t)
+      .filter((v, i, a) => a.indexOf(v) === i);
+
+    let allMedia = {};
+    yield Promise.all(
+      metadata.media_catalogs.map(async mediaCatalogId => {
+        const media = await this.client.ContentObjectMetadata({
+          versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
+          metadataSubtree: "/public/asset_metadata/info/media",
+          select: mediaIds,
+          produceLinkUrls: true
+        })
+
+        Object.keys(media || {}).forEach(mediaId =>
+          allMedia[mediaId] = media[mediaId]
+        )
+      })
+    );
+
+    Object.keys(metadata.media).forEach(pocketMediaId => {
+      const mediaItem = allMedia[metadata.media[pocketMediaId].media_id];
+      metadata.media[pocketMediaId].mediaItem = mediaItem;
+      metadata.media[pocketMediaId].scheduleInfo = this.MediaItemScheduleInfo(mediaItem);
+
+      if(metadata.media[pocketMediaId].use_media_settings) {
+        metadata.media[pocketMediaId].display = mediaItem;
+      }
+    });
+
+    this.pocket = {
+      ...this.pocket,
+      metadata,
+      mediaLoaded : true
+    };
+  });
+
+  MediaItemScheduleInfo(mediaItem) {
+    const isLiveVideoType =
+      mediaItem &&
+      mediaItem?.type === "media" &&
+      mediaItem.media_type === "Video" &&
+      mediaItem.live_video;
+
+    if(!isLiveVideoType) {
+      return {
+        isLiveContent: false
+      };
+    }
+
+    try {
+      const now = new Date();
+      const startTime = !!mediaItem.start_time && new Date(mediaItem.start_time);
+      console.log(startTime);
+      const streamStartTime = (!!mediaItem.stream_start_time && new Date(mediaItem.stream_start_time)) || startTime;
+      const endTime = !!mediaItem.end_time && new Date(mediaItem.end_time);
+      const started = !streamStartTime || now > streamStartTime;
+      const ended = !!endTime && now > endTime;
+      const displayStartDate = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "numeric"}).replace(/0(\d)/g, "$1");
+      const displayStartDateLong = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "short"}).replace(/0(\d)/g, "$1");
+      const displayStartTime = startTime?.toLocaleTimeString?.(this.preferredLocale, {hour: "numeric"}).replace(/^0(\d)/, "$1");
+
+      return {
+        startTime,
+        streamStartTime,
+        endTime,
+        isLiveContent: true,
+        currentlyLive: started && !ended,
+        started,
+        ended,
+        displayStartDate,
+        displayStartDateLong,
+        displayStartTime
+      };
+    } catch(error) {
+       
+      console.error(`Error parsing start/end time in media item ${mediaItem.name}`);
+       
+      console.error(error);
+       
+      console.error(mediaItem);
+
+      return {
+        isLiveContent: false
+      };
+    }
+  };
 
   GenerateKey() {
     const wallet = this.client.GenerateWallet();

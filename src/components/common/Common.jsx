@@ -2,12 +2,13 @@ import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames, SetImageUrlDimensions} from "@/utils/Utils.js";
-import {useState} from "react";
+import {forwardRef, useState} from "react";
 import {decodeThumbHash, thumbHashToApproximateAspectRatio, thumbHashToDataURL} from "@/utils/Thumbhash.js";
+import {Link} from "wouter";
 
 const S = CreateModuleClassMatcher(CommonStyles);
 
-export const HashedImage = observer(({
+export const HashedLoaderImage = observer(({
   src,
   hash,
   width,
@@ -39,7 +40,7 @@ export const HashedImage = observer(({
           />
       }
       {
-        loaded ? null :
+        loaded || !hash ? null :
           <div
             {...props}
             style={{
@@ -65,3 +66,69 @@ export const PageLoader = observer(({containerClassName="", className=""}) => {
     </div>
   );
 });
+
+export const Linkish = forwardRef(function Linkish({
+  to,
+  href,
+  target="_blank",
+  rel="noopener",
+  onClick,
+  disabled,
+  styled=false,
+  divButton=false,
+  ...props
+}, ref) {
+  if(styled) {
+    props.className = JoinClassNames("button", props.className || "");
+  }
+
+  if(!disabled && (href || to)) {
+    // a tags don't have :disabled
+    if(href) {
+      return <a href={href} target={target} rel={rel} onClick={onClick} ref={ref} {...props} />;
+    } else if(to) {
+      return <Link href={to} onClick={onClick} ref={ref} {...props} />;
+    }
+  } else if(onClick || props.type === "submit") {
+    if(divButton) {
+      return <div role="button" tabIndex={0} aria-disabled={disabled} onClick={!disabled ? onClick : undefined} ref={ref} {...props} />;
+    } else {
+      return <button disabled={disabled} onClick={onClick} ref={ref} {...props} />;
+    }
+  } else {
+    return <div ref={ref} {...props} />;
+  }
+});
+
+export const MediaItemImageUrl = ({mediaItem, display, aspectRatio, width}) => {
+  if(!mediaItem && !display) { return {}; }
+
+  display = display || mediaItem;
+
+  aspectRatio = aspectRatio?.toLowerCase();
+  const aspectRatioPreference =
+    (mediaItem?.type === "media" && mediaItem?.media_type === "Video") ?
+      ["landscape", "square", "portrait"] :
+      ["square", "landscape", "portrait"];
+
+  const imageAspectRatio =
+    [aspectRatio, ...aspectRatioPreference].find(ratio => display?.[`thumbnail_image_${ratio}`]) || aspectRatioPreference[0];
+
+  let imageUrl = display?.[`thumbnail_image_${imageAspectRatio}`]?.url;
+  const imageHash = display?.[`thumbnail_image_${imageAspectRatio}_hash`];
+
+  if(!imageUrl && display) {
+    return MediaItemImageUrl({mediaItem, aspectRatio, width});
+  }
+
+  if(width) {
+    imageUrl = SetImageUrlDimensions({url: imageUrl, width});
+  }
+
+  return {
+    imageUrl,
+    imageHash,
+    imageAspectRatio,
+    altText: display.thumbnail_alt_text
+  };
+};

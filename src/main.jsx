@@ -2,6 +2,8 @@ import "@/assets/stylesheets/reset.scss"
 import "@/assets/stylesheets/variables.scss";
 import "@/assets/stylesheets/base.scss";
 
+import {rootStore} from "@/stores/index.js";
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client"
 

@@ -30,7 +30,10 @@ const App = () => {
 
   return (
     <Switch>
-      <Route path="/:pocketIdOrSlug/*?">
+      <Route path="/:pocketSlugOrId/:pocketMediaSlugOrId">
+        <Pocket />
+      </Route>
+      <Route path="/:pocketSlugOrId/*?">
         <Pocket />
       </Route>
       <Route>
