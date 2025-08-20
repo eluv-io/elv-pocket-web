@@ -1,5 +1,6 @@
 import {makeAutoObservable, flow} from "mobx";
 import {ElvWalletClient} from "@eluvio/elv-client-js/src/index.js";
+import PaymentStore from "@/stores/PaymentStore.js";
 
 class RootStore {
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
@@ -71,26 +72,28 @@ class RootStore {
     return {
       url: this.pocket?.metadata?.[backgroundKey]?.url,
       hash: this.pocket?.metadata?.[`${backgroundKey}_hash`],
-    }
+    };
   }
 
   constructor() {
     makeAutoObservable(this);
+
+    this.paymentStore = new PaymentStore(this);
   }
 
   InitializeClient = flow(function * () {
-    console.time("init");
+    console.time("Initialize Client");
     const walletClient = yield ElvWalletClient.Initialize({
       appId: "pocket",
-      // eslint-disable-next-line no-undef
+
       network: EluvioConfiguration.network,
-      // eslint-disable-next-line no-undef
+
       mode: EluvioConfiguration.mode
-    })
+    });
 
     this.walletClient = walletClient;
     this.client = walletClient.client;
-    console.timeEnd("init")
+    console.timeEnd("Initialize Client");
   });
 
   LoadPocket = flow(function * ({pocketSlugOrId}) {
@@ -99,14 +102,14 @@ class RootStore {
     this.loading = true;
 
     yield this.InitializeClient();
-    console.time("Load")
+    console.time("Load");
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
       versionHash,
       metadataSubtree: "/public/asset_metadata/info",
       produceLinkUrls: true
-    })
+    });
 
     this.pocket = {
       objectId: pocketSlugOrId,
@@ -114,11 +117,11 @@ class RootStore {
       metadata
     };
 
-    console.timeEnd("Load")
+    console.timeEnd("Load");
 
-    console.time("Load Media")
+    console.time("Load Media");
     this.LoadMedia()
-      .then(() => console.timeEnd("Load Media"))
+      .then(() => console.timeEnd("Load Media"));
 
     setTimeout(() => this.GenerateKey(), 2000);
 
@@ -144,11 +147,11 @@ class RootStore {
           metadataSubtree: "/public/asset_metadata/info/media",
           select: mediaIds,
           produceLinkUrls: true
-        })
+        });
 
         Object.keys(media || {}).forEach(mediaId =>
           allMedia[mediaId] = media[mediaId]
-        )
+        );
       })
     );
 
@@ -165,7 +168,7 @@ class RootStore {
 
       (mediaItem.permissions || []).forEach(({permission_item_id}) =>
         !permissionItemIds.includes(permission_item_id) && permissionItemIds.push(permission_item_id)
-      )
+      );
     });
 
     // Load permission items and determine marketplaces
@@ -178,13 +181,13 @@ class RootStore {
           metadataSubtree: "/public/asset_metadata/info/permission_items",
           select: permissionItemIds,
           produceLinkUrls: true
-        })
+        });
 
         Object.keys(permissionItems || {}).forEach(permissionItemId => {
           allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
           const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
           !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
-        })
+        });
       })
     );
 
@@ -204,7 +207,7 @@ class RootStore {
     Object.keys(allPermissionItems).forEach(permissionItemId => {
       const permissionItem = allPermissionItems[permissionItemId];
       const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
-      const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku)
+      const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku);
       allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
       allPermissionItems[permissionItemId].owned = !!marketplace.ownedItems
         .find(({contractAddress}) =>
@@ -213,7 +216,7 @@ class RootStore {
             marketplaceItem.nftTemplateMetadata.address
           )
         );
-    })
+    });
 
     this.permissionItems = allPermissionItems;
 
@@ -317,7 +320,7 @@ class RootStore {
 
 
     this.initialized = true;
-    console.timeEnd("Generate")
+    console.timeEnd("Generate");
   }
 
   UpdatePageDimensions() {
@@ -329,4 +332,6 @@ class RootStore {
 }
 
 export const rootStore = new RootStore();
+export const paymentStore = rootStore.paymentStore;
+
 window.rootStore = rootStore;

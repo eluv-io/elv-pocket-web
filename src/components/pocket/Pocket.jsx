@@ -22,7 +22,7 @@ const Pocket = observer(() => {
     rootStore.LoadPocket({pocketSlugOrId})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
-      )
+      );
   }, [pocketSlugOrId]);
 
   if(!rootStore.pocket) {
@@ -81,7 +81,7 @@ const Pocket = observer(() => {
           </div>
       }
     </div>
-  )
+  );
 });
 
 export default Pocket;

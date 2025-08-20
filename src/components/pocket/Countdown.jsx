@@ -1,6 +1,6 @@
 import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 

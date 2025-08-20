@@ -1,4 +1,4 @@
-import {useEffect} from "react"
+import {useEffect} from "react";
 import {rootStore} from "@/stores/index.js";
 import {Route, Switch} from "wouter";
 import Pocket from "@/components/pocket/Pocket.jsx";
@@ -44,7 +44,7 @@ const App = () => {
         <Base />
       </Route>
     </Switch>
-  )
+  );
 };
 
 export default App;

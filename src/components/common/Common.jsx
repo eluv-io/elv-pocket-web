@@ -58,7 +58,7 @@ export const HashedLoaderImage = observer(({
       }
     </>
   );
-})
+});
 
 export const Loader = observer(({className=""}) => {
   return (
@@ -210,5 +210,5 @@ export const FormatPriceString = (
     formattedPrice = formattedPrice.slice(0, -3);
   }
 
-  return formattedPrice
+  return formattedPrice;
 };

@@ -3,7 +3,7 @@ import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
 import {rootStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
 import Countdown from "@/components/pocket/Countdown.jsx";

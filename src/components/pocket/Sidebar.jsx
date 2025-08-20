@@ -51,7 +51,7 @@ const MediaCard = observer(({mediaItem}) => {
         </div>
       </div>
     </Linkish>
-  )
+  );
 });
 
 const SidebarContent = observer(() => {
@@ -117,7 +117,7 @@ const Sidebar = observer(() => {
   const banners = (config.banners || [])
     .filter(banner =>
       banner.image && (banner.link_type !== "media" || mediaItem.id !== banner.media_id)
-    )
+    );
 
   return (
     <div className={S("sidebar")}>

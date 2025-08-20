@@ -84,11 +84,11 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
           }
         </div>
         <div className={S("payment__terms")}>
-          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms">Terms of Service.</a>
+          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.</a>
         </div>
       </div>
     </div>
-  )
+  );
 });
 
 const PurchaseItem = observer(({permissionItem, Select}) => {

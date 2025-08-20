@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from "react";
+import {forwardRef, useEffect, useState} from "react";
 import {rootStore} from "@/stores";
 import {InitializeEluvioPlayer, EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import {CreateModuleClassMatcher, LinkTargetHash} from "@/utils/Utils.js";
@@ -128,7 +128,7 @@ const Video = forwardRef(function VideoComponent({
         callback(player);
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [targetRef, contentHash]);
 
   return (
