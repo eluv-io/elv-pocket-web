@@ -15,11 +15,9 @@
     animation: var(--animation-fadein) 1.25s ease;
     background-color: var(--background-primary);
     border-radius: 10px;
-    bottom: 50px;
     box-shadow: 0 0 10px black;
     padding: 10px 20px;
     position: absolute;
-    right: 50px;
     z-index: 1;
   }
 }
@@ -38,6 +36,11 @@
     overflow: hidden;
     padding: var(--gutter-size);
   }
+
+  .logo {
+    right: 50px;
+    bottom: 50px;
+  }
 }
 
 
@@ -51,5 +54,10 @@
     &--unauthorized {
       grid-template-rows: max-content 1fr;
     }
+  }
+
+  .logo {
+    right: 20px;
+    bottom: 20px;
   }
 }
