@@ -3,12 +3,15 @@ import {ElvWalletClient} from "@eluvio/elv-client-js/src/index.js";
 
 class RootStore {
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
+  preferredCurrency = "USD";
+  currency = "USD";
 
   client;
   walletClient;
   pocket;
   initialized = false;
   mnemonic = localStorage.getItem("mn");
+  permissionItems = {};
 
   pageDimensions = {
     width: window.innerWidth,
@@ -16,7 +19,7 @@ class RootStore {
   };
 
   get mobile() {
-    return this.pageDimensions.width < 600;
+    return this.pageDimensions.width < 1000;
   }
 
   get media() {
@@ -71,12 +74,6 @@ class RootStore {
     }
   }
 
-  PocketMediaItem(pocketMediaSlugOrId) {
-    pocketMediaSlugOrId = this.pocket.metadata.media_slug_map[pocketMediaSlugOrId] || pocketMediaSlugOrId;
-
-    return this.pocket.metadata.media[pocketMediaSlugOrId];
-  }
-
   constructor() {
     makeAutoObservable(this);
   }
@@ -85,7 +82,9 @@ class RootStore {
     console.time("init");
     const walletClient = yield ElvWalletClient.Initialize({
       appId: "pocket",
+      // eslint-disable-next-line no-undef
       network: EluvioConfiguration.network,
+      // eslint-disable-next-line no-undef
       mode: EluvioConfiguration.mode
     })
 
@@ -95,6 +94,10 @@ class RootStore {
   });
 
   LoadPocket = flow(function * ({pocketSlugOrId}) {
+    if(this.loading) { return; }
+
+    this.loading = true;
+
     yield this.InitializeClient();
     console.time("Load")
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
@@ -119,6 +122,8 @@ class RootStore {
 
     setTimeout(() => this.GenerateKey(), 2000);
 
+    this.loading = false;
+
     return this.pocket;
   });
 
@@ -126,12 +131,11 @@ class RootStore {
     const metadata = {...this.pocket.metadata};
     // TODO: Versioned media, maybe build media into pocket
     const mediaIds = Object.keys(metadata.media || {})
-      .map(pocketMediaId =>
-        metadata.media[pocketMediaId].media_id
-      )
+      .map(pocketMediaId => metadata.media[pocketMediaId].media_id)
       .filter(t => t)
       .filter((v, i, a) => a.indexOf(v) === i);
 
+    // Load media
     let allMedia = {};
     yield Promise.all(
       metadata.media_catalogs.map(async mediaCatalogId => {
@@ -148,6 +152,8 @@ class RootStore {
       })
     );
 
+    // Determine permission ids
+    let permissionItemIds = [];
     Object.keys(metadata.media).forEach(pocketMediaId => {
       const mediaItem = allMedia[metadata.media[pocketMediaId].media_id];
       metadata.media[pocketMediaId].mediaItem = mediaItem;
@@ -156,7 +162,60 @@ class RootStore {
       if(metadata.media[pocketMediaId].use_media_settings) {
         metadata.media[pocketMediaId].display = mediaItem;
       }
+
+      (mediaItem.permissions || []).forEach(({permission_item_id}) =>
+        !permissionItemIds.includes(permission_item_id) && permissionItemIds.push(permission_item_id)
+      )
     });
+
+    // Load permission items and determine marketplaces
+    let allPermissionItems = {};
+    let allMarketplaceIds = [];
+    yield Promise.all(
+      metadata.permission_sets.map(async permissionSetId => {
+        const permissionItems = await this.client.ContentObjectMetadata({
+          versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
+          metadataSubtree: "/public/asset_metadata/info/permission_items",
+          select: permissionItemIds,
+          produceLinkUrls: true
+        })
+
+        Object.keys(permissionItems || {}).forEach(permissionItemId => {
+          allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
+          const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
+          !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
+        })
+      })
+    );
+
+    let allMarketplaces = {};
+    yield Promise.all(
+      allMarketplaceIds.map(async marketplaceId => {
+        allMarketplaces[marketplaceId] = await this.walletClient.LoadMarketplace({marketplaceId});
+
+        allMarketplaces[marketplaceId].ownedItems = (await this.walletClient.UserItems({
+          userAddress: this.client.CurrentAccountAddress(),
+          marketplaceId,
+          limit: 1000
+        })).results || [];
+      })
+    );
+
+    Object.keys(allPermissionItems).forEach(permissionItemId => {
+      const permissionItem = allPermissionItems[permissionItemId];
+      const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
+      const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku)
+      allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
+      allPermissionItems[permissionItemId].owned = !!marketplace.ownedItems
+        .find(({contractAddress}) =>
+          this.client.utils.EqualAddress(
+            contractAddress,
+            marketplaceItem.nftTemplateMetadata.address
+          )
+        );
+    })
+
+    this.permissionItems = allPermissionItems;
 
     this.pocket = {
       ...this.pocket,
@@ -164,6 +223,37 @@ class RootStore {
       mediaLoaded : true
     };
   });
+
+  PocketMediaItem(pocketMediaSlugOrId) {
+    pocketMediaSlugOrId = this.pocket.metadata.media_slug_map[pocketMediaSlugOrId] || pocketMediaSlugOrId;
+
+    return this.pocket.metadata.media[pocketMediaSlugOrId];
+  }
+
+  PocketMediaItemPermissions(pocketMediaSlugOrId) {
+    const item = this.PocketMediaItem(pocketMediaSlugOrId);
+
+    if(!item.mediaItem) { return; }
+
+    let permissions = {
+      authorized: (item.mediaItem?.permissions || []).length === 0,
+      permissionItems: []
+    };
+
+    permissions.permissionItems = item.mediaItem.permissions.map(({permission_item_id}) => {
+      if(!permission_item_id || !this.permissionItems[permission_item_id]) {
+        return;
+      }
+
+      if(this.permissionItems[permission_item_id].owned) {
+        permissions.authorized = true;
+      }
+
+      return this.permissionItems[permission_item_id];
+    }).filter(permission => permission);
+
+    return permissions;
+  }
 
   MediaItemScheduleInfo(mediaItem) {
     const isLiveVideoType =
@@ -181,7 +271,6 @@ class RootStore {
     try {
       const now = new Date();
       const startTime = !!mediaItem.start_time && new Date(mediaItem.start_time);
-      console.log(startTime);
       const streamStartTime = (!!mediaItem.stream_start_time && new Date(mediaItem.stream_start_time)) || startTime;
       const endTime = !!mediaItem.end_time && new Date(mediaItem.end_time);
       const started = !streamStartTime || now > streamStartTime;

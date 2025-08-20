@@ -4,7 +4,7 @@
   position: absolute;
   width: calc(100 * var(--vw));
 
-  img {
+  &__image {
     height: 100%;
     object-fit: cover;
     object-position: center;
@@ -47,5 +47,9 @@
     grid-template-rows: max-content 1fr;
     max-height: calc(100 * var(--vh));
     overflow: hidden;
+
+    &--unauthorized {
+      grid-template-rows: max-content 1fr;
+    }
   }
 }

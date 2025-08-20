@@ -21,7 +21,6 @@ const Video = forwardRef(function VideoComponent({
   className="",
   containerProps
 }, ref) {
-  console.log(isLive)
   const [videoDimensions, setVideoDimensions] = useState(undefined);
   const [player, setPlayer] = useState(undefined);
   const [reloadKey, setReloadKey] = useState(0);
@@ -29,11 +28,12 @@ const Video = forwardRef(function VideoComponent({
   const [targetRef, setTargetRef] = useState(undefined);
 
   useEffect(() => {
+    let versionHash = videoHash;
     if(videoLink) {
-      videoHash = LinkTargetHash(videoLink) || videoHash;
+      versionHash = LinkTargetHash(videoLink) || videoHash;
     }
 
-    rootStore.client.LatestVersionHash({versionHash: videoHash})
+    rootStore.client.LatestVersionHash({versionHash})
       .then(setContentHash);
   }, [videoLink, videoHash, reloadKey]);
 
@@ -45,11 +45,10 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         delete window.players?.[contentHash];
       } catch(error) {
-
-        console.log(error);
+        console.error(error);
       }
     };
-  }, [player]);
+  }, [player, contentHash]);
 
   useEffect(() => {
     if(!targetRef || !contentHash) { return; }
@@ -59,7 +58,7 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         setPlayer(undefined);
       } catch(error) {
-        console.log(error);
+        console.error(error);
       }
     }
 
@@ -129,6 +128,7 @@ const Video = forwardRef(function VideoComponent({
         callback(player);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetRef, contentHash]);
 
   return (

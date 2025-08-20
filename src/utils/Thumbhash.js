@@ -218,8 +218,6 @@ export function thumbHashToApproximateAspectRatio(hash) {
   let isLandscape = hash[4] & 0x80
   let lx = isLandscape ? hasAlpha ? 5 : 7 : header & 7
   let ly = isLandscape ? header & 7 : hasAlpha ? 5 : 7
-
-  //console.log("AAR", lx, ly)
   return lx / ly
 }
 

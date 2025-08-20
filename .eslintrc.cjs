@@ -12,7 +12,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module'
   },
-  settings: { react: { version: '18.2' } },
+  settings: { react: { version: '19.1.1' } },
   plugins: ['react-refresh'],
   rules: {
     "react-hooks/exhaustive-deps": 0,
@@ -26,9 +26,7 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
-    "no-console": [
-      "error"
-    ],
+    "no-console": ["error", { "allow": ["error"] }],
     "quotes": [
       "error",
       "double"

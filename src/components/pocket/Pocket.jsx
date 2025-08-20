@@ -11,6 +11,7 @@ import Sidebar from "@/components/pocket/Sidebar.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import Purchase from "@/components/pocket/Purchase.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -20,7 +21,7 @@ const Pocket = observer(() => {
   useEffect(() => {
     rootStore.LoadPocket({pocketSlugOrId})
       .then(pocket =>
-        SetHTMLMetaTags(pocket.metadata.meta_tags)
+        pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       )
   }, [pocketSlugOrId]);
 
@@ -41,6 +42,17 @@ const Pocket = observer(() => {
     );
   }
 
+  const pocketMediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+
+  if(!pocketMediaItem) {
+    return null;
+  }
+
+  let permissions = {};
+  if(rootStore.pocket?.mediaLoaded) {
+    permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+  }
+
   return (
     <div className="page-container">
       {
@@ -50,6 +62,7 @@ const Pocket = observer(() => {
               <HashedLoaderImage
                 src={rootStore.splashImage.url}
                 hash={rootStore.splashImage.hash}
+                className={S("splash__image")}
               />
               <div className={S("logo")}>
                 <SVG src={EIcon} alt="Eluvio"/>
@@ -58,8 +71,12 @@ const Pocket = observer(() => {
             </div>
             <PageLoader/>
           </> :
-          <div className={S("content")}>
-            <Media/>
+          <div className={S("content", permissions.authorized ? "content--authorized " : "content--unauthorized")}>
+            {
+              permissions.authorized ?
+                <Media key={`${pocketMediaSlugOrId}`} /> :
+                <Purchase key={`${pocketMediaSlugOrId}`} />
+            }
             <Sidebar />
           </div>
       }

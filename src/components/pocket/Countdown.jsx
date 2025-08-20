@@ -92,7 +92,7 @@ const Countdown = observer(({displayTime, time, showSeconds=false, Render, OnEnd
     return () => {
       clearInterval(countdownInterval);
     };
-  }, []);
+  }, [displayTime, time, showSeconds, OnEnded]);
 
   if(Render) {
     return Render(countdown);

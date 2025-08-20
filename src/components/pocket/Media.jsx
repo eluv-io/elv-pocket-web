@@ -13,15 +13,12 @@ const S = CreateModuleClassMatcher(MediaStyles);
 
 const MediaCountdown = observer(({mediaItem, setStarted}) => {
   if(!mediaItem.scheduleInfo.isLiveContent) {
-    console.log("SKIP")
     return null;
   }
 
   const backgroundKey = rootStore.mobile && mediaItem.display.countdown_background_mobile ?
     "countdown_background_mobile" :
     "countdown_background_desktop";
-
-  console.log(mediaItem, backgroundKey, mediaItem.display[backgroundKey]);
 
   return (
     <div className={S("countdown-page")}>
@@ -79,11 +76,12 @@ const Media = observer(() => {
   const {pocketMediaSlugOrId} = useParams();
 
   const media = rootStore.PocketMediaItem(pocketMediaSlugOrId);
-  const [started, setStarted] = useState(!media.scheduleInfo.isLiveContent || media.scheduleInfo.started);
+  const scheduleInfo = media?.mediaItem && rootStore.MediaItemScheduleInfo(media.mediaItem);
+  const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
 
   useEffect(() => {
-    setStarted(!media.scheduleInfo.isLiveContent || media.scheduleInfo.started);
-  }, [pocketMediaSlugOrId]);
+    setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
+  }, [pocketMediaSlugOrId, scheduleInfo]);
 
   if(!media) {
     return null;
