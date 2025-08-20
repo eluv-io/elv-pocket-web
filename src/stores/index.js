@@ -46,8 +46,7 @@ class RootStore {
           timeComparison = 1;
         }
 
-        /*
-        switch(section.select.sort_order) {
+        switch(this.pocket.metadata.sidebar_config.sort_order) {
           case "title_asc":
             return titleComparison;
           case "title_desc":
@@ -56,11 +55,20 @@ class RootStore {
             return scheduleComparison || (-1 * timeComparison) || titleComparison;
           // "time_asc" is the default case
           default:
-
-         */
             return scheduleComparison || timeComparison || titleComparison;
-        //}
+        }
       });
+  }
+
+  get splashImage() {
+    const backgroundKey = this.mobile && this.pocket.metadata.splash_screen_background_mobile ?
+      "splash_screen_background_mobile" :
+      "splash_screen_background";
+
+    return {
+      url: this.pocket?.metadata?.[backgroundKey]?.url,
+      hash: this.pocket?.metadata?.[`${backgroundKey}_hash`],
+    }
   }
 
   PocketMediaItem(pocketMediaSlugOrId) {

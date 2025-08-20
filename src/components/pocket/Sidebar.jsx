@@ -55,9 +55,21 @@ const MediaCard = observer(({mediaItem}) => {
 });
 
 const SidebarContent = observer(() => {
-  const liveContent = rootStore.media.filter(item => item.scheduleInfo.isLiveContent && item.scheduleInfo.started && !item.scheduleInfo.ended);
-  const upcomingContent = rootStore.media.filter(item => item.scheduleInfo.isLiveContent && !item.scheduleInfo.started);
-  const vodContent = rootStore.media.filter(item => !item.scheduleInfo.isLiveContent);
+  const config = rootStore.pocket.metadata.sidebar_config || {};
+
+  let media = rootStore.media;
+
+  if(config.content === "specific") {
+    media = config.content_ids
+      .map(({id}) =>
+        rootStore.PocketMediaItem(id)
+      )
+      .filter(item => item);
+  }
+
+  const liveContent = media.filter(item => item.scheduleInfo.isLiveContent && item.scheduleInfo.started && !item.scheduleInfo.ended);
+  const upcomingContent = media.filter(item => item.scheduleInfo.isLiveContent && !item.scheduleInfo.started);
+  const vodContent = media.filter(item => !item.scheduleInfo.isLiveContent);
 
   let content = [
     liveContent.length === 0 ? null :
@@ -92,13 +104,20 @@ const SidebarContent = observer(() => {
 });
 
 const Sidebar = observer(() => {
-  const {pocketMediaSlugOrId} = useParams();
+  const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
 
   const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
 
   if(!mediaItem) {
     return null;
   }
+
+  const config = rootStore.pocket.metadata.sidebar_config || {};
+
+  const banners = (config.banners || [])
+    .filter(banner =>
+      banner.image && (banner.link_type !== "media" || mediaItem.id !== banner.media_id)
+    )
 
   return (
     <div className={S("sidebar")}>
@@ -131,15 +150,32 @@ const Sidebar = observer(() => {
           }
         </div>
       </div>
-      <div className={S("banners")}>
-        <Linkish href="https://google.com" className={S("banner")}>
-          <HashedLoaderImage
-            src={rootStore.pocket.metadata.splash_screen_background.url}
-            hash={rootStore.pocket.metadata.splash_screen_background_hash}
-            className={S("banner__image")}
-          />
-        </Linkish>
-      </div>
+      {
+        banners.length === 0 ? null :
+          <div className={S("banners")}>
+            {
+              banners.map((banner, index) =>
+                <Linkish
+                  key={index}
+                  href={banner.link_type === "external" && banner.url}
+                  to={
+                    banner.link_type === "media" &&
+                    UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
+                  }
+                  className={S("banner")}
+                >
+                  <HashedLoaderImage
+                    src={banner.image.url}
+                    hash={banner.image_hash}
+                    width={600}
+                    alt={banner.image_alt}
+                    className={S("banner__image")}
+                  />
+                </Linkish>
+              )
+            }
+          </div>
+      }
       <SidebarContent/>
       <div className={S("logo")}>
         <SVG src={EIcon} alt="Eluvio"/>

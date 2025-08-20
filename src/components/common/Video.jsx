@@ -59,7 +59,6 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         setPlayer(undefined);
       } catch(error) {
-
         console.log(error);
       }
     }
@@ -93,6 +92,7 @@ const Video = forwardRef(function VideoComponent({
           verifyContent: EluvioPlayerParameters.verifyContent.ON,
           backgroundColor: "black",
           capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.mobile ? "ON" : "OFF"],
+          title: EluvioPlayerParameters.title.FULLSCREEN_ONLY,
           errorCallback,
           // For live content, latest hash instead of allowing player to reload
           restartCallback: async () => {

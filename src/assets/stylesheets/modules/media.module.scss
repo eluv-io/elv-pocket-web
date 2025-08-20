@@ -6,11 +6,72 @@
   width: 100%;
 }
 
+.countdown-page,
 .video {
   animation: var(--animation-fadein) 2s ease;
   height: 100%;
   max-height: min(100%, calc(100 * var(--vh)));
   width: 100%;
+}
+
+.countdown-page {
+  align-items: center;
+  animation: var(--animation-fadein) 1s ease;
+  display: flex;
+  justify-content: center;
+  position: relative;
+
+  &__image,
+  &__cover {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    object-position: center;
+    position: absolute;
+    width: 100%;
+  }
+
+  &__cover {
+    background-color: black;
+    opacity: 0.5;
+  }
+
+  &__content {
+    align-items: center;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    gap: 10px;
+    justify-content: center;
+    padding: 50px;
+    position: relative;
+    text-align: center;
+    text-shadow: 0 0 10px black;
+    width: 100%;
+    z-index: 1;
+  }
+
+  &__headers,
+  &__icons {
+    align-items: center;
+    display: flex;
+    gap: 20px;
+  }
+
+  &__icon {
+    height: 80px;
+    object-fit: contain;
+    width: 80px;
+  }
+
+  &__title {
+    font-size: 36px;
+  }
+
+  &__countdown {
+    height: 100px;
+  }
 }
 
 @media screen and (width >= 1001px) {

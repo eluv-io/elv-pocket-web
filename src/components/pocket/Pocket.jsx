@@ -28,10 +28,6 @@ const Pocket = observer(() => {
     return null;
   }
 
-  const backgroundKey = rootStore.mobile && rootStore.pocket.metadata.splash_screen_background_mobile ?
-    "splash_screen_background_mobile" :
-    "splash_screen_background";
-
   if(rootStore.initialized && rootStore.pocket?.mediaLoaded && !pocketMediaSlugOrId) {
     const firstItemSlugOrId = rootStore.media[0]?.slug || rootStore.media[0]?.id;
 
@@ -52,8 +48,8 @@ const Pocket = observer(() => {
           <>
             <div className={S("splash")}>
               <HashedLoaderImage
-                src={rootStore.pocket.metadata[backgroundKey].url}
-                hash={rootStore.pocket.metadata[`${backgroundKey}_hash`]}
+                src={rootStore.splashImage.url}
+                hash={rootStore.splashImage.hash}
               />
               <div className={S("logo")}>
                 <SVG src={EIcon} alt="Eluvio"/>
