@@ -21,9 +21,7 @@ export const HashedLoaderImage = observer(({
   const loaderAspectRatio = hash && thumbHashToApproximateAspectRatio(hash);
 
   if(width && !error) {
-    //src = SetImageUrlDimensions({url: src, width});
-  } else if(error && width) {
-    console.log("SKIPPING", src)
+    src = SetImageUrlDimensions({url: src, width});
   }
 
   return (

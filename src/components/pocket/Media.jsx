@@ -2,10 +2,8 @@ import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {useEffect} from "react";
 import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
-import {HashedLoaderImage, PageLoader} from "@/components/common/Common.jsx";
 import Video from "@/components/common/Video.jsx";
 
 const S = CreateModuleClassMatcher(MediaStyles);

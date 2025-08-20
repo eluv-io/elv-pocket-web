@@ -4,10 +4,10 @@
   // max-width: calc(100 * var(--vw));
   max-width: 100%;
   width: 100%;
-
 }
 
 .video {
+  animation: var(--animation-fadein) 2s ease;
   height: 100%;
   max-height: min(100%, calc(100 * var(--vh)));
   width: 100%;
@@ -32,10 +32,6 @@
 
 
 @media screen and (width <= 1000px) {
-  .media {
-
-  }
-
   .video {
     margin-inline: auto;
   }

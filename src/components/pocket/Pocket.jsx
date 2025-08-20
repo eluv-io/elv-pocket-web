@@ -67,9 +67,6 @@ const Pocket = observer(() => {
             <Sidebar />
           </div>
       }
-      <div className={S("size")}>
-        {rootStore.pageDimensions.width} x {rootStore.pageDimensions.height}
-      </div>
     </div>
   )
 });
