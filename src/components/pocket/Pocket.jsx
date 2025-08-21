@@ -5,7 +5,7 @@ import {Redirect, useParams} from "wouter";
 import {useEffect} from "react";
 import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
-import {HashedLoaderImage, PageLoader} from "@/components/common/Common.jsx";
+import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
 import Sidebar from "@/components/pocket/Sidebar.jsx";
 import UrlJoin from "url-join";
@@ -71,9 +71,10 @@ const Pocket = observer(() => {
               <div className={S("logo")}>
                 <SVG src={EIcon} alt="Eluvio"/>
                 <span>POCKET TV</span>
+                <Loader className={S("logo__loader")} />
               </div>
             </div>
-            <PageLoader/>
+
           </> :
           <div
             key={`content-${rootStore.pocket?.mediaLoadIndex}`}

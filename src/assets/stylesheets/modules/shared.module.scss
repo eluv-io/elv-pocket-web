@@ -8,16 +8,19 @@
 .logo {
   align-items: center;
   display: flex;
+  font-size: 22px;
   gap: 10px;
+
+  &__loader {
+    margin-left: 10px;
+  }
 
   svg {
     height: 40px;
-
   }
 
   span {
     color: var(--text-primary);
-    font-size: 22px;
     font-weight: 700;
   }
 }

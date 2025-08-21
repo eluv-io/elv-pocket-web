@@ -3,7 +3,7 @@ import SharedStyles from "@/assets/stylesheets/modules/shared.module.scss";
 export const JoinClassNames = (...cs) => cs.map(c => c || "").join(" ");
 
 export const CreateModuleClassMatcher = (...modules) => {
-  modules = [...modules, SharedStyles];
+  modules = [SharedStyles, ...modules];
 
   return (...classes) => JoinClassNames(
     ...(classes.map(c => {

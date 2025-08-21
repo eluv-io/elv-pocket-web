@@ -9,10 +9,10 @@
 }
 
 .loader {
-  color: #046D8B;
+  color: var(--loader-color);
   display: grid;
   height: 20px;
-  width: 60px;
+  width: 30px;
 }
 
 .loader::before,
@@ -24,7 +24,7 @@
   content: "";
   grid-area: 1/1;
 
-  --c: #0000 calc(100% / 3), #046D8B 0 calc(2 * 100% / 3), #0000 0;
+  --c: #0000 calc(100% / 3), var(--loader-color) 0 calc(2 * 100% / 3), #0000 0;
   --c1: linear-gradient(90deg, var(--c));
   --c2: linear-gradient(0deg, var(--c));
 }
