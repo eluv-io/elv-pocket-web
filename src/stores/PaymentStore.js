@@ -48,7 +48,8 @@ class PaymentStore {
               "Content-Type": "application/json",
             },
             body: {
-              validationURL: event.validationURL
+              validationURL: event.validationURL,
+              domain: window.location.hostname
             }
           });
 
