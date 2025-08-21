@@ -61,6 +61,11 @@
   &__icon {
     object-fit: contain;
   }
+
+  &__countdown {
+    animation: var(--animation-fadein) 0.5s ease;
+    min-height: 50px;
+  }
 }
 
 @media screen and (width >= 1001px) {
