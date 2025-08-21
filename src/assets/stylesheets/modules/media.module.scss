@@ -16,16 +16,14 @@
 }
 
 .end-screen {
-  display: block;
-  min-height: calc(50 * var(--vh));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 
   &__background {
-    height: 100%;
-    inset: 0;
     object-fit: contain;
     object-position: center;
-    position: absolute;
     width: 100%;
   }
 }
