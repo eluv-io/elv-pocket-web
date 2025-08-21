@@ -46,18 +46,13 @@
 
   &__access-title {
     color: var(--text-tertiary-alternate);
-    font-weight: 300;
     margin-bottom: 10px;
   }
 
   &__title,
   &__price {
     color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  &__subtitle {
-    font-weight: 300;
+    font-weight: 700;
   }
 
   &__select-container {
@@ -72,7 +67,7 @@
     border: 1px solid white;
     border-radius: 4px;
     color: var(--text-primary);
-    font-weight: 600;
+    font-weight: 700;
     margin-top: 20px;
     transition: background-color 0.15s ease, color 0.1s ease;
     width: 100%;
@@ -97,6 +92,12 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-align: center;
+
+  &__actions {
+    animation: var(--animation-fadein) 0.5s ease;
+    position: relative;
+  }
 
   &__options {
     display: flex;
@@ -126,7 +127,7 @@
 
   &__terms {
     color: var(--text-tertiary-alternate);
-    font-size: 12px;
+    font-size: 11px;
     margin-top: 20px;
     text-align: center;
 
@@ -138,6 +139,17 @@
   &__item-info {
     margin-bottom: 20px;
     text-align: center;
+  }
+
+  &__status,
+  &__error {
+    align-items: center;
+    background-color: var(--background-tertiary);
+    display: flex;
+    font-weight: 600;
+    inset: 0;
+    justify-content: center;
+    position: absolute;
   }
 }
 
@@ -188,9 +200,14 @@
 
   .payment {
     padding: 50px;
+    width: 420px;
 
     &__option {
       height: 60px;
+    }
+
+    &__error {
+      font-size: 24px;
     }
   }
 }
@@ -207,6 +224,14 @@
     &__option {
       height: 45px;
     }
+
+    &__terms {
+      font-size: 9px;
+    }
+
+    &__error {
+      font-size: 18px;
+    }
   }
 }
 
@@ -218,31 +243,35 @@
     height: 100%;
     max-height: calc(50 * var(--vh));
     min-height: calc(20 * var(--vh));
-    padding: 5px 0;
     width: 100%;
   }
 
   .item {
     align-items: center;
-    border-radius: 4px;
     flex: 1 0 0;
+    gap: 5px;
     height: 100%;
     justify-content: center;
     margin-inline: auto;
-    padding: 20px;
+    padding: 20px 10px;
     position: relative;
     width: 100%;
 
     &__access-title {
-      font-size: 14px;
+      font-size: 12px;
+    }
+
+    &__price {
+      font-size: 32px;
     }
 
     &__title {
-      font-size: 16px;
+      font-size: 18px;
     }
 
     &__subtitle {
-      font-size: 14px;
+      font-size: 12px;
+      padding-inline: 10px;
     }
 
     &__select {
@@ -253,13 +282,8 @@
   }
 
   .selected-item {
-    border-radius: 4px;
     height: 100%;
     width: 100%;
-
-    .item {
-      display: none;
-    }
   }
 
   .payment {
@@ -268,11 +292,11 @@
     width: 100%;
 
     &__options {
-      max-width: 300px;
+      max-width: 400px;
     }
 
     &__option {
-      height: 40px;
+      height: 60px;
 
       &--back {
         font-size: 12px;
@@ -281,7 +305,18 @@
     }
 
     &__terms {
+      display: flex;
       font-size: 10px;
+      gap: 30px;
+      justify-content: space-between;
+
+      div {
+        font-size: 9px;
+      }
+
+      button {
+        text-decoration: underline;
+      }
     }
   }
 }

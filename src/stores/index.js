@@ -85,9 +85,7 @@ class RootStore {
     console.time("Initialize Client");
     const walletClient = yield ElvWalletClient.Initialize({
       appId: "pocket",
-
       network: EluvioConfiguration.network,
-
       mode: EluvioConfiguration.mode
     });
 
@@ -96,10 +94,11 @@ class RootStore {
     console.timeEnd("Initialize Client");
   });
 
-  LoadPocket = flow(function * ({pocketSlugOrId}) {
-    if(this.loading) { return; }
+  LoadPocket = flow(function * ({pocketSlugOrId, force=false}) {
+    if(this.loading && !force) { return; }
 
     this.loading = true;
+    this.initialized = false;
 
     yield this.InitializeClient();
     console.time("Load");
@@ -223,7 +222,8 @@ class RootStore {
     this.pocket = {
       ...this.pocket,
       metadata,
-      mediaLoaded : true
+      mediaLoaded: true,
+      mediaLoadIndex: (this.pocket.mediaLoadIndex || 0) + 1
     };
   });
 
@@ -308,20 +308,30 @@ class RootStore {
     }
   };
 
-  GenerateKey() {
+  GenerateKey = flow(function * () {
     const wallet = this.client.GenerateWallet();
     const mnemonic = this.mnemonic || wallet.GenerateMnemonic();
     const signer = wallet.AddAccountFromMnemonic({mnemonic});
 
     this.mnemonic = mnemonic;
-    this.signer = signer;
+    this.client.SetSigner({signer});
+
+    const fabricToken = yield this.client.CreateFabricToken({
+      duration: 48 * 60 * 60 * 1000
+    });
+
+    this.walletClient.SetAuthorization({
+      fabricToken,
+      expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+      walletType: "LocalKey",
+      walletName: "LocalKey"
+    });
 
     localStorage.setItem("mn", mnemonic);
 
-
     this.initialized = true;
     console.timeEnd("Generate");
-  }
+  });
 
   UpdatePageDimensions() {
     this.pageDimensions = { width: window.innerWidth, height: window.innerHeight };

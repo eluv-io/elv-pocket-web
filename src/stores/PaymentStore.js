@@ -1,9 +1,14 @@
 import {flow, makeAutoObservable} from "mobx";
+import {parse as UUIDParse, v4 as UUID} from "uuid";
 
 class PaymentStore {
 
   get client() {
     return this.rootStore.client;
+  }
+
+  get walletClient() {
+    return this.rootStore.walletClient;
   }
 
   constructor(rootStore) {
@@ -12,8 +17,23 @@ class PaymentStore {
     makeAutoObservable(this);
   }
 
+  ConfirmationId() {
+    return this.client.utils.B58(UUIDParse(UUID()));
+  }
+
+  PurchaseStatus = flow(function * ({permissionItemId, confirmationId}) {
+    const permissionItem = this.rootStore.permissionItems[permissionItemId];
+    return yield this.walletClient.PurchaseStatus({
+      marketplaceParams: {
+        marketplaceId: permissionItem.marketplace.marketplace_id
+      },
+      confirmationId
+    });
+  });
+
   PurchaseApplePay = flow(function * ({permissionItemId}) {
     const permissionItem = this.rootStore.permissionItems[permissionItemId];
+    const confirmationId = this.ConfirmationId();
 
     if(!permissionItem) {
       return;
@@ -75,7 +95,8 @@ class PaymentStore {
             },
             body: {
               payment: event.payment,
-              user_addr: this.client.CurrentAccountAddress()
+              user_addr: this.client.CurrentAccountAddress(),
+              client_reference_id: confirmationId
             }
           });
 
@@ -99,6 +120,7 @@ class PaymentStore {
 
       session.oncancel = () => {
         resolve({error: { cancelled: true }});
+        //resolve({result: "Cancelled"});
       };
 
       session.begin();
@@ -111,6 +133,11 @@ class PaymentStore {
         console.error(error);
       }
     }
+
+    return {
+      result,
+      confirmationId
+    };
   });
 }
 

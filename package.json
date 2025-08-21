@@ -23,6 +23,7 @@
     "react-dom": "^19.1.1",
     "react-inlinesvg": "^4.2.0",
     "url-join": "^5.0.0",
+    "uuid": "^11.1.0",
     "wouter": "^3.7.1"
   },
   "devDependencies": {

@@ -71,7 +71,10 @@ const Pocket = observer(() => {
             </div>
             <PageLoader/>
           </> :
-          <div className={S("content", permissions.authorized ? "content--authorized " : "content--unauthorized")}>
+          <div
+            key={`content-${rootStore.pocket?.mediaLoadIndex}`}
+            className={S("content", permissions.authorized ? "content--authorized " : "content--unauthorized")}
+          >
             {
               permissions.authorized ?
                 <Media key={`${pocketMediaSlugOrId}`} /> :
