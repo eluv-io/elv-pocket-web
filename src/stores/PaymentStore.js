@@ -60,6 +60,7 @@ class PaymentStore {
       }
 
       session.onvalidatemerchant = async event => {
+        console.log("on validate merchant", event);
         try {
           const response = await this.client.authClient.MakeAuthServiceRequest({
             method: "POST",
@@ -77,15 +78,18 @@ class PaymentStore {
             resolve({error: response});
           }
 
-          await session.completeMerchantValidation(
-            await this.client.utils.ResponseToJson(response)
-          );
+          const result = await this.client.utils.ResponseToJson(response);
+          console.log(result);
+
+          console.log("Complete merchant validation")
+          await session.completeMerchantValidation(result);
         } catch(error) {
           resolve({error});
         }
       };
 
       session.onpaymentauthorized = async event => {
+        console.log("on payment authorized", event);
         try {
           const response = await this.client.authClient.MakeAuthServiceRequest({
             method: "POST",
@@ -94,9 +98,14 @@ class PaymentStore {
               "Content-Type": "application/json",
             },
             body: {
+              currency: this.rootStore.currency,
               payment: event.payment,
-              user_addr: this.client.CurrentAccountAddress(),
-              client_reference_id: confirmationId
+              elv_addr: this.client.CurrentAccountAddress(),
+              client_reference_id: confirmationId,
+              items: [{sku: permissionItem.marketplace_sku, quantity: 1}],
+              mode: EluvioConfiguration["purchase-mode"],
+              success_url: window.location.href,
+              cancel_url: window.location.href
             }
           });
 
@@ -105,6 +114,8 @@ class PaymentStore {
           }
 
           const result = await this.client.utils.ResponseToJson(response);
+
+          console.log(result);
 
           if(result.success) {
             session.completePayment(window.ApplePaySession.STATUS_SUCCESS);
@@ -119,8 +130,8 @@ class PaymentStore {
       };
 
       session.oncancel = () => {
+        console.log("on cancel");
         resolve({error: { cancelled: true }});
-        //resolve({result: "Cancelled"});
       };
 
       session.begin();
