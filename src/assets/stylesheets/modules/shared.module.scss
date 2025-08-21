@@ -5,14 +5,52 @@
   word-break: break-all;
 }
 
+.page-loader {
+  align-items: center;
+  display: flex;
+  height: calc(100 * var(--vh));
+  justify-content: center;
+  position: absolute;
+  width: calc(100 * var(--vw));
+  z-index: 100;
+}
+
+.loader {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-sizing: border-box;
+  filter: blur(12px);
+  height: var(--loader-height);
+  mask: conic-gradient(#000 0 0) content-box exclude,conic-gradient(#000 0 0);
+  padding: var(--loader-width);
+  position: relative;
+  width: var(--loader-height);
+}
+
+.loader::before {
+  animation: l1 1.5s linear infinite;
+  background: conic-gradient(#E10158 35%,#A80184,#3C01C9 65%);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+@keyframes l1 {
+  to {rotate: 1turn}
+}
+
 .logo {
   align-items: center;
   display: flex;
   font-size: 22px;
   gap: 10px;
+  position: relative;
 
   &__loader {
-    margin-left: 10px;
+    --loader-height: 44px;
+
+    left: 18px;
+    position: absolute;
   }
 
   svg {

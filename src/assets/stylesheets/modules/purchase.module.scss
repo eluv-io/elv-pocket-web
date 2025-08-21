@@ -209,6 +209,11 @@
     &__error {
       font-size: 24px;
     }
+
+    &__status {
+      --loader-height: 80px;
+      --loader-width: 8px;
+    }
   }
 }
 
@@ -231,6 +236,10 @@
 
     &__error {
       font-size: 18px;
+    }
+
+    &__status {
+      --loader-height: 50px;
     }
   }
 }
@@ -304,6 +313,10 @@
         font-size: 12px;
         height: 30px;
       }
+    }
+
+    &__status {
+      --loader-height: 50px;
     }
 
     &__terms {

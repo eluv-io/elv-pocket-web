@@ -2,6 +2,8 @@ import {makeAutoObservable, flow} from "mobx";
 import {ElvWalletClient} from "@eluvio/elv-client-js/src/index.js";
 import PaymentStore from "@/stores/PaymentStore.js";
 
+console.time("Initial Load");
+
 class RootStore {
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
   preferredCurrency = "USD";
@@ -106,7 +108,6 @@ class RootStore {
     this.initialized = false;
 
     yield this.InitializeClient();
-    console.time("Load");
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -121,20 +122,26 @@ class RootStore {
       metadata
     };
 
-    console.timeEnd("Load");
+    console.timeEnd("Initial Load");
 
-    console.time("Load Media");
-    this.LoadMedia()
-      .then(() => console.timeEnd("Load Media"));
+    yield Promise.all([
+      new Promise(resolve => setTimeout(resolve, 3000)),
+      this.LoadMedia()
+    ]);
 
-    setTimeout(() => this.GenerateKey(), 2000);
-
+    this.initialized = true;
     this.loading = false;
 
     return this.pocket;
   });
 
   LoadMedia = flow(function * () {
+    console.time("Generate Key");
+    yield this.GenerateKey();
+    console.timeEnd("Generate Key");
+
+    console.time("Load Media");
+
     const metadata = {...this.pocket.metadata};
     // TODO: Versioned media, maybe build media into pocket
     const mediaIds = Object.keys(metadata.media || {})
@@ -230,6 +237,8 @@ class RootStore {
       mediaLoaded: true,
       mediaLoadIndex: (this.pocket.mediaLoadIndex || 0) + 1
     };
+
+    console.timeEnd("Load Media");
   });
 
   PocketMediaItem(pocketMediaSlugOrId) {
@@ -336,7 +345,6 @@ class RootStore {
 
     localStorage.setItem("mn", mnemonic);
 
-    this.initialized = true;
     console.timeEnd("Generate");
   });
 

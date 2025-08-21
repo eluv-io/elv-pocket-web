@@ -17,7 +17,8 @@
   --color-border: #2C2C2C;
   --animation-fadein: fadein;
   --gutter-size: 8px;
-  --loader-color: var(--text-highlight);
+  --loader-height: 40px;
+  --loader-width: 5px;
 
   @keyframes fadein {
     0% {
