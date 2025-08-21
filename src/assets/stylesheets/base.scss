@@ -1,4 +1,8 @@
- body {
+html {
+  overscroll-behavior: none;
+}
+
+body {
    background-color: black;
    color: var(--text-secondary);
    font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;

@@ -64,6 +64,11 @@ export default defineConfig([
         sourceType: "module",
       },
     },
+    settings: {
+      react: {
+        version: "detect"
+      }
+    },
     rules: {
       "react-hooks/exhaustive-deps": 0,
       "react/jsx-uses-react": "off",

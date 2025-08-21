@@ -2,7 +2,7 @@ import PurchaseStyles from "@/assets/stylesheets/modules/purchase.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {rootStore} from "@/stores/index.js";
+import {paymentStore, rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {FormatPriceString, HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {useState} from "react";
@@ -68,7 +68,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
         }
         <div className={S("payment__options")}>
           <Linkish
-            onClick={() => {}}
+            onClick={() => paymentStore.PurchaseApplePay({permissionItemId: permissionItem.id})}
             className={S("payment__option", "payment__option--apple")}
           >
             <SVG src={ApplePayImage} alt="Apple Pay" />

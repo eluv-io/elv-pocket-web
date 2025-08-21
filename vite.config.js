@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "url";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import react from "@vitejs/plugin-react-swc";
-import Path from "path";
+import mkcert from "vite-plugin-mkcert";
 
 export default defineConfig(() => {
   let plugins = [
@@ -14,7 +14,8 @@ export default defineConfig(() => {
           dest: ""
         }
       ]
-    })
+    }),
+    mkcert()
   ];
 
   return {

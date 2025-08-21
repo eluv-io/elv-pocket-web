@@ -31,6 +31,7 @@
 .items {
   max-height: 100%;
   overflow-y: auto;
+  overscroll-behavior: none;
   position: relative;
   z-index: 1;
 }
@@ -217,7 +218,7 @@
     height: 100%;
     max-height: calc(50 * var(--vh));
     min-height: calc(20 * var(--vh));
-    padding: 5px;
+    padding: 5px 0;
     width: 100%;
   }
 
