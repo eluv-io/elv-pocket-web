@@ -25,6 +25,10 @@ const Pocket = observer(() => {
       );
   }, [pocketSlugOrId]);
 
+  useEffect(() => {
+    rootStore.SetContentEnded(false);
+  }, [pocketMediaSlugOrId]);
+
   if(!rootStore.pocket) {
     return null;
   }

@@ -11,6 +11,7 @@ class RootStore {
   walletClient;
   pocket;
   initialized = false;
+  contentEnded = false;
   mnemonic = localStorage.getItem("mn");
   permissionItems = {};
 
@@ -79,6 +80,10 @@ class RootStore {
     makeAutoObservable(this);
 
     this.paymentStore = new PaymentStore(this);
+  }
+
+  SetContentEnded(ended) {
+    this.contentEnded = ended;
   }
 
   InitializeClient = flow(function * () {
@@ -326,6 +331,8 @@ class RootStore {
       walletType: "LocalKey",
       walletName: "LocalKey"
     });
+
+    this.client.SetStaticToken({token: fabricToken});
 
     localStorage.setItem("mn", mnemonic);
 

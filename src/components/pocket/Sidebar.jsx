@@ -125,54 +125,63 @@ const Sidebar = observer(() => {
         !mediaItem.scheduleInfo.currentlyLive ? null :
           <div className={S("live-badge")}>LIVE</div>
       }
-      <div className={S("current-item")}>
-        <div className={S("title-container")}>
-          {
-            mediaItem.display?.icons?.map(icon =>
-              !icon.icon?.url ? null :
-                <img
-                  key={icon.icon.url}
-                  src={icon.icon.url}
-                  alt={icon.alt_text || "Title Icon"}
-                  className={S("title-icon")}
-                />
-            )
-          }
-          <div className={S("title")}>
-            {mediaItem.display.title}
+      {
+        rootStore.mobile && rootStore.contentEnded ? null :
+          <div className={S("current-item")}>
+            <div className={S("title-container")}>
+              {
+                mediaItem.display?.icons?.map(icon =>
+                  !icon.icon?.url ? null :
+                    <img
+                      key={icon.icon.url}
+                      src={icon.icon.url}
+                      alt={icon.alt_text || "Title Icon"}
+                      className={S("title-icon")}
+                    />
+                )
+              }
+              <div className={S("title")}>
+                {mediaItem.display.title}
+              </div>
+            </div>
+            <div className={(S("subtitle"))}>
+              {
+                !mediaItem.scheduleInfo.isLiveContent ?
+                  mediaItem.display.subtitle :
+                  `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+              }
+            </div>
           </div>
-        </div>
-        <div className={(S("subtitle"))}>
-          {
-            !mediaItem.scheduleInfo.isLiveContent ?
-              mediaItem.display.subtitle :
-              `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
-          }
-        </div>
-      </div>
+      }
       {
         banners.length === 0 ? null :
           <div className={S("banners")}>
             {
-              banners.map((banner, index) =>
-                <Linkish
-                  key={index}
-                  href={banner.link_type === "external" && banner.url}
-                  to={
-                    banner.link_type === "media" &&
-                    UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
-                  }
-                  className={S("banner")}
-                >
-                  <HashedLoaderImage
-                    src={banner.image.url}
-                    hash={banner.image_hash}
-                    width={600}
-                    alt={banner.image_alt}
-                    className={S("banner__image")}
-                  />
-                </Linkish>
-              )
+              banners.map((banner, index) => {
+                  const imageKey = rootStore.mobile && banner.image_mobile?.url ?
+                    "image_mobile" :
+                    "image";
+
+                return (
+                  <Linkish
+                    key={index}
+                    href={banner.link_type === "external" && banner.url}
+                    to={
+                      banner.link_type === "media" &&
+                      UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
+                    }
+                    className={S("banner")}
+                  >
+                    <HashedLoaderImage
+                      src={banner[imageKey]?.url}
+                      hash={banner[`${imageKey}_hash`]}
+                      width={1000}
+                      alt={banner.image_alt}
+                      className={S("banner__image")}
+                    />
+                  </Linkish>
+                );
+              })
             }
           </div>
       }

@@ -1,19 +1,40 @@
+* {
+  -webkit-overflow-scrolling: touch;
+
+  ::-webkit-scrollbar {
+    opacity: 1;
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #333;
+    opacity: 1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 100px;
+    opacity: 1;
+  }
+}
+
 html {
+  color-scheme: dark;
   overscroll-behavior: none;
 }
 
 body {
-   background-color: black;
-   color: var(--text-secondary);
-   font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;
- }
+  background-color: black;
+  color: var(--text-secondary);
+  font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;
+}
 
- .page-container {
-   position: relative;
- }
+.page-container {
+  position: relative;
+}
 
- .home-page {
-   align-items: center;
-   display: flex;
-   justify-content: center;
- }
+.home-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}

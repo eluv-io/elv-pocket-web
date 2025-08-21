@@ -7,11 +7,27 @@
 }
 
 .countdown-page,
-.video {
+.video,
+.end-screen {
   animation: var(--animation-fadein) 2s ease;
   height: 100%;
   max-height: min(100%, calc(100 * var(--vh)));
   width: 100%;
+}
+
+.end-screen {
+  display: block;
+  min-height: calc(50 * var(--vh));
+  position: relative;
+
+  &__background {
+    height: 100%;
+    inset: 0;
+    object-fit: contain;
+    object-position: center;
+    position: absolute;
+    width: 100%;
+  }
 }
 
 .countdown-page {

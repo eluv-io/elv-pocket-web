@@ -7,7 +7,7 @@ import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
 import Countdown from "@/components/pocket/Countdown.jsx";
-import {HashedLoaderImage} from "@/components/common/Common.jsx";
+import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -72,6 +72,26 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
   );
 });
 
+const EndScreen = observer(() => {
+  const backgroundKey = rootStore.mobile && rootStore.pocket.metadata.post_content_screen?.background_mobile ?
+    "background_mobile" :
+    "background";
+
+  return (
+    <Linkish
+      href={rootStore.pocket.metadata.post_content_screen.link}
+      className={S("end-screen")}
+    >
+      <HashedLoaderImage
+        src={rootStore.pocket.metadata.post_content_screen[backgroundKey]?.url || rootStore.splashImage.url}
+        hash={rootStore.pocket.metadata.post_content_screen[`${backgroundKey}_hash`] || rootStore.splashImage.hash}
+        alt={rootStore.pocket.metadata.post_content_screen.background_alt}
+        className={S("end-screen__background")}
+      />
+    </Linkish>
+  );
+});
+
 const Media = observer(() => {
   const {pocketMediaSlugOrId} = useParams();
 
@@ -92,20 +112,23 @@ const Media = observer(() => {
       {
         !started ?
           <MediaCountdown mediaItem={media} setStarted={setStarted} /> :
-          <Video
-            isLive={media.scheduleInfo.currentlyLive}
-            videoLink={media.mediaItem.media_link}
-            posterImage={
-              media.mediaItem.poster_image?.url ||
-              rootStore.splashImage.url
-            }
-            className={S("video")}
-            contentInfo={{
-              title: media.display.title,
-              subtitle: media.display.subtitle,
-              description: media.display.description
-            }}
-          />
+          rootStore.contentEnded && rootStore.pocket.metadata.post_content_screen?.enabled ?
+            <EndScreen /> :
+            <Video
+              isLive={media.scheduleInfo.currentlyLive}
+              videoLink={media.mediaItem.media_link}
+              posterImage={
+                media.mediaItem.poster_image?.url ||
+                rootStore.splashImage.url
+              }
+              endCallback={() => rootStore.SetContentEnded(true)}
+              className={S("video")}
+              contentInfo={{
+                title: media.display.title,
+                subtitle: media.display.subtitle,
+                description: media.display.description
+              }}
+            />
       }
     </div>
   );
