@@ -2,7 +2,6 @@ import {flow, makeAutoObservable} from "mobx";
 import {parse as UUIDParse, v4 as UUID} from "uuid";
 
 class PaymentStore {
-
   get client() {
     return this.rootStore.client;
   }
@@ -33,7 +32,7 @@ class PaymentStore {
 
   PurchaseApplePay = flow(function * ({permissionItemId}) {
     const permissionItem = this.rootStore.permissionItems[permissionItemId];
-    const confirmationId = this.ConfirmationId();
+    const confirmationId = `${permissionItem.marketplace.marketplace_id}:${this.ConfirmationId()}`;
 
     if(!permissionItem) {
       return;
@@ -94,9 +93,14 @@ class PaymentStore {
               "Content-Type": "application/json",
             },
             body: {
+              currency: this.rootStore.currency,
               payment: event.payment,
-              user_addr: this.client.CurrentAccountAddress(),
-              client_reference_id: confirmationId
+              elv_addr: this.client.CurrentAccountAddress(),
+              client_reference_id: confirmationId,
+              items: [{sku: permissionItem.marketplace_sku, quantity: 1}],
+              mode: EluvioConfiguration["purchase-mode"],
+              success_url: window.location.href,
+              cancel_url: window.location.href
             }
           });
 
@@ -120,13 +124,14 @@ class PaymentStore {
 
       session.oncancel = () => {
         resolve({error: { cancelled: true }});
-        //resolve({result: "Cancelled"});
       };
 
       session.begin();
     });
 
     if(result?.error) {
+      console.error(result);
+
       try {
         session?.abort();
       } catch(error) {

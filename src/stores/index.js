@@ -14,7 +14,6 @@ class RootStore {
   pocket;
   initialized = false;
   contentEnded = false;
-  mnemonic = localStorage.getItem("mn");
   permissionItems = {};
 
   pageDimensions = {
@@ -324,10 +323,16 @@ class RootStore {
 
   GenerateKey = flow(function * () {
     const wallet = this.client.GenerateWallet();
-    const mnemonic = this.mnemonic || wallet.GenerateMnemonic();
-    const signer = wallet.AddAccountFromMnemonic({mnemonic});
 
-    this.mnemonic = mnemonic;
+    let signer;
+    if(localStorage.getItem("pk")) {
+      signer = wallet.AddAccount({privateKey: localStorage.getItem("pk")});
+    } else {
+      const mnemonic = wallet.GenerateMnemonic();
+      signer = wallet.AddAccountFromMnemonic({mnemonic});
+      localStorage.setItem("pk", rootStore.client.signer._signingKey().privateKey);
+    }
+
     this.client.SetSigner({signer});
 
     const fabricToken = yield this.client.CreateFabricToken({
@@ -342,8 +347,6 @@ class RootStore {
     });
 
     this.client.SetStaticToken({token: fabricToken});
-
-    localStorage.setItem("mn", mnemonic);
 
     console.timeEnd("Generate");
   });
