@@ -32,7 +32,7 @@ class PaymentStore {
 
   PurchaseApplePay = flow(function * ({permissionItemId}) {
     const permissionItem = this.rootStore.permissionItems[permissionItemId];
-    const confirmationId = `${permissionItem.marketplace.marketplace_id}:${this.ConfirmationId()}`;
+    const confirmationId = this.ConfirmationId();
 
     if(!permissionItem) {
       return;
