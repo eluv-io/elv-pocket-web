@@ -2,7 +2,6 @@ import {flow, makeAutoObservable} from "mobx";
 import {parse as UUIDParse, v4 as UUID} from "uuid";
 
 class PaymentStore {
-
   get client() {
     return this.rootStore.client;
   }
@@ -33,7 +32,7 @@ class PaymentStore {
 
   PurchaseApplePay = flow(function * ({permissionItemId}) {
     const permissionItem = this.rootStore.permissionItems[permissionItemId];
-    const confirmationId = this.ConfirmationId();
+    const confirmationId = `${permissionItem.marketplace.marketplace_id}:${this.ConfirmationId()}`;
 
     if(!permissionItem) {
       return;
@@ -60,7 +59,6 @@ class PaymentStore {
       }
 
       session.onvalidatemerchant = async event => {
-        console.log("on validate merchant", event);
         try {
           const response = await this.client.authClient.MakeAuthServiceRequest({
             method: "POST",
@@ -78,18 +76,15 @@ class PaymentStore {
             resolve({error: response});
           }
 
-          const result = await this.client.utils.ResponseToJson(response);
-          console.log(result);
-
-          console.log("Complete merchant validation")
-          await session.completeMerchantValidation(result);
+          await session.completeMerchantValidation(
+            await this.client.utils.ResponseToJson(response)
+          );
         } catch(error) {
           resolve({error});
         }
       };
 
       session.onpaymentauthorized = async event => {
-        console.log("on payment authorized", event);
         try {
           const response = await this.client.authClient.MakeAuthServiceRequest({
             method: "POST",
@@ -115,8 +110,6 @@ class PaymentStore {
 
           const result = await this.client.utils.ResponseToJson(response);
 
-          console.log(result);
-
           if(result.success) {
             session.completePayment(window.ApplePaySession.STATUS_SUCCESS);
             resolve({result});
@@ -130,7 +123,6 @@ class PaymentStore {
       };
 
       session.oncancel = () => {
-        console.log("on cancel");
         resolve({error: { cancelled: true }});
       };
 
@@ -138,6 +130,8 @@ class PaymentStore {
     });
 
     if(result?.error) {
+      console.error(result);
+
       try {
         session?.abort();
       } catch(error) {
