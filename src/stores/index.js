@@ -329,16 +329,21 @@ class RootStore {
   GenerateKey = flow(function * () {
     const wallet = this.client.GenerateWallet();
 
+    if(localStorage.getItem("pk")?.toLowerCase() === this.client.defaultKey?.toLowerCase()) {
+      // Ensure saved PK is not default key
+      localStorage.removeItem("pk");
+    }
+
     let signer;
     if(localStorage.getItem("pk")) {
       signer = wallet.AddAccount({privateKey: localStorage.getItem("pk")});
     } else {
       const mnemonic = wallet.GenerateMnemonic();
       signer = wallet.AddAccountFromMnemonic({mnemonic});
-      localStorage.setItem("pk", rootStore.client.signer._signingKey().privateKey);
     }
 
     this.client.SetSigner({signer});
+    localStorage.setItem("pk", signer._signingKey().privateKey);
 
     const fabricToken = yield this.client.CreateFabricToken({
       duration: 48 * 60 * 60 * 1000
