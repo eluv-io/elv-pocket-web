@@ -32,7 +32,7 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        await rootStore.LoadMedia();
+        setTimeout(() => rootStore.LoadMedia(), 1500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
         setTimeout(() => Cancel(), 5000);
