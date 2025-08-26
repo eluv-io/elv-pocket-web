@@ -253,6 +253,7 @@ class RootStore {
 
     let permissions = {
       authorized: (item.mediaItem?.permissions || []).length === 0,
+      dvr: false,
       permissionItems: []
     };
 
@@ -263,6 +264,10 @@ class RootStore {
 
       if(this.permissionItems[permission_item_id].owned) {
         permissions.authorized = true;
+
+        if(this.permissionItems[permission_item_id].dvr) {
+          permissions.dvr = true;
+        }
       }
 
       return this.permissionItems[permission_item_id];

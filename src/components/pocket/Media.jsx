@@ -8,6 +8,7 @@ import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
 import Countdown from "@/components/pocket/Countdown.jsx";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
+import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -107,6 +108,8 @@ const Media = observer(() => {
     return null;
   }
 
+  const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+
   return (
     <div key={pocketMediaSlugOrId} className={S("media")}>
       {
@@ -126,7 +129,8 @@ const Media = observer(() => {
               contentInfo={{
                 title: media.display.title,
                 subtitle: media.display.subtitle,
-                description: media.display.description
+                description: media.display.description,
+                liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && media.mediaItem?.enable_dvr ? "ON" : "OFF"]
               }}
             />
       }

@@ -37,7 +37,7 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
         clearInterval(statusInterval);
         setTimeout(() => Cancel(), 5000);
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(statusInterval);
   }, [permissionItemId, confirmationId]);
