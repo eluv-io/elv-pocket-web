@@ -77,6 +77,16 @@ class RootStore {
     };
   }
 
+  get banners() {
+    return (this.pocket?.metadata?.sidebar_config?.banners || [])
+      .filter(banner => banner.image);
+  }
+
+  get hasTopBanners() {
+    return this.banners
+      .filter(banner => banner.mobile_position === "above")
+      .length > 0;
+  }
   constructor() {
     makeAutoObservable(this);
 
@@ -366,6 +376,19 @@ class RootStore {
 
     document.documentElement.style.setProperty("--vw", `${window.innerWidth * 0.01}px`);
     document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
+  }
+
+  ResetAccount() {
+    localStorage.removeItem("pk");
+
+    setTimeout(() => {
+      const url = new URL(window.location.href);
+      if(url.pathname.includes("clear")) {
+        url.pathname = "/";
+      }
+
+      setTimeout(() => window.location.href = url.toString(), 2000);
+    });
   }
 }
 

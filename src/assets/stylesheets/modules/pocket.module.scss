@@ -51,8 +51,8 @@
     max-height: calc(100 * var(--vh));
     overflow: hidden;
 
-    &--unauthorized {
-      grid-template-rows: max-content 1fr;
+    &--with-top-banners {
+      grid-template-rows: max-content max-content 1fr;
     }
   }
 

@@ -103,21 +103,74 @@ const SidebarContent = observer(() => {
   );
 });
 
-const Sidebar = observer(() => {
+export const Banners = observer(({position="below"}) => {
   const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
+
+  const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+
+  const config = rootStore.pocket.metadata.sidebar_config || {};
+
+
+  const banners = (config.banners || [])
+    .filter(banner =>
+      banner.image && (banner.link_type !== "media" || mediaItem.id !== banner.media_id)
+    )
+    .filter(banner =>
+      !rootStore.mobile ||
+      (position === "above" ? banner.mobile_position === "above" : !banner.mobile_position)
+    );
+
+  if(banners.length === 0){
+    return null;
+  }
+
+  return (
+    <div className={S("banners")}>
+      {
+        banners.map((banner, index) => {
+          const imageKey = rootStore.mobile && banner.image_mobile?.url ?
+            "image_mobile" :
+            "image";
+
+          return (
+            <Linkish
+              key={index}
+              href={banner.link_type === "external" && banner.url}
+              to={
+                banner.link_type === "media" &&
+                UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
+              }
+              onClick={
+                banner.link_type !== "reset" ? undefined :
+                  () => confirm("Are you sure you want to reset your account?") ?
+                    rootStore.ResetAccount() : undefined
+              }
+              className={S("banner")}
+            >
+              <HashedLoaderImage
+                src={banner[imageKey]?.url}
+                hash={banner[`${imageKey}_hash`]}
+                width={1000}
+                alt={banner.image_alt}
+                className={S("banner__image")}
+              />
+            </Linkish>
+          );
+        })
+      }
+    </div>
+  );
+
+});
+
+const Sidebar = observer(() => {
+  const {pocketMediaSlugOrId} = useParams();
 
   const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
 
   if(!mediaItem) {
     return null;
   }
-
-  const config = rootStore.pocket.metadata.sidebar_config || {};
-
-  const banners = (config.banners || [])
-    .filter(banner =>
-      banner.image && (banner.link_type !== "media" || mediaItem.id !== banner.media_id)
-    );
 
   return (
     <div className={S("sidebar")}>
@@ -153,38 +206,7 @@ const Sidebar = observer(() => {
             </div>
           </div>
       }
-      {
-        banners.length === 0 ? null :
-          <div className={S("banners")}>
-            {
-              banners.map((banner, index) => {
-                  const imageKey = rootStore.mobile && banner.image_mobile?.url ?
-                    "image_mobile" :
-                    "image";
-
-                return (
-                  <Linkish
-                    key={index}
-                    href={banner.link_type === "external" && banner.url}
-                    to={
-                      banner.link_type === "media" &&
-                      UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
-                    }
-                    className={S("banner")}
-                  >
-                    <HashedLoaderImage
-                      src={banner[imageKey]?.url}
-                      hash={banner[`${imageKey}_hash`]}
-                      width={1000}
-                      alt={banner.image_alt}
-                      className={S("banner__image")}
-                    />
-                  </Linkish>
-                );
-              })
-            }
-          </div>
-      }
+      <Banners position="below" />
       <SidebarContent/>
       <div className={S("logo")}>
         <SVG src={EIcon} alt="Eluvio"/>

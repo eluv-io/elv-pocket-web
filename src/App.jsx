@@ -10,7 +10,7 @@ import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 const S = CreateModuleClassMatcher();
 
 const ClearKey = () => {
-  useEffect(() => localStorage.removeItem("pk"), []);
+  useEffect(() => rootStore.ResetAccount(), []);
 
   return (
     <div className="page-container home-page">

@@ -7,7 +7,7 @@ import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
-import Sidebar from "@/components/pocket/Sidebar.jsx";
+import Sidebar, {Banners} from "@/components/pocket/Sidebar.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
@@ -78,8 +78,18 @@ const Pocket = observer(() => {
           </> :
           <div
             key={`content-${rootStore.pocket?.mediaLoadIndex}`}
-            className={S("content", permissions.authorized ? "content--authorized " : "content--unauthorized")}
+            className={
+              S(
+                "content",
+                rootStore.hasTopBanners ? "content--with-top-banners" : "",
+                permissions.authorized ? "content--authorized " : "content--unauthorized"
+              )
+            }
           >
+            {
+              !rootStore.mobile ? null :
+                <Banners position="above" />
+            }
             {
               permissions.authorized ?
                 <Media key={`${pocketMediaSlugOrId}`} /> :

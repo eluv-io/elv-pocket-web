@@ -45,9 +45,11 @@
 }
 
 .banners {
+  align-items: center;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  justify-content: center;
 }
 
 .banner {
@@ -58,7 +60,6 @@
   object-position: bottom;
   overflow: hidden;
   transition: opacity 0.5s ease;
-  width: 100%;
 
   &:hover {
     opacity: 0.8;
@@ -162,8 +163,11 @@
 }
 
 .logo {
+  align-items: flex-end;
+  flex-grow: 1;
   justify-content: center;
   margin-top: 50px;
+  padding-bottom: 20px;
   user-select: none;
   width: 100%;
 
@@ -214,7 +218,7 @@
     background-color: black;
     height: 100%;
     overflow-y: auto;
-    padding-bottom: 30px;
+    padding-bottom: 10px;
 
     & > .live-badge {
       display: none;
@@ -230,9 +234,22 @@
     z-index: 2;
   }
 
-  .banners,
   .media {
     padding: 10px;
+  }
+
+  .banners {
+    gap: 5px;
+    padding: 0;
+  }
+
+  .banner {
+    max-height: 120px;
+
+    &__image {
+      border-radius: 0;
+      width: auto;
+    }
   }
 
   .media-card {
