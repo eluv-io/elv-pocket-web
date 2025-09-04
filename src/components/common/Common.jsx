@@ -34,11 +34,12 @@ export const HashedLoaderImage = observer(({
         !src ? null :
           <img
             {...props}
+            key={`image-${loaded}`}
             style={
               loaded ? {} :
                 {width: 2, height: 2, position: "absolute", opacity: 0, userSelect: "none"}
             }
-            className={loaded ? props.className : ""}
+            className={JoinClassNames(S("loader-image"), loaded ? props.className : "")}
             loading={lazy ? "lazy" : "eager"}
             onError={setError}
             src={src}

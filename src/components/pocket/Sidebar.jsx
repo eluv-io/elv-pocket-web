@@ -110,7 +110,6 @@ export const Banners = observer(({position="below"}) => {
 
   const config = rootStore.pocket.metadata.sidebar_config || {};
 
-
   const banners = (config.banners || [])
     .filter(banner =>
       banner.image && (banner.link_type !== "media" || mediaItem.id !== banner.media_id)
@@ -148,6 +147,7 @@ export const Banners = observer(({position="below"}) => {
               className={S("banner")}
             >
               <HashedLoaderImage
+                show
                 src={banner[imageKey]?.url}
                 hash={banner[`${imageKey}_hash`]}
                 width={1000}
@@ -211,6 +211,15 @@ const Sidebar = observer(() => {
       <div className={S("logo")}>
         <SVG src={EIcon} alt="Eluvio"/>
         <span>POCKET TV</span>
+        <button
+          onClick={
+            () => confirm("Are you sure you want to reset your account?") ?
+              rootStore.ResetAccount() : undefined
+          }
+          className={S("reset-button")}
+        >
+          RESET ACCOUNT
+        </button>
       </div>
     </div>
   );
