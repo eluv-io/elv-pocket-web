@@ -74,7 +74,6 @@ const Pocket = observer(() => {
                 <Loader className={S("logo__loader")} />
               </div>
             </div>
-
           </> :
           <div
             key={`content-${rootStore.pocket?.mediaLoadIndex}`}
@@ -87,7 +86,7 @@ const Pocket = observer(() => {
             }
           >
             {
-              !rootStore.mobile ? null :
+              !rootStore.mobile || rootStore.mobileLandscape ? null :
                 <Banners position="above" />
             }
             {
@@ -95,7 +94,10 @@ const Pocket = observer(() => {
                 <Media key={`${pocketMediaSlugOrId}`} /> :
                 <Purchase key={`${pocketMediaSlugOrId}`} />
             }
-            <Sidebar />
+            {
+              rootStore.mobileLandscape ? null :
+                <Sidebar />
+            }
           </div>
       }
     </div>

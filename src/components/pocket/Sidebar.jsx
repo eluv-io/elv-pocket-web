@@ -147,7 +147,6 @@ export const Banners = observer(({position="below"}) => {
               className={S("banner")}
             >
               <HashedLoaderImage
-                show
                 src={banner[imageKey]?.url}
                 hash={banner[`${imageKey}_hash`]}
                 width={1000}

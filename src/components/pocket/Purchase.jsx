@@ -222,7 +222,7 @@ const Purchase = observer(() => {
   const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
 
   return (
-    <div key={pocketMediaSlugOrId} className={S("purchase")}>
+    <div key={pocketMediaSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
       {
         rootStore.mobile ? null :
           <>

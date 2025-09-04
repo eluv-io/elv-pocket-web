@@ -11,6 +11,15 @@
   overflow: hidden;
   position: relative;
   width: 100%;
+
+  &--fullscreen {
+    height: calc(100 * var(--vh));
+    max-height: calc(100 * var(--vh));
+
+    .items {
+      max-height: calc(100 * var(--vh));
+    }
+  }
 }
 
 .background-cover,

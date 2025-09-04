@@ -25,6 +25,10 @@ class RootStore {
     return this.pageDimensions.width < 1000;
   }
 
+  get mobileLandscape() {
+    return this.mobile && this.pageDimensions.width > this.pageDimensions.height;
+  }
+
   get media() {
     if(!this.pocket || !this.pocket.mediaLoaded) { return []; }
 
