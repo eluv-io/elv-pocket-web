@@ -257,10 +257,24 @@
   .current-item {
     background-color: var(--background-primary);
     box-shadow: 0 0 10px black;
-    padding: 20px;
+    padding: 15px 20px 10px 10px;
     position: sticky;
     top: 0;
     z-index: 2;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .title-icon {
+    max-height: 30px;
+    max-width: 30px;
+    min-width: 30px;
   }
 
   .media {
@@ -273,6 +287,7 @@
   }
 
   .banner {
+    display: flex;
     max-height: 120px;
 
     &__image {

@@ -159,20 +159,11 @@ export const Banners = observer(({position="below"}) => {
       }
     </div>
   );
-
 });
 
-const Sidebar = observer(() => {
-  const {pocketMediaSlugOrId} = useParams();
-
-  const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
-
-  if(!mediaItem) {
-    return null;
-  }
-
+const ContentInfo = observer(({mediaItem}) => {
   return (
-    <div className={S("sidebar")}>
+    <>
       {
         !mediaItem.scheduleInfo.currentlyLive ? null :
           <div className={S("live-badge")}>LIVE</div>
@@ -183,13 +174,13 @@ const Sidebar = observer(() => {
             <div className={S("title-container")}>
               {
                 mediaItem.display?.icons?.map(icon =>
-                  !icon.icon?.url ? null :
-                    <img
-                      key={icon.icon.url}
-                      src={icon.icon.url}
-                      alt={icon.alt_text || "Title Icon"}
-                      className={S("title-icon")}
-                    />
+                    !icon.icon?.url ? null :
+                      <img
+                        key={icon.icon.url}
+                        src={icon.icon.url}
+                        alt={icon.alt_text || "Title Icon"}
+                        className={S("title-icon")}
+                      />
                 )
               }
               <div className={S("title")}>
@@ -205,22 +196,50 @@ const Sidebar = observer(() => {
             </div>
           </div>
       }
-      <Banners position="below" />
-      <SidebarContent/>
-      <div className={S("logo")}>
-        <SVG src={EIcon} alt="Eluvio"/>
-        <span>POCKET TV</span>
-        <button
-          onClick={
-            () => confirm("Are you sure you want to reset your account?") ?
-              rootStore.ResetAccount() : undefined
-          }
-          className={S("reset-button")}
-        >
-          RESET ACCOUNT
-        </button>
+    </>
+  );
+});
+
+const Sidebar = observer(({authorized}) => {
+  const {pocketMediaSlugOrId} = useParams();
+
+  const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+
+  if(!mediaItem) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className={S("sidebar")}>
+        {
+          rootStore.mobile && !authorized ? null :
+            <ContentInfo mediaItem={mediaItem} />
+        }
+        {
+          rootStore.mobile ? null :
+            <Banners position="below" />
+        }
+        <SidebarContent/>
+        <div className={S("logo")}>
+          <SVG src={EIcon} alt="Eluvio"/>
+          <span>POCKET TV</span>
+          <button
+            onClick={
+              () => confirm("Are you sure you want to reset your account?") ?
+                rootStore.ResetAccount() : undefined
+            }
+            className={S("reset-button")}
+          >
+            RESET ACCOUNT
+          </button>
+        </div>
       </div>
-    </div>
+      {
+        !rootStore.mobile || rootStore.mobileLandscape ? null :
+          <Banners position="below" />
+      }
+    </>
   );
 });
 

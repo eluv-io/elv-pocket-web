@@ -12,6 +12,7 @@ import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import Purchase from "@/components/pocket/Purchase.jsx";
+import Header from "@/components/pocket/Header.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -75,30 +76,39 @@ const Pocket = observer(() => {
               </div>
             </div>
           </> :
-          <div
-            key={`content-${rootStore.pocket?.mediaLoadIndex}`}
-            className={
-              S(
-                "content",
-                rootStore.hasTopBanners ? "content--with-top-banners" : "",
-                permissions.authorized ? "content--authorized " : "content--unauthorized"
-              )
-            }
-          >
-            {
-              !rootStore.mobile || rootStore.mobileLandscape ? null :
-                <Banners position="above" />
-            }
-            {
-              permissions.authorized ?
-                <Media key={`${pocketMediaSlugOrId}`} /> :
-                <Purchase key={`${pocketMediaSlugOrId}`} />
-            }
+          <>
             {
               rootStore.mobileLandscape ? null :
-                <Sidebar />
+                <Header
+                  pocketMediaItem={pocketMediaItem}
+                  authorized={permissions.authorized}
+                />
             }
-          </div>
+            <div
+              key={`content-${rootStore.pocket?.mediaLoadIndex}`}
+              className={
+                S(
+                  "content",
+                  rootStore.hasTopBanners ? "content--with-top-banners" : "",
+                  permissions.authorized ? "content--authorized " : "content--unauthorized"
+                )
+              }
+            >
+              {
+                !rootStore.mobile || rootStore.mobileLandscape ? null :
+                  <Banners position="above" />
+              }
+              {
+                permissions.authorized ?
+                  <Media key={`${pocketMediaSlugOrId}`} /> :
+                  <Purchase key={`${pocketMediaSlugOrId}`} />
+              }
+              {
+                rootStore.mobileLandscape ? null :
+                  <Sidebar authorized={permissions.authorized} />
+              }
+            </div>
+          </>
       }
     </div>
   );

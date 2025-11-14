@@ -21,12 +21,14 @@ class RootStore {
     height: window.innerHeight
   };
 
+  backAction = undefined;
+
   get mobile() {
     return this.pageDimensions.width < 1000;
   }
 
   get mobileLandscape() {
-    return this.mobile && this.pageDimensions.width > this.pageDimensions.height;
+    return this.mobile && (this.pageDimensions.width / this.pageDimensions.height > 1.2);
   }
 
   get media() {
@@ -271,21 +273,34 @@ class RootStore {
       permissionItems: []
     };
 
-    permissions.permissionItems = item.mediaItem.permissions.map(({permission_item_id}) => {
-      if(!permission_item_id || !this.permissionItems[permission_item_id]) {
-        return;
-      }
-
-      if(this.permissionItems[permission_item_id].owned) {
-        permissions.authorized = true;
-
-        if(this.permissionItems[permission_item_id].dvr) {
-          permissions.dvr = true;
+    permissions.permissionItems = item.mediaItem.permissions
+      .map(({permission_item_id}) => {
+        if(!permission_item_id || !this.permissionItems[permission_item_id]) {
+          return;
         }
-      }
 
-      return this.permissionItems[permission_item_id];
-    }).filter(permission => permission);
+        if(this.permissionItems[permission_item_id].owned) {
+          permissions.authorized = true;
+
+          if(this.permissionItems[permission_item_id].dvr) {
+            permissions.dvr = true;
+          }
+        }
+
+        return this.permissionItems[permission_item_id];
+      })
+      .filter(permission => permission)
+      .sort((i1, i2) => {
+        if(typeof i1.priority === "undefined" && typeof i2.priority === "undefined") {
+          return 0;
+        } else if(typeof i2.priority === "undefined") {
+          return -1;
+        } else if(typeof i1.priority === "undefined") {
+          return 1;
+        }
+
+        return i1.priority < i2.priority ? -1 : 1;
+      });
 
     return permissions;
   }
@@ -393,6 +408,18 @@ class RootStore {
 
       setTimeout(() => window.location.href = url.toString(), 2000);
     });
+  }
+
+  GoBack() {
+    if(this.backAction) {
+      this.backAction();
+    }
+
+    this.backAction = undefined;
+  }
+
+  SetBackAction(action) {
+    this.backAction = action;
   }
 }
 

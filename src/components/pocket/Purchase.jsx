@@ -57,7 +57,7 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
   );
 });
 
-const PaymentActions = observer(({permissionItemId, Cancel}) => {
+const PaymentActions = observer(({permissionItemId}) => {
   const [confirmationId, setConfirmationId] = useState(undefined);
   const [error, setError] = useState();
 
@@ -84,12 +84,6 @@ const PaymentActions = observer(({permissionItemId, Cancel}) => {
         </Linkish>
       </div>
       <div className={S("payment__terms")}>
-        {
-          !rootStore.mobile ? null :
-            <Linkish onClick={Cancel}>
-              BACK
-            </Linkish>
-        }
         <div>
           By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.</a>
         </div>
@@ -117,29 +111,29 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
     <div className={S("selected-item")}>
       {
         rootStore.mobile ? null :
-          <div className={S("item")}>
+          <div className={S("vertical-item")}>
             {
               !permissionItem.access_title ? null :
-                <div className={S("item__access-title")}>
+                <div className={S("vertical-item__access-title")}>
                   {permissionItem.access_title}
                 </div>
             }
-            <div className={S("item__title")}>
+            <div className={S("vertical-item__title")}>
               {permissionItem.title}
             </div>
-            <div className={S("item__price")}>
+            <div className={S("vertical-item__price")}>
               {FormatPriceString(permissionItem.marketplaceItem.price)}
             </div>
             {
               !permissionItem.subtitle ? null :
-                <div className={S("item__subtitle")}>
+                <div className={S("vertical-item__subtitle")}>
                   {permissionItem.subtitle}
                 </div>
             }
-            <div className={S("item__select-container")}>
+            <div className={S("vertical-item__select-container")}>
               <Linkish
                 onClick={Cancel}
-                className={S("item__select")}
+                className={S("vertical-item__action")}
               >
                 BACK
               </Linkish>
@@ -152,19 +146,19 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
             <div className={S("payment__item-info")}>
               {
                 !permissionItem.access_title ? null :
-                  <div className={S("item__access-title")}>
+                  <div className={S("vertical-item__access-title")}>
                     {permissionItem.access_title}
                   </div>
               }
-              <div className={S("item__title")}>
+              <div className={S("vertical-item__title")}>
                 {permissionItem.title}
               </div>
-              <div className={S("item__price")}>
+              <div className={S("vertical-item__price")}>
                 {FormatPriceString(permissionItem.marketplaceItem.price)}
               </div>
               {
                 !permissionItem.subtitle ? null :
-                  <div className={S("item__subtitle")}>
+                  <div className={S("vertical-item__subtitle")}>
                     {permissionItem.subtitle}
                   </div>
               }
@@ -176,31 +170,68 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
   );
 });
 
-const PurchaseItem = observer(({permissionItem, Select}) => {
+const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
+  if(orientation === "vertical") {
+    return (
+      <div className={S("vertical-item")}>
+        <div className={S("vertical-item__details")}>
+          {
+            !permissionItem.access_title ? null :
+              <div className={S("vertical-item__access-title")}>
+                {permissionItem.access_title}
+              </div>
+          }
+          <div className={S("vertical-item__title")}>
+            {permissionItem.title}
+          </div>
+          <div className={S("vertical-item__price")}>
+            {FormatPriceString(permissionItem.marketplaceItem.price)}
+          </div>
+          {
+            !permissionItem.subtitle ? null :
+              <div className={S("vertical-item__subtitle")}>
+                {permissionItem.subtitle}
+              </div>
+          }
+        </div>
+        <div className={S("vertical-item__actions")}>
+          <Linkish
+            onClick={Select}
+            className={S("vertical-item__action")}
+          >
+            SELECT
+          </Linkish>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={S("item")}>
-      {
-        !permissionItem.access_title ? null :
-          <div className={S("item__access-title")}>
-            {permissionItem.access_title}
-          </div>
-      }
-      <div className={S("item__title")}>
-        {permissionItem.title}
+    <div className={S("horizontal-item")}>
+      <div className={S("horizontal-item__details")}>
+        {
+          !permissionItem.access_title ? null :
+            <div className={S("horizontal-item__access-title")}>
+              {permissionItem.access_title}
+            </div>
+        }
+        <div className={S("horizontal-item__title")}>
+          {permissionItem.title}
+        </div>
+        {
+          !permissionItem.subtitle ? null :
+            <div className={S("horizontal-item__subtitle")}>
+              {permissionItem.subtitle}
+            </div>
+        }
       </div>
-      <div className={S("item__price")}>
-        {FormatPriceString(permissionItem.marketplaceItem.price)}
-      </div>
-      {
-        !permissionItem.subtitle ? null :
-          <div className={S("item__subtitle")}>
-            {permissionItem.subtitle}
-          </div>
-      }
-      <div className={S("item__select-container")}>
+      <div className={S("horizontal-item__actions")}>
+        <div className={S("horizontal-item__price")}>
+          {FormatPriceString(permissionItem.marketplaceItem.price)}
+        </div>
         <Linkish
           onClick={Select}
-          className={S("item__select")}
+          className={S("horizontal-item__action")}
         >
           SELECT
         </Linkish>
@@ -215,11 +246,20 @@ const Purchase = observer(() => {
 
   const media = rootStore.PocketMediaItem(pocketMediaSlugOrId);
 
+  useEffect(() => {
+    if(selectedItemId) {
+      rootStore.SetBackAction(() => setSelectedItemId(undefined));
+    }
+
+    return () => rootStore.SetBackAction(undefined);
+  }, [selectedItemId]);
+
   if(!media) {
     return null;
   }
 
   const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+  const orientation = rootStore.mobile ? "horizontal" : "vertical";
 
   return (
     <div key={pocketMediaSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
@@ -240,7 +280,7 @@ const Purchase = observer(() => {
             <div className={S("background-cover")} />
           </>
       }
-      <div className={S("items")}>
+      <div className={S("items", `items--${orientation}`)}>
         {
           selectedItemId ?
             <SelectedItem
@@ -250,6 +290,7 @@ const Purchase = observer(() => {
             permissions.permissionItems.map(permissionItem =>
               selectedItemId && selectedItemId !== permissionItem.id ? null :
                 <PurchaseItem
+                  orientation={orientation}
                   key={permissionItem.id}
                   selected={selectedItemId === permissionItem.id}
                   Select={() => setSelectedItemId(permissionItem.id)}

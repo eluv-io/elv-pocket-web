@@ -33,9 +33,10 @@
     gap: var(--gutter-size);
     grid-template-columns: 1fr 500px;
     height: calc(100 * var(--vh));
-    max-height: calc(100 * var(--vh));
+    max-height: calc(100 * var(--vh) - 60px);
     overflow: hidden;
     padding: var(--gutter-size);
+    padding-top: 0;
   }
 
   .logo {
@@ -44,12 +45,11 @@
   }
 }
 
-
 @media screen and (width <= 1000px) {
   .content {
     display: grid;
     grid-template-rows: max-content 1fr;
-    max-height: calc(100 * var(--vh));
+    max-height: calc(100 * var(--vh) - 50px);
     overflow: hidden;
 
     &--with-top-banners {
@@ -68,5 +68,11 @@
     svg {
       height: 32px;
     }
+  }
+}
+
+@media screen and (width <= 1000px) and (orientation: landscape) {
+  .content {
+    max-height: calc(100 * var(--vh));
   }
 }

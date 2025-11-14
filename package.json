@@ -14,8 +14,8 @@
     "lint-scss-fix": "npx stylelint \"src/**/*.{css,scss}\" --fix"
   },
   "dependencies": {
-    "@eluvio/elv-client-js": "^4.2.1",
-    "@eluvio/elv-player-js": "^2.1.2",
+    "@eluvio/elv-client-js": "^4.2.13",
+    "@eluvio/elv-player-js": "^2.1.14",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",
@@ -32,7 +32,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitejs/plugin-react-swc": "^4.0.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

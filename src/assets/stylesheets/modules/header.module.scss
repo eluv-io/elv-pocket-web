@@ -1,0 +1,69 @@
+.header {
+  align-items: center;
+  animation: var(--animation-fadein) 1s ease;
+  background-color: black;
+  display: flex;
+  height: 60px;
+  width: 100%;
+}
+
+.logo {
+  height: 100%;
+  width: auto;
+
+  svg {
+    height: 100%;
+  }
+}
+
+.back {
+  animation: var(--animation-fadein) 1s ease;
+}
+
+.link {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+
+  svg {
+    height: 15px;
+    width: 15px;
+  }
+}
+
+.title {
+  color: var(--text-primary);
+  font-weight: 600;
+  width: 100%;
+}
+
+@media screen and (width >= 1001px) {
+  .header {
+    gap: 15px;
+    padding: 12px 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+}
+
+@media screen and (width <= 1000px) {
+  .header {
+    gap: 15px;
+    height: 50px;
+    padding: 12px 10px;
+
+    &--back {
+      padding-inline: 20px;
+    }
+  }
+
+  .link {
+    font-size: 14px;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+}
