@@ -16,10 +16,6 @@
   }
 }
 
-.back {
-  animation: var(--animation-fadein) 1s ease;
-}
-
 .link {
   align-items: center;
   display: flex;
@@ -39,7 +35,7 @@
 
 @media screen and (width >= 1001px) {
   .header {
-    gap: 15px;
+    gap: 25px;
     padding: 12px 20px;
   }
 
@@ -65,5 +61,28 @@
 
   .title {
     font-size: 12px;
+  }
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  height: max-content;
+  margin-top: 15vh;
+  padding-inline: 50px;
+
+  &__link {
+    align-items: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    font-size: 22px;
+    gap: 25px;
+
+    svg {
+      height: 30px;
+      width: 30px;
+    }
   }
 }

@@ -243,12 +243,17 @@
     }
 
     &--horizontal {
-      gap: 30px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+      height: max-content;
       padding: 20px;
+      place-items: center center;
     }
   }
 
   .vertical-item {
+    border-radius: 5px;
     height: 100%;
     max-height: 470px;
     max-width: 350px;
@@ -279,7 +284,7 @@
 
   .horizontal-item {
     align-items: center;
-    border-radius: 10px;
+    border-radius: 5px;
     max-width: 800px;
     padding: 40px 30px;
     width: 100%;

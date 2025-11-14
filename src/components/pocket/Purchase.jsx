@@ -57,14 +57,13 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
   );
 });
 
-const PaymentActions = observer(({permissionItemId}) => {
+const PaymentActions = observer(({permissionItemId, Cancel}) => {
   const [confirmationId, setConfirmationId] = useState(undefined);
   const [error, setError] = useState();
 
   useEffect(() => {
     setTimeout(() => setError(undefined), 5000);
   }, [error]);
-
 
   return (
     <div key={!!error} className={S("payment__actions")}>
@@ -84,6 +83,12 @@ const PaymentActions = observer(({permissionItemId}) => {
         </Linkish>
       </div>
       <div className={S("payment__terms")}>
+        {
+          !rootStore.mobileLandscape ? null :
+            <Linkish onClick={Cancel}>
+              BACK
+            </Linkish>
+        }
         <div>
           By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.</a>
         </div>
@@ -259,7 +264,7 @@ const Purchase = observer(() => {
   }
 
   const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
-  const orientation = rootStore.mobile ? "horizontal" : "vertical";
+  const orientation = rootStore.mobile || permissions.permissionItems.length > 3 ? "horizontal" : "vertical";
 
   return (
     <div key={pocketMediaSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
