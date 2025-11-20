@@ -22,7 +22,6 @@
   }
 }
 
-
 .content {
   animation: var(--animation-fadein) 1s ease;
 }
@@ -54,6 +53,12 @@
 
     &--with-top-banners {
       grid-template-rows: max-content max-content 1fr;
+    }
+
+    &--no-sidebar {
+      grid-template-rows: 1fr;
+      height: 100%;
+      max-height: calc(100 * var(--vh) - 50px);
     }
   }
 

@@ -7,12 +7,10 @@ import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
-import Sidebar, {Banners} from "@/components/pocket/Sidebar.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import Purchase from "@/components/pocket/Purchase.jsx";
-import Header from "@/components/pocket/Header.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -73,39 +71,9 @@ const Pocket = observer(() => {
   }
 
   return (
-    <div className="page-container">
-      {
-        rootStore.mobileLandscape ? null :
-          <Header
-            mediaItem={mediaItem}
-            authorized={permissions.authorized}
-          />
-      }
-      <div
-        key={`content-${rootStore.pocket?.mediaLoadIndex}`}
-        className={
-          S(
-            "content",
-            rootStore.hasTopBanners ? "content--with-top-banners" : "",
-            permissions.authorized ? "content--authorized " : "content--unauthorized"
-          )
-        }
-      >
-        {
-          !rootStore.mobile || rootStore.mobileLandscape ? null :
-            <Banners position="above" />
-        }
-        {
-          permissions.authorized ?
-            <Media key={`${mediaItemSlugOrId}`} /> :
-            <Purchase key={`${mediaItemSlugOrId}`} />
-        }
-        {
-          rootStore.mobileLandscape ? null :
-            <Sidebar authorized={permissions.authorized} />
-        }
-      </div>
-    </div>
+    permissions.authorized ?
+      <Media key={`${mediaItemSlugOrId}`} /> :
+      <Purchase key={`${mediaItemSlugOrId}`} />
   );
 });
 

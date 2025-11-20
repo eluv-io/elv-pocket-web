@@ -8,6 +8,8 @@ import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/component
 import {useEffect, useState} from "react";
 import ApplePayImage from "@/assets/images/apple-pay.svg";
 import SVG from "react-inlinesvg";
+import Carousel from "@/components/common/Carousel.jsx";
+import Page from "@/components/pocket/Page.jsx";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
@@ -245,6 +247,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
   );
 });
 
+
 const Purchase = observer(() => {
   const {mediaItemSlugOrId} = useParams();
   const [selectedItemId, setSelectedItemId] = useState(null);
@@ -264,47 +267,72 @@ const Purchase = observer(() => {
   }
 
   const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
-  const orientation = rootStore.mobile || permissions.permissionItems.length > 3 ? "horizontal" : "vertical";
+  const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
+  const hideSidebar = rootStore.mobile && permissions.permissionItems.length > 2;
 
   return (
-    <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
-      {
-        rootStore.mobile ? null :
-          <>
-            <HashedLoaderImage
-              src={
-                mediaItem.poster_image?.url ||
-                rootStore.splashImage.url
-              }
-              hash={
-                mediaItem.poster_image_hash ||
-                rootStore.splashImage.hash
-              }
-              className={S("background")}
-            />
-            <div className={S("background-cover")} />
-          </>
-      }
-      <div className={S("items", `items--${orientation}`)}>
+    <Page
+      mediaItem={mediaItem}
+      permissions={permissions}
+      hideSidebar={hideSidebar}
+      className={S("purchase-page")}
+    >
+      <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
         {
-          selectedItemId ?
-            <SelectedItem
-              permissionItem={permissions.permissionItems.find(item => item.id === selectedItemId)}
-              Cancel={() => setSelectedItemId(undefined)}
-            /> :
-            permissions.permissionItems.map(permissionItem =>
-              selectedItemId && selectedItemId !== permissionItem.id ? null :
-                <PurchaseItem
-                  orientation={orientation}
-                  key={permissionItem.id}
-                  selected={selectedItemId === permissionItem.id}
-                  Select={() => setSelectedItemId(permissionItem.id)}
-                  permissionItem={permissionItem}
-                />
-            )
+          rootStore.mobile ? null :
+            <>
+              <HashedLoaderImage
+                src={
+                  mediaItem.poster_image?.url ||
+                  rootStore.splashImage.url
+                }
+                hash={
+                  mediaItem.poster_image_hash ||
+                  rootStore.splashImage.hash
+                }
+                className={S("background")}
+              />
+              <div className={S("background-cover")} />
+            </>
+        }
+        {
+          !rootStore.mobile && !selectedItemId ?
+            <Carousel className={S("item-carousel")}>
+              {
+                [...permissions.permissionItems, ...permissions.permissionItems].map((permissionItem, index) =>
+                    selectedItemId && selectedItemId !== permissionItem.id ? null :
+                      <PurchaseItem
+                        orientation={orientation}
+                        key={permissionItem.id + index}
+                        selected={selectedItemId === permissionItem.id}
+                        Select={() => setSelectedItemId(permissionItem.id)}
+                        permissionItem={permissionItem}
+                      />
+                  )
+              }
+            </Carousel> :
+            <div className={S("items", `items--${orientation}`)}>
+              {
+                selectedItemId ?
+                  <SelectedItem
+                    permissionItem={permissions.permissionItems.find(item => item.id === selectedItemId)}
+                    Cancel={() => setSelectedItemId(undefined)}
+                  /> :
+                  permissions.permissionItems.map(permissionItem =>
+                    selectedItemId && selectedItemId !== permissionItem.id ? null :
+                      <PurchaseItem
+                        orientation={orientation}
+                        key={permissionItem.id}
+                        selected={selectedItemId === permissionItem.id}
+                        Select={() => setSelectedItemId(permissionItem.id)}
+                        permissionItem={permissionItem}
+                      />
+                  )
+              }
+            </div>
         }
       </div>
-    </div>
+    </Page>
   );
 });
 

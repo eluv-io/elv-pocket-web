@@ -279,11 +279,19 @@
     }
   }
 
+  .tabs {
+    background-color: black;
+    margin: 0;
+    padding-top: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
   .current-item {
     background-color: var(--background-primary);
     box-shadow: 0 0 10px black;
     padding: 15px 20px 10px 10px;
-    position: sticky;
     top: 0;
     z-index: 2;
   }

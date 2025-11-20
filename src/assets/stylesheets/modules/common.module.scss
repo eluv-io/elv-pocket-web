@@ -2,3 +2,51 @@
 .loader-image {
   animation: var(--animation-fadein) 0.5s ease;
 }
+
+.carousel {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  overflow-y: auto;
+  padding-inline: 50px;
+  position: relative;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  width: 100%;
+  z-index: 100;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    scroll-snap-align: center;
+  }
+
+  &__button {
+    position: sticky;
+    transition: opacity 0.5s ease;
+
+    svg {
+      color: var(--text-primary);
+      filter: drop-shadow(0 0 10px black);
+      height: 50px;
+      width: 50px;
+    }
+
+    &:disabled {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &--previous {
+      left: -20px;
+    }
+
+    &--next {
+      right: -20px;
+    }
+  }
+}

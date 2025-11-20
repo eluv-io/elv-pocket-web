@@ -57,10 +57,11 @@ const MediaCard = observer(({mediaItem}) => {
 
 const SidebarContent = observer(() => {
   const [tabIndex, setTabIndex] = useState(0);
+  const [containerRef, setContainerRef] = useState(null);
   const tab = rootStore.sidebarContent[tabIndex];
 
   return (
-    <div className={S("media")}>
+    <div ref={setContainerRef} className={S("media")}>
       {
         rootStore.sidebarContent.length <= 1 ? null :
           <div className={S("tabs")}>
@@ -68,7 +69,12 @@ const SidebarContent = observer(() => {
               rootStore.sidebarContent.map((tab, index) =>
                 <button
                   key={`tab-${index}`}
-                  onClick={() => setTabIndex(index)}
+                  onClick={() => {
+                    setTabIndex(index);
+                    if(containerRef?.parentElement.scrollTop > 95) {
+                      containerRef?.parentElement?.scrollTo({top: 95, behavior: "smooth"});
+                    }
+                  }}
                   className={S("tab", index === tabIndex ? "tab--active" : "")}
                 >
                   { tab.title }
@@ -196,12 +202,8 @@ const ContentInfo = observer(({mediaItem}) => {
   );
 });
 
-const Sidebar = observer(({authorized}) => {
-  const {mediaItemSlugOrId} = useParams();
-
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
-
-  if(!mediaItem) {
+const Sidebar = observer(({mediaItem, permissions}) => {
+  if(!mediaItem || rootStore.mobileLandscape) {
     return null;
   }
 
@@ -209,7 +211,7 @@ const Sidebar = observer(({authorized}) => {
     <>
       <div className={S("sidebar")}>
         {
-          rootStore.mobile && !authorized ? null :
+          rootStore.mobile && !permissions.authorized ? null :
             <ContentInfo mediaItem={mediaItem} />
         }
         {

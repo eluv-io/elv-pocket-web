@@ -9,6 +9,7 @@ import {useEffect, useState} from "react";
 import Countdown from "@/components/pocket/Countdown.jsx";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
+import Page from "@/components/pocket/Page.jsx";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -111,30 +112,36 @@ const Media = observer(() => {
   const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
 
   return (
-    <div key={mediaItem} className={S("media")}>
-      {
-        !started ?
-          <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
-          rootStore.contentEnded && rootStore.pocket.metadata.post_content_screen?.enabled ?
-            <EndScreen /> :
-            <Video
-              isLive={mediaItem.scheduleInfo.currentlyLive}
-              videoLink={mediaItem.media_link}
-              posterImage={
-                mediaItem.poster_image?.url ||
-                rootStore.splashImage.url
-              }
-              endCallback={() => rootStore.SetContentEnded(true)}
-              className={S("video")}
-              contentInfo={{
-                title: mediaItem.title,
-                subtitle: mediaItem.subtitle,
-                description: mediaItem.description,
-                liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
-              }}
-            />
-      }
-    </div>
+    <Page
+      mediaItem={mediaItem}
+      permissions={permissions}
+      className={S("media-page")}
+    >
+      <div key={mediaItem} className={S("media")}>
+        {
+          !started ?
+            <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
+            rootStore.contentEnded && rootStore.pocket.metadata.post_content_screen?.enabled ?
+              <EndScreen /> :
+              <Video
+                isLive={mediaItem.scheduleInfo.currentlyLive}
+                videoLink={mediaItem.media_link}
+                posterImage={
+                  mediaItem.poster_image?.url ||
+                  rootStore.splashImage.url
+                }
+                endCallback={() => rootStore.SetContentEnded(true)}
+                className={S("video")}
+                contentInfo={{
+                  title: mediaItem.title,
+                  subtitle: mediaItem.subtitle,
+                  description: mediaItem.description,
+                  liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
+                }}
+              />
+        }
+      </div>
+    </Page>
   );
 });
 
