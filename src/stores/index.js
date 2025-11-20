@@ -12,6 +12,8 @@ class RootStore {
   client;
   walletClient;
   pocket;
+  media = {};
+  slugMap = {};
   initialized = false;
   contentEnded = false;
   permissionItems = {};
@@ -31,45 +33,20 @@ class RootStore {
     return this.mobile && (this.pageDimensions.width / this.pageDimensions.height > 1.2);
   }
 
-  get media() {
-    if(!this.pocket || !this.pocket.mediaLoaded) { return []; }
+  get sidebarContent() {
+    if(!this.pocket || !this.pocket.mediaLoaded) {
+      return [];
+    }
 
-    return Object.keys(this.pocket.metadata.media).map(pocketMediaId => ({
-      ...this.pocket.metadata.media[pocketMediaId],
-      pocketMediaId
-    }))
-      .sort((a, b) => {
-        let titleComparison = (a.display.catalog_title || a.display.title) < (b.display.catalog_title || b.display.title) ? -1 : 1;
-        let scheduleComparison = 0;
-        let timeComparison = 0;
-
-        // For live comparison, regardless of direction we want live content to show first, followed by vod content
-        if(a.display.live_video) {
-          if(b.display.live_video) {
-            timeComparison =
-              a.display.start_time === b.display.start_time ? titleComparison :
-                a.display.start_time < b.display.start_time ? -1 : 1;
-          } else {
-            timeComparison = -1;
-            scheduleComparison = -1;
-          }
-        } else if(b.display.live_video) {
-          scheduleComparison = 1;
-          timeComparison = 1;
-        }
-
-        switch(this.pocket.metadata.sidebar_config.sort_order) {
-          case "title_asc":
-            return titleComparison;
-          case "title_desc":
-            return -1 * titleComparison;
-          case "time_desc":
-            return scheduleComparison || (-1 * timeComparison) || titleComparison;
-          // "time_asc" is the default case
-          default:
-            return scheduleComparison || timeComparison || titleComparison;
-        }
-      });
+    return this.pocket.metadata.sidebar_config.tabs.map(tab => ({
+      ...tab,
+      groups: tab.groups.map(group => ({
+        ...group,
+        content: group.type === "automatic" ?
+          this.FilteredMedia({select: group.select}) :
+          group.content.map(mediaItemId => this.media[mediaItemId])
+      }))
+    }));
   }
 
   get splashImage() {
@@ -158,41 +135,39 @@ class RootStore {
     console.time("Load Media");
 
     const metadata = {...this.pocket.metadata};
-    // TODO: Versioned media, maybe build media into pocket
-    const mediaIds = Object.keys(metadata.media || {})
-      .map(pocketMediaId => metadata.media[pocketMediaId].media_id)
-      .filter(t => t)
-      .filter((v, i, a) => a.indexOf(v) === i);
 
-    // Load media
-    let allMedia = {};
+    let media = {};
+    let slugMap = {};
     yield Promise.all(
       metadata.media_catalogs.map(async mediaCatalogId => {
-        const media = await this.client.ContentObjectMetadata({
+        const info = await this.client.ContentObjectMetadata({
           versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
-          metadataSubtree: "/public/asset_metadata/info/media",
-          select: mediaIds,
+          metadataSubtree: "/public/asset_metadata/info",
+          select: [ "media", "slug_map" ],
           produceLinkUrls: true
         });
 
-        Object.keys(media || {}).forEach(mediaId =>
-          allMedia[mediaId] = media[mediaId]
-        );
+        media = {
+          ...media,
+          ...(info?.media || {})
+        };
+
+        slugMap = {
+          ...slugMap,
+          ...(info.slug_map || {})
+        };
       })
     );
 
-    // Determine permission ids
+    // Determine permission ids and generate schedule info
     let permissionItemIds = [];
-    Object.keys(metadata.media).forEach(pocketMediaId => {
-      const mediaItem = allMedia[metadata.media[pocketMediaId].media_id];
-      metadata.media[pocketMediaId].mediaItem = mediaItem;
-      metadata.media[pocketMediaId].scheduleInfo = this.MediaItemScheduleInfo(mediaItem);
+    Object.keys(media).forEach(mediaItemId => {
+      media[mediaItemId] = {
+        ...media[mediaItemId],
+        scheduleInfo: this.MediaItemScheduleInfo(media[mediaItemId])
+      };
 
-      if(metadata.media[pocketMediaId].use_media_settings) {
-        metadata.media[pocketMediaId].display = mediaItem;
-      }
-
-      (mediaItem.permissions || []).forEach(({permission_item_id}) =>
+      (media[mediaItemId].permissions || []).forEach(({permission_item_id}) =>
         !permissionItemIds.includes(permission_item_id) && permissionItemIds.push(permission_item_id)
       );
     });
@@ -245,7 +220,7 @@ class RootStore {
     });
 
     this.permissionItems = allPermissionItems;
-
+    this.media = media;
     this.pocket = {
       ...this.pocket,
       metadata,
@@ -256,24 +231,24 @@ class RootStore {
     console.timeEnd("Load Media");
   });
 
-  PocketMediaItem(pocketMediaSlugOrId) {
-    pocketMediaSlugOrId = this.pocket.metadata.media_slug_map[pocketMediaSlugOrId] || pocketMediaSlugOrId;
+  MediaItem(mediaItemSlugOrId) {
+    const mediaItemId = this.slugMap[mediaItemSlugOrId] || mediaItemSlugOrId;
 
-    return this.pocket.metadata.media[pocketMediaSlugOrId];
+    return this.media[mediaItemId];
   }
 
-  PocketMediaItemPermissions(pocketMediaSlugOrId) {
-    const item = this.PocketMediaItem(pocketMediaSlugOrId);
+  MediaItemPermissions(mediaItemSlugOrId) {
+    const item = this.MediaItem(mediaItemSlugOrId);
 
-    if(!item.mediaItem) { return; }
+    if(!item) { return; }
 
     let permissions = {
-      authorized: (item.mediaItem?.permissions || []).length === 0,
+      authorized: (item?.permissions || []).length === 0,
       dvr: false,
       permissionItems: []
     };
 
-    permissions.permissionItems = item.mediaItem.permissions
+    permissions.permissionItems = item.permissions
       .map(({permission_item_id}) => {
         if(!permission_item_id || !this.permissionItems[permission_item_id]) {
           return;
@@ -354,6 +329,61 @@ class RootStore {
       };
     }
   };
+
+  FilteredMedia({select}) {
+    let content = Object.values(this.media);
+
+    // Schedule filter
+    // Only videos can be filtered by schedule
+    if(select.schedule) {
+      const now = new Date();
+      content = content.filter(mediaItem => {
+        if(!mediaItem.live_video || mediaItem.media_type !== "Video" || !mediaItem.start_time) {
+          return false;
+        }
+
+        const startTime = new Date(mediaItem.start_time);
+        const endTime = mediaItem.end_time && new Date(mediaItem.end_time);
+
+        const started = startTime < now;
+        const ended = endTime < now;
+        const afterStartLimit = !select.start_time || new Date(select.start_time) < startTime;
+        const beforeEndLimit = !select.end_time || new Date(select.end_time) > startTime;
+
+        switch(select.schedule) {
+          case "live":
+            return started && !ended;
+          case "live_and_upcoming":
+            return !ended && beforeEndLimit;
+          case "upcoming":
+            return !started && beforeEndLimit;
+          case "past":
+            return ended && afterStartLimit;
+          case "period":
+            return afterStartLimit && beforeEndLimit;
+        }
+      });
+    }
+
+    if(select.date) {
+      const baseDate = select.date.split("T")[0];
+      content = content.filter(mediaItem => mediaItem.date && mediaItem.date.split("T")[0] === baseDate);
+    }
+
+    if(select.tags?.length > 0) {
+      content = content.filter(mediaItem =>
+        !select.tags.find(tag => !mediaItem.tags.includes(tag))
+      );
+    }
+
+    select.attributes?.forEach(attributeId => {
+      content = content.filter(mediaItem =>
+        mediaItem.attributes?.[attributeId]?.includes(select.attribute_values[attributeId])
+      );
+    });
+
+    return content;
+  }
 
   GenerateKey = flow(function * () {
     const wallet = this.client.GenerateWallet();

@@ -246,10 +246,10 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
 });
 
 const Purchase = observer(() => {
-  const {pocketMediaSlugOrId} = useParams();
+  const {mediaItemSlugOrId} = useParams();
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const media = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
 
   useEffect(() => {
     if(selectedItemId) {
@@ -259,25 +259,25 @@ const Purchase = observer(() => {
     return () => rootStore.SetBackAction(undefined);
   }, [selectedItemId]);
 
-  if(!media) {
+  if(!mediaItem) {
     return null;
   }
 
-  const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+  const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
   const orientation = rootStore.mobile || permissions.permissionItems.length > 3 ? "horizontal" : "vertical";
 
   return (
-    <div key={pocketMediaSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
+    <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
       {
         rootStore.mobile ? null :
           <>
             <HashedLoaderImage
               src={
-                media.mediaItem.poster_image?.url ||
+                mediaItem.poster_image?.url ||
                 rootStore.splashImage.url
               }
               hash={
-                media.mediaItem.poster_image_hash ||
+                mediaItem.poster_image_hash ||
                 rootStore.splashImage.hash
               }
               className={S("background")}

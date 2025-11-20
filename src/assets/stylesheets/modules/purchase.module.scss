@@ -398,7 +398,7 @@
 @media screen and (width <= 1000px) {
   .items {
     height: 100%;
-    max-height: calc(50 * var(--vh));
+    max-height: calc(40 * var(--vh));
     min-height: calc(20 * var(--vh));
     width: 100%;
 

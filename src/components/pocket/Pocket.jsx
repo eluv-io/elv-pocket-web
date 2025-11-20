@@ -17,7 +17,7 @@ import Header from "@/components/pocket/Header.jsx";
 const S = CreateModuleClassMatcher(PocketStyles);
 
 const Pocket = observer(() => {
-  const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
+  const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
     rootStore.LoadPocket({pocketSlugOrId})
@@ -28,88 +28,83 @@ const Pocket = observer(() => {
 
   useEffect(() => {
     rootStore.SetContentEnded(false);
-  }, [pocketMediaSlugOrId]);
+  }, [mediaItemSlugOrId]);
 
   if(!rootStore.pocket) {
     return null;
   }
 
-  if(rootStore.initialized && rootStore.pocket?.mediaLoaded && !pocketMediaSlugOrId) {
-    const firstItemSlugOrId = rootStore.media[0]?.slug || rootStore.media[0]?.id;
-
+  if(!rootStore.initialized || !rootStore?.pocket?.mediaLoaded) {
     return (
-      <Redirect
-        to={
-          !firstItemSlugOrId ? "~/" :
-            UrlJoin("~/", pocketSlugOrId, firstItemSlugOrId)
-        }
-      />
+      <div className="page-container">
+        <div className={S("splash")}>
+          <HashedLoaderImage
+            src={rootStore.splashImage.url}
+            hash={rootStore.splashImage.hash}
+            className={S("splash__image")}
+          />
+          <div className={S("logo")}>
+            <SVG src={EIcon} alt="Eluvio"/>
+            <span>POCKET TV</span>
+            <Loader className={S("logo__loader")}/>
+          </div>
+        </div>
+      </div>
     );
   }
 
-  const pocketMediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+  const mediaItem = mediaItemSlugOrId && rootStore.MediaItem(mediaItemSlugOrId);
+  if(!mediaItem) {
+    // Item not found - find first item from sidebar content and redirect
+    for(const tab of rootStore.sidebarContent) {
+      for(const group of tab.groups) {
+        const item = group.content[0];
 
-  if(!pocketMediaItem) {
-    return null;
+        if(item && !(item.id === mediaItemSlugOrId || (item.slug && item.slug === mediaItemSlugOrId))) {
+          return <Redirect to={UrlJoin("~/", pocketSlugOrId, item.slug || item.id)}/>;
+        }
+      }
+    }
   }
 
   let permissions = {};
   if(rootStore.pocket?.mediaLoaded) {
-    permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+    permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
   }
 
   return (
     <div className="page-container">
       {
-        !rootStore.initialized || !rootStore.pocket?.mediaLoaded ?
-          <>
-            <div className={S("splash")}>
-              <HashedLoaderImage
-                src={rootStore.splashImage.url}
-                hash={rootStore.splashImage.hash}
-                className={S("splash__image")}
-              />
-              <div className={S("logo")}>
-                <SVG src={EIcon} alt="Eluvio"/>
-                <span>POCKET TV</span>
-                <Loader className={S("logo__loader")} />
-              </div>
-            </div>
-          </> :
-          <>
-            {
-              rootStore.mobileLandscape ? null :
-                <Header
-                  pocketMediaItem={pocketMediaItem}
-                  authorized={permissions.authorized}
-                />
-            }
-            <div
-              key={`content-${rootStore.pocket?.mediaLoadIndex}`}
-              className={
-                S(
-                  "content",
-                  rootStore.hasTopBanners ? "content--with-top-banners" : "",
-                  permissions.authorized ? "content--authorized " : "content--unauthorized"
-                )
-              }
-            >
-              {
-                !rootStore.mobile || rootStore.mobileLandscape ? null :
-                  <Banners position="above" />
-              }
-              {
-                permissions.authorized ?
-                  <Media key={`${pocketMediaSlugOrId}`} /> :
-                  <Purchase key={`${pocketMediaSlugOrId}`} />
-              }
-              {
-                rootStore.mobileLandscape ? null :
-                  <Sidebar authorized={permissions.authorized} />
-              }
-            </div>
-          </>
+        rootStore.mobileLandscape ? null :
+          <Header
+            mediaItem={mediaItem}
+            authorized={permissions.authorized}
+          />
       }
+      <div
+        key={`content-${rootStore.pocket?.mediaLoadIndex}`}
+        className={
+          S(
+            "content",
+            rootStore.hasTopBanners ? "content--with-top-banners" : "",
+            permissions.authorized ? "content--authorized " : "content--unauthorized"
+          )
+        }
+      >
+        {
+          !rootStore.mobile || rootStore.mobileLandscape ? null :
+            <Banners position="above" />
+        }
+        {
+          permissions.authorized ?
+            <Media key={`${mediaItemSlugOrId}`} /> :
+            <Purchase key={`${mediaItemSlugOrId}`} />
+        }
+        {
+          rootStore.mobileLandscape ? null :
+            <Sidebar authorized={permissions.authorized} />
+        }
+      </div>
     </div>
   );
 });

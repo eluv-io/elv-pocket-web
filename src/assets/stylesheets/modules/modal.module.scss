@@ -14,7 +14,7 @@
   &--hidden {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.25s ease-out;
     user-select: none;
   }
 

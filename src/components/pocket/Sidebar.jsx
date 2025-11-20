@@ -9,14 +9,15 @@ import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import {useState} from "react";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
 const MediaCard = observer(({mediaItem}) => {
-  const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
+  const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
-  const imageInfo = MediaItemImageUrl({mediaItem, display: mediaItem.display});
-  const isActive = mediaItem.slug === pocketMediaSlugOrId || mediaItem.id === pocketMediaSlugOrId;
+  const imageInfo = MediaItemImageUrl({mediaItem});
+  const isActive = mediaItem.slug === mediaItemSlugOrId || mediaItem.id === mediaItemSlugOrId;
 
   return (
     <Linkish
@@ -38,12 +39,12 @@ const MediaCard = observer(({mediaItem}) => {
       </div>
       <div className={S("media-card__content")}>
         <div className={S("media-card__title")}>
-          {mediaItem.display.title}
+          {mediaItem.title}
         </div>
         <div className={S("media-card__subtitle")}>
           {
             !mediaItem.scheduleInfo.isLiveContent ?
-              mediaItem.display.subtitle :
+              mediaItem.subtitle :
               !mediaItem.scheduleInfo.currentlyLive ?
                 "Live Now" :
                 `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
@@ -55,48 +56,43 @@ const MediaCard = observer(({mediaItem}) => {
 });
 
 const SidebarContent = observer(() => {
-  const config = rootStore.pocket.metadata.sidebar_config || {};
-
-  let media = rootStore.media;
-
-  if(config.content === "specific") {
-    media = config.content_ids
-      .map(({id}) =>
-        rootStore.PocketMediaItem(id)
-      )
-      .filter(item => item);
-  }
-
-  const liveContent = media.filter(item => item.scheduleInfo.isLiveContent && item.scheduleInfo.started && !item.scheduleInfo.ended);
-  const upcomingContent = media.filter(item => item.scheduleInfo.isLiveContent && !item.scheduleInfo.started);
-  const vodContent = media.filter(item => !item.scheduleInfo.isLiveContent);
-
-  let content = [
-    liveContent.length === 0 ? null :
-      { title: "TODAY", items: liveContent},
-    upcomingContent.length === 0 ? null :
-      { title: "UPCOMING", items: upcomingContent},
-    vodContent.length === 0 ? null :
-      { title: "VOD", items: vodContent}
-  ].filter(c => c);
+  const [tabIndex, setTabIndex] = useState(0);
+  const tab = rootStore.sidebarContent[tabIndex];
 
   return (
     <div className={S("media")}>
       {
-        content.map(({title, items}) =>
-          <div key={title} className={S("media-section")}>
-            <div className={S("media-section__title")}>{title}</div>
-            <div className={S("media-section__media")}>
-              {
-                items.map((mediaItem, index) =>
-                  <MediaCard
-                    key={`${mediaItem.id}-${index}`}
-                    mediaItem={mediaItem}
-                  />
-                )
-              }
-            </div>
+        rootStore.sidebarContent.length <= 1 ? null :
+          <div className={S("tabs")}>
+            {
+              rootStore.sidebarContent.map((tab, index) =>
+                <button
+                  key={`tab-${index}`}
+                  onClick={() => setTabIndex(index)}
+                  className={S("tab", index === tabIndex ? "tab--active" : "")}
+                >
+                  { tab.title }
+                </button>
+              )
+            }
           </div>
+      }
+      {
+        tab.groups.map(({title, content}) =>
+          content.length === 0 ? null :
+            <div key={title} className={S("media-section")}>
+              <div className={S("media-section__title")}>{title}</div>
+              <div className={S("media-section__media")}>
+                {
+                  content.map((mediaItem, index) =>
+                    <MediaCard
+                      key={`${mediaItem.id}-${index}`}
+                      mediaItem={mediaItem}
+                    />
+                  )
+                }
+              </div>
+            </div>
         )
       }
     </div>
@@ -104,9 +100,9 @@ const SidebarContent = observer(() => {
 });
 
 export const Banners = observer(({position="below"}) => {
-  const {pocketSlugOrId, pocketMediaSlugOrId} = useParams();
+  const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
-  const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
 
   const config = rootStore.pocket.metadata.sidebar_config || {};
 
@@ -173,7 +169,7 @@ const ContentInfo = observer(({mediaItem}) => {
           <div className={S("current-item")}>
             <div className={S("title-container")}>
               {
-                mediaItem.display?.icons?.map(icon =>
+                mediaItem.icons?.map(icon =>
                     !icon.icon?.url ? null :
                       <img
                         key={icon.icon.url}
@@ -184,13 +180,13 @@ const ContentInfo = observer(({mediaItem}) => {
                 )
               }
               <div className={S("title")}>
-                {mediaItem.display.title}
+                {mediaItem.title}
               </div>
             </div>
             <div className={(S("subtitle"))}>
               {
                 !mediaItem.scheduleInfo.isLiveContent ?
-                  mediaItem.display.subtitle :
+                  mediaItem.subtitle :
                   `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
               }
             </div>
@@ -201,9 +197,9 @@ const ContentInfo = observer(({mediaItem}) => {
 });
 
 const Sidebar = observer(({authorized}) => {
-  const {pocketMediaSlugOrId} = useParams();
+  const {mediaItemSlugOrId} = useParams();
 
-  const mediaItem = rootStore.PocketMediaItem(pocketMediaSlugOrId);
+  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
 
   if(!mediaItem) {
     return null;

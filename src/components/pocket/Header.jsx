@@ -2,7 +2,7 @@ import HeaderStyles from "@/assets/stylesheets/modules/header.module.scss";
 
 import {observer} from "mobx-react-lite";
 import SVG from "react-inlinesvg";
-import {Linkish} from "@/components/common/Common.jsx";
+import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {rootStore} from "@/stores/index.js";
 import {useState} from "react";
@@ -31,11 +31,11 @@ const Menu = observer(() => {
   );
 });
 
-const Header = observer(({pocketMediaItem, authorized}) => {
+const Header = observer(({mediaItem, authorized}) => {
   const [menuControls, setMenuControls] = useState(undefined);
 
   let header;
-  if(pocketMediaItem && (rootStore.backAction || (rootStore.mobile && !authorized))) {
+  if(mediaItem && (rootStore.backAction || (rootStore.mobile && !authorized))) {
     header = (
       <header key="header--back" className={S("header", "header--back")}>
         {
@@ -48,16 +48,27 @@ const Header = observer(({pocketMediaItem, authorized}) => {
             </Linkish>
         }
         <div className={S("title", "ellipsis")}>
-          {pocketMediaItem.display.title}
+          {mediaItem.title}
         </div>
       </header>
     );
   } else {
+    const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+      rootStore.pocket.metadata.header_logo ? "header_logo" : "";
     header = (
       <header key="header" className={S("header")}>
-        <div className={S("logo")}>
-          <SVG src={EIcon} alt="Eluvio"/>
-        </div>
+        <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+          {
+            logoKey ?
+              <HashedLoaderImage
+                width={200}
+                src={rootStore.pocket.metadata[logoKey].url}
+                hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+                className={S("logo__image")}
+              /> :
+              <SVG src={EIcon} alt="Eluvio"/>
+          }
+        </Linkish>
         <Linkish className={S("link")}>
           Watch
         </Linkish>

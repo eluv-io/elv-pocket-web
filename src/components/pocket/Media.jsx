@@ -17,7 +17,7 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
     return null;
   }
 
-  const backgroundKey = rootStore.mobile && mediaItem.display.countdown_background_mobile ?
+  const backgroundKey = rootStore.mobile && mediaItem.countdown_background_mobile ?
     "countdown_background_mobile" :
     "countdown_background_desktop";
 
@@ -25,22 +25,22 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
     <div className={S("countdown-page")}>
       <HashedLoaderImage
         src={
-          mediaItem.display[backgroundKey]?.url ||
+          mediaItem[backgroundKey]?.url ||
           rootStore.splashImage.url
         }
         hash={
-          mediaItem.display[`${backgroundKey}_hash`]?.url ||
+          mediaItem[`${backgroundKey}_hash`]?.url ||
           rootStore.splashImage.hash
         }
-        alt={mediaItem.display.title}
+        alt={mediaItem.title}
         className={S("countdown-page__image")}
       />
       <div className={S("countdown-page__cover")}/>
       <div className={S("countdown-page__content")}>
         {
-          mediaItem.display.icons?.length === 0 ? null :
+          mediaItem.icons?.length === 0 ? null :
             <div className={S("countdown-page__icons")}>
-              {mediaItem.display.icons.map(({icon, icon_hash, alt_text}, index) =>
+              {mediaItem.icons.map(({icon, icon_hash, alt_text}, index) =>
                 <HashedLoaderImage
                   key={`icon-${index}`}
                   src={icon.url}
@@ -52,15 +52,15 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
             </div>
         }
         {
-          (mediaItem.display.headers || []).length === 0 ? null :
+          (mediaItem.headers || []).length === 0 ? null :
             <div className={S("countdown-page__headers")}>
-              {mediaItem.display.headers.map((header, index) =>
+              {mediaItem.headers.map((header, index) =>
                 <div key={`header-${index}`} className={S("countdown-page__header")}>{header}</div>
               )}
             </div>
         }
         <div className={S("countdown-page__title")}>
-          {mediaItem.display.title}
+          {mediaItem.title}
         </div>
         <Countdown
           displayTime={mediaItem.scheduleInfo.startTime}
@@ -94,43 +94,43 @@ const EndScreen = observer(() => {
 });
 
 const Media = observer(() => {
-  const {pocketMediaSlugOrId} = useParams();
+  const {mediaItemSlugOrId} = useParams();
 
-  const media = rootStore.PocketMediaItem(pocketMediaSlugOrId);
-  const scheduleInfo = media?.mediaItem && rootStore.MediaItemScheduleInfo(media.mediaItem);
+  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
+  const scheduleInfo = mediaItem && rootStore.MediaItemScheduleInfo(mediaItem);
   const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
 
   useEffect(() => {
     setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
-  }, [pocketMediaSlugOrId, scheduleInfo]);
+  }, [mediaItemSlugOrId, scheduleInfo]);
 
-  if(!media) {
+  if(!mediaItemSlugOrId) {
     return null;
   }
 
-  const permissions = rootStore.PocketMediaItemPermissions(pocketMediaSlugOrId);
+  const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
 
   return (
-    <div key={pocketMediaSlugOrId} className={S("media")}>
+    <div key={mediaItem} className={S("media")}>
       {
         !started ?
-          <MediaCountdown mediaItem={media} setStarted={setStarted} /> :
+          <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
           rootStore.contentEnded && rootStore.pocket.metadata.post_content_screen?.enabled ?
             <EndScreen /> :
             <Video
-              isLive={media.scheduleInfo.currentlyLive}
-              videoLink={media.mediaItem.media_link}
+              isLive={mediaItem.scheduleInfo.currentlyLive}
+              videoLink={mediaItem.media_link}
               posterImage={
-                media.mediaItem.poster_image?.url ||
+                mediaItem.poster_image?.url ||
                 rootStore.splashImage.url
               }
               endCallback={() => rootStore.SetContentEnded(true)}
               className={S("video")}
               contentInfo={{
-                title: media.display.title,
-                subtitle: media.display.subtitle,
-                description: media.display.description,
-                liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && media.mediaItem?.enable_dvr ? "ON" : "OFF"]
+                title: mediaItem.title,
+                subtitle: mediaItem.subtitle,
+                description: mediaItem.description,
+                liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
               }}
             />
       }

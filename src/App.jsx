@@ -56,7 +56,7 @@ const App = () => {
       <Route path="/clear">
         <ClearKey />
       </Route>
-      <Route path="/:pocketSlugOrId/:pocketMediaSlugOrId?">
+      <Route path="/:pocketSlugOrId/:mediaItemSlugOrId?">
         <Pocket />
       </Route>
       <Route>

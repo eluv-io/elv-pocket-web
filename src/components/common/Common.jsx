@@ -108,10 +108,8 @@ export const Linkish = forwardRef(function Linkish({
   }
 });
 
-export const MediaItemImageUrl = ({mediaItem, display, aspectRatio, width}) => {
-  if(!mediaItem && !display) { return {}; }
-
-  display = display || mediaItem;
+export const MediaItemImageUrl = ({mediaItem, aspectRatio, width}) => {
+  if(!mediaItem) { return {}; }
 
   aspectRatio = aspectRatio?.toLowerCase();
   const aspectRatioPreference =
@@ -120,12 +118,12 @@ export const MediaItemImageUrl = ({mediaItem, display, aspectRatio, width}) => {
       ["square", "landscape", "portrait"];
 
   const imageAspectRatio =
-    [aspectRatio, ...aspectRatioPreference].find(ratio => display?.[`thumbnail_image_${ratio}`]) || aspectRatioPreference[0];
+    [aspectRatio, ...aspectRatioPreference].find(ratio => mediaItem?.[`thumbnail_image_${ratio}`]) || aspectRatioPreference[0];
 
-  let imageUrl = display?.[`thumbnail_image_${imageAspectRatio}`]?.url;
-  const imageHash = display?.[`thumbnail_image_${imageAspectRatio}_hash`];
+  let imageUrl = mediaItem?.[`thumbnail_image_${imageAspectRatio}`]?.url;
+  const imageHash = mediaItem?.[`thumbnail_image_${imageAspectRatio}_hash`];
 
-  if(!imageUrl && display) {
+  if(!imageUrl && mediaItem) {
     return MediaItemImageUrl({mediaItem, aspectRatio, width});
   }
 
@@ -137,7 +135,7 @@ export const MediaItemImageUrl = ({mediaItem, display, aspectRatio, width}) => {
     imageUrl,
     imageHash,
     imageAspectRatio,
-    altText: display.thumbnail_alt_text
+    altText: mediaItem.thumbnail_alt_text
   };
 };
 
