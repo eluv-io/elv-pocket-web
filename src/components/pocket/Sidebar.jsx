@@ -8,7 +8,7 @@ import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 
-import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import Logo from "@/assets/icons/logo.svg";
 import {useState} from "react";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
@@ -202,7 +202,7 @@ const ContentInfo = observer(({mediaItem}) => {
   );
 });
 
-const Sidebar = observer(({mediaItem, permissions}) => {
+const Sidebar = observer(({mediaItem}) => {
   if(!mediaItem || rootStore.mobileLandscape) {
     return null;
   }
@@ -210,18 +210,16 @@ const Sidebar = observer(({mediaItem, permissions}) => {
   return (
     <>
       <div className={S("sidebar")}>
-        {
-          rootStore.mobile && !permissions.authorized ? null :
-            <ContentInfo mediaItem={mediaItem} />
-        }
+        <ContentInfo mediaItem={mediaItem} />
         {
           rootStore.mobile ? null :
             <Banners position="below" />
         }
         <SidebarContent/>
         <div className={S("logo")}>
-          <SVG src={EIcon} alt="Eluvio"/>
-          <span>POCKET TV</span>
+          <Linkish href="https://eluv.io" target="_blank">
+            <SVG src={Logo} title="Eluvio Pocket TV" alt="Eluvio Pocket TV"/>
+          </Linkish>
           <button
             onClick={
               () => confirm("Are you sure you want to reset your account?") ?

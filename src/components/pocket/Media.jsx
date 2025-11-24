@@ -10,6 +10,9 @@ import Countdown from "@/components/pocket/Countdown.jsx";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import Page from "@/components/pocket/Page.jsx";
+import SVG from "react-inlinesvg";
+
+import PlayIcon from "@/assets/icons/play.svg";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -94,7 +97,7 @@ const EndScreen = observer(() => {
   );
 });
 
-const Media = observer(() => {
+const Media = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
 
   const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
@@ -110,6 +113,30 @@ const Media = observer(() => {
   }
 
   const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
+
+  if(!permissions.authorized) {
+    return (
+      <Page
+        mediaItem={mediaItem}
+        permissions={permissions}
+        className={S("media-page")}
+      >
+        <div key={mediaItem} onClick={() => setShowPreview(false)} className={S("media")}>
+          <div role="button" tabIndex={0} className={S("video-preview")}>
+            <HashedLoaderImage
+              noAnimation
+              src={mediaItem.poster_image?.url || rootStore.splashImage.url}
+              hash={mediaItem.poster_image_hash || rootStore.splashImage.hash}
+              className={S("video-preview__poster")}
+            />
+            <div className={S("video-preview__play-button")}>
+              <SVG src={PlayIcon} />
+            </div>
+          </div>
+        </div>
+      </Page>
+    );
+  }
 
   return (
     <Page

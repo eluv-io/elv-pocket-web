@@ -17,6 +17,7 @@ export const HashedLoaderImage = observer(({
   width,
   lazy=true,
   loaderClassName="",
+  noAnimation,
   ...props
 }) => {
   const [error, setError] = useState(null);
@@ -39,7 +40,7 @@ export const HashedLoaderImage = observer(({
               loaded ? {} :
                 {width: 2, height: 2, position: "absolute", opacity: 0, userSelect: "none"}
             }
-            className={JoinClassNames(S("loader-image"), loaded ? props.className : "")}
+            className={JoinClassNames(S("loader-image", !noAnimation ? "loader-image--fade-in" : ""), loaded ? props.className : "")}
             loading={lazy ? "lazy" : "eager"}
             onError={setError}
             src={src}

@@ -10,7 +10,7 @@ import Modal from "@/components/common/Modal.jsx";
 
 import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
-import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import Logo from "@/assets/icons/logo.svg";
 import ItemsIcon from "@/assets/icons/videos.svg";
 import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
 
@@ -66,7 +66,7 @@ const Header = observer(({mediaItem, authorized}) => {
                 hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
               /> :
-              <SVG src={EIcon} alt="Eluvio"/>
+              <SVG src={Logo} alt="Eluvio"/>
           }
         </Linkish>
         <Linkish className={S("link")}>

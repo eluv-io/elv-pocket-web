@@ -248,7 +248,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
 });
 
 
-const Purchase = observer(() => {
+const Purchase = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
   const [selectedItemId, setSelectedItemId] = useState(null);
 
@@ -257,6 +257,8 @@ const Purchase = observer(() => {
   useEffect(() => {
     if(selectedItemId) {
       rootStore.SetBackAction(() => setSelectedItemId(undefined));
+    } else if(rootStore.mobile) {
+      rootStore.SetBackAction(() => setShowPreview(true));
     }
 
     return () => rootStore.SetBackAction(undefined);
@@ -299,7 +301,7 @@ const Purchase = observer(() => {
           !rootStore.mobile && !selectedItemId ?
             <Carousel className={S("item-carousel")}>
               {
-                [...permissions.permissionItems, ...permissions.permissionItems].map((permissionItem, index) =>
+                permissions.permissionItems.map((permissionItem, index) =>
                     selectedItemId && selectedItemId !== permissionItem.id ? null :
                       <PurchaseItem
                         orientation={orientation}

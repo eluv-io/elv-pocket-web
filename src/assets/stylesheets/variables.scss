@@ -5,6 +5,7 @@
   --background-primary: #151515;
   --background-secondary: #1b1b1c;
   --background-tertiary: #272727;
+  --background-content: #242121;
   --text-primary: #fff;
   --text-secondary: #BDBDBD;
   --text-secondary-alternate: #FAFAFA;
@@ -16,7 +17,9 @@
   --text-error: #ce6666;
   --color-border: #2C2C2C;
   --animation-fadein: fadein;
-  --gutter-size: 8px;
+  --content-gutter-size: 10px;
+  --gutter-size: 10px;
+  --block-radius: 10px;
   --loader-height: 40px;
   --loader-width: 5px;
 

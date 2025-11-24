@@ -34,7 +34,7 @@
     height: calc(100 * var(--vh));
     max-height: calc(100 * var(--vh) - 60px);
     overflow: hidden;
-    padding: var(--gutter-size);
+    padding: var(--content-gutter-size);
     padding-top: 0;
   }
 

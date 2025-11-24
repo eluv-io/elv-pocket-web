@@ -17,8 +17,13 @@ const Carousel = observer(({children, className=""}) => {
   useEffect(() => {
     if(!containerRef) { return; }
 
-    const intersectionObserver = new IntersectionObserver(
-      () => {
+    let updateTimeout;
+    const Update = () => {
+      if(updateTimeout) {
+        return;
+      }
+
+      updateTimeout = setTimeout(() => {
         const items = Array.from(containerRef?.children)?.filter(element => !element.dataset.ignore);
         const parentDimensions = containerRef.getBoundingClientRect();
 
@@ -29,20 +34,24 @@ const Carousel = observer(({children, className=""}) => {
             const visibleLeft = dimensions.left > 0;
             const visibleRight = dimensions.right > 0 && dimensions.right < parentDimensions.width;
 
+
             return visibleLeft && visibleRight;
           })
         );
-      },
-      {
-        root: containerRef,
-        rootMargin: "0px",
-        threshold: 0.75
-      }
-    );
 
-    Array.from(containerRef.children).forEach(element => intersectionObserver.observe(element));
+        updateTimeout = undefined;
+      }, 50);
+    };
 
-    return () => intersectionObserver.disconnect();
+    Update();
+
+    containerRef.addEventListener("scroll", Update);
+    document.addEventListener("resize", Update);
+
+    return () => {
+      containerRef.removeEventListener("scroll", Update);
+      document.removeEventListener("resize", Update);
+    };
   }, [containerRef]);
 
   const ScrollTo = index => {
