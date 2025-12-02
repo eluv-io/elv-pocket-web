@@ -1,6 +1,7 @@
 import {makeAutoObservable, flow} from "mobx";
-import {ElvWalletClient} from "@eluvio/elv-client-js/src/index.js";
+import {ElvWalletClient, Utils} from "@eluvio/elv-client-js/src/index.js";
 import PaymentStore from "@/stores/PaymentStore.js";
+import {parse as ParseUUID, v4 as UUID} from "uuid";
 
 console.time("Initial Load");
 
@@ -17,6 +18,13 @@ class RootStore {
   initialized = false;
   contentEnded = false;
   permissionItems = {};
+  menu;
+
+  userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
+  nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
+  tokenStatusInterval;
+
+  userItems = [];
 
   pageDimensions = {
     width: window.innerWidth,
@@ -70,17 +78,27 @@ class RootStore {
       .filter(banner => banner.mobile_position === "above")
       .length > 0;
   }
+
   constructor() {
     makeAutoObservable(this);
 
     this.paymentStore = new PaymentStore(this);
+
+    localStorage.setItem("user-id-code", this.userIdCode);
+    localStorage.setItem("nonce", this.nonce);
   }
 
   SetContentEnded(ended) {
     this.contentEnded = ended;
   }
 
-  InitializeClient = flow(function * () {
+  SetMenu(menu) {
+    this.menu = menu;
+  }
+
+  InitializeClient = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+    clearInterval(this.tokenStatusInterval);
+
     console.time("Initialize Client");
     const walletClient = yield ElvWalletClient.Initialize({
       appId: "pocket",
@@ -88,18 +106,98 @@ class RootStore {
       mode: EluvioConfiguration.mode
     });
 
+    const tenantId = yield walletClient.client.ContentObjectTenantId({objectId: pocketSlugOrId});
+
+    console.time("Log in");
+    if(
+      !customUserIdCode &&
+      localStorage.getItem("token") &&
+      parseInt(localStorage.getItem("token-expires")) - Date.now() > 6 * 60 * 60 * 1000
+    ) {
+      yield walletClient.Authenticate({token: localStorage.getItem("token")});
+    } else {
+      try {
+        const {signingToken} = yield walletClient.AuthenticateOAuth({
+          userIdCode: customUserIdCode || this.userIdCode,
+          tenantId,
+          nonce: this.nonce,
+          force
+        });
+
+        localStorage.setItem("token", signingToken);
+        localStorage.setItem("token-expires", (Date.now() + 24 * 60 * 60 * 1000).toString());
+      } catch(error) {
+        console.error(error);
+        if(confirm("Too many logins - force?")) {
+          return this.InitializeClient({pocketSlugOrId, customUserIdCode, force: true});
+        } else {
+          throw error;
+        }
+      }
+    }
+    console.timeEnd("Log in");
+
+    localStorage.setItem("user-id-code", customUserIdCode || this.userIdCode);
+    this.userIdCode = customUserIdCode || this.userIdCode;
+
+    // Periodically check to ensure the token has not been revoked
+    const CheckTokenStatus = async () => {
+      if(!(await walletClient.TokenStatus())) {
+        alert("Too many logins! Stop sharing!");
+      }
+    };
+
+    CheckTokenStatus();
+    this.tokenStatusInterval = setInterval(() => {
+      CheckTokenStatus();
+    }, 60000);
+
+    try {
+      /*
+      TODO: Subscription details
+      const subscriptions = (yield Utils.ResponseToJson(
+        walletClient.client.authClient.MakeAuthServiceRequest({
+          path: UrlJoin("as", "subs", "list"),
+          method: "POST",
+          body: {
+            tenant: tenantId
+          },
+          headers: {
+            Authorization: `Bearer ${walletClient.client.staticToken}`
+          }
+        })
+      ))?.subscriptions || [];
+
+       */
+
+      this.userItems = ((yield walletClient.UserItems({tenantId, limit: 1000}))?.results || []);
+        /*
+        .map(item => ({
+          ...item,
+          subscription: subscriptions.find(sub =>
+            Utils.EqualAddress(sub.token_addr, item.details.ContractAddr) &&
+            sub.token_id === item.details.TokenIdStr
+          )
+        }));
+
+         */
+    } catch(error) {
+      console.error("Error loading items and subscriptions");
+      console.error(error);
+    }
+
     this.walletClient = walletClient;
     this.client = walletClient.client;
     console.timeEnd("Initialize Client");
   });
 
-  LoadPocket = flow(function * ({pocketSlugOrId, force=false}) {
+  LoadPocket = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
     if(this.loading && !force) { return; }
 
     this.loading = true;
     this.initialized = false;
 
-    yield this.InitializeClient();
+    yield this.InitializeClient({pocketSlugOrId, customUserIdCode});
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -128,10 +226,6 @@ class RootStore {
   });
 
   LoadMedia = flow(function * () {
-    console.time("Generate Key");
-    yield this.GenerateKey();
-    console.timeEnd("Generate Key");
-
     console.time("Load Media");
 
     const metadata = {...this.pocket.metadata};
@@ -385,41 +479,6 @@ class RootStore {
     return content;
   }
 
-  GenerateKey = flow(function * () {
-    const wallet = this.client.GenerateWallet();
-
-    if(localStorage.getItem("pk")?.toLowerCase() === this.client.defaultKey?.toLowerCase()) {
-      // Ensure saved PK is not default key
-      localStorage.removeItem("pk");
-    }
-
-    let signer;
-    if(localStorage.getItem("pk")) {
-      signer = wallet.AddAccount({privateKey: localStorage.getItem("pk")});
-    } else {
-      const mnemonic = wallet.GenerateMnemonic();
-      signer = wallet.AddAccountFromMnemonic({mnemonic});
-    }
-
-    this.client.SetSigner({signer});
-    localStorage.setItem("pk", signer._signingKey().privateKey);
-
-    const fabricToken = yield this.client.CreateFabricToken({
-      duration: 48 * 60 * 60 * 1000
-    });
-
-    this.walletClient.SetAuthorization({
-      fabricToken,
-      expiresAt: Date.now() + 48 * 60 * 60 * 1000,
-      walletType: "LocalKey",
-      walletName: "LocalKey"
-    });
-
-    this.client.SetStaticToken({token: fabricToken});
-
-    console.timeEnd("Generate");
-  });
-
   UpdatePageDimensions() {
     this.pageDimensions = { width: window.innerWidth, height: window.innerHeight };
 
@@ -428,7 +487,10 @@ class RootStore {
   }
 
   ResetAccount() {
-    localStorage.removeItem("pk");
+    localStorage.removeItem("token");
+    localStorage.removeItem("token-expires");
+    localStorage.removeItem("nonce");
+    localStorage.removeItem("user-id-code");
 
     setTimeout(() => {
       const url = new URL(window.location.href);

@@ -1,5 +1,5 @@
 import {flow, makeAutoObservable} from "mobx";
-import {parse as UUIDParse, v4 as UUID} from "uuid";
+import {parse as ParseUUID, v4 as UUID} from "uuid";
 
 class PaymentStore {
   get client() {
@@ -17,7 +17,7 @@ class PaymentStore {
   }
 
   ConfirmationId() {
-    return this.client.utils.B58(UUIDParse(UUID()));
+    return this.client.utils.B58(ParseUUID(UUID()));
   }
 
   PurchaseStatus = flow(function * ({permissionItemId, confirmationId}) {

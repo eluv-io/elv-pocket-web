@@ -12,8 +12,18 @@ import SVG from "react-inlinesvg";
 import Purchase from "@/components/pocket/Purchase.jsx";
 
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
+
+const Menu = observer(() => {
+  switch(rootStore.menu) {
+    case "purchase-history":
+      return <PurchaseHistory />;
+  }
+
+  return null;
+});
 
 const Pocket = observer(() => {
   const [showPreview, setShowPreview] = useState(false);
@@ -77,9 +87,14 @@ const Pocket = observer(() => {
   }
 
   return (
-    permissions.authorized || (showPreview && rootStore.mobile) ?
-      <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} /> :
-      <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
+    <>
+      {
+        permissions.authorized || (showPreview && rootStore.mobile) ?
+          <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} /> :
+          <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
+      }
+      <Menu />
+    </>
   );
 });
 

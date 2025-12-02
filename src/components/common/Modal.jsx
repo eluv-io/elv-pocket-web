@@ -9,8 +9,9 @@ import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(ModalStyles);
 
-const Modal = observer(({children, align="center", SetMenuControls}) => {
+const Modal = observer(({children, align="center", SetMenuControls, onHide}) => {
   const [dialog, setDialog] = useState(undefined);
+  const [container, setContainer] = useState(undefined);
   const [controls, setControls] = useState({});
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -28,16 +29,18 @@ const Modal = observer(({children, align="center", SetMenuControls}) => {
     };
 
     const Hide = () => {
-
       setOpen(false);
       setClosing(true);
 
       if(!dialog.open) {
         return;
       }
+
+      onHide?.();
+
       setTimeout(() => {
-        dialog.close();
         setClosing(false);
+        dialog.close();
       }, 250);
     };
 
@@ -64,11 +67,22 @@ const Modal = observer(({children, align="center", SetMenuControls}) => {
   }, [dialog]);
 
   useEffect(() => {
+    if(Object.keys(controls).length === 0) {
+      return;
+    }
+
     SetMenuControls?.({
       ...controls,
-      open: open || closing
+      open,
+      closing
     });
   }, [controls, open, closing]);
+
+  useEffect(() => {
+    if(!open) { return; }
+
+    container?.scrollTo(0, 0);
+  }, [open]);
 
   return (
     <dialog
@@ -76,7 +90,7 @@ const Modal = observer(({children, align="center", SetMenuControls}) => {
       onClick={controls.Hide}
       className={S("modal", `modal--align-${align}`, open ? "modal--visible" : "modal--hidden")}
     >
-      <div className={S("container")}>
+      <div ref={setContainer} className={S("container")}>
         <button
           onClick={() => controls.Hide()}
           className={S("close", "opacity-hover")}

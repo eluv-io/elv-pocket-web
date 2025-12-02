@@ -11,19 +11,42 @@ import Modal from "@/components/common/Modal.jsx";
 import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
 import Logo from "@/assets/icons/logo.svg";
-import ItemsIcon from "@/assets/icons/videos.svg";
+import HomeIcon from "@/assets/icons/home.svg";
+import ItemsIcon from "@/assets/icons/my-items.svg";
 import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
 
 const S = CreateModuleClassMatcher(HeaderStyles);
 
-const Menu = observer(() => {
+const HeaderButton = observer(({icon, children, onClick, active}) => {
+  return (
+    <Linkish onClick={onClick} className={S("button", active ? "button--active" : "")}>
+      <div className={S("button__content")}>
+        {
+          !icon ? null :
+            <SVG src={icon} className={S("button__icon")} />
+        }
+        <div className={S("button__text")}>
+          { children }
+        </div>
+      </div>
+    </Linkish>
+  );
+});
+
+const MobileMenu = observer(({menuControls}) => {
   return (
     <div className={S("menu")}>
       <Linkish className={S("menu__link", "opacity-hover")}>
         <SVG src={ItemsIcon} />
         My Items
       </Linkish>
-      <Linkish className={S("menu__link", "opacity-hover")}>
+      <Linkish
+        onClick={() => {
+          rootStore.SetMenu("purchase-history");
+          menuControls.Hide();
+        }}
+        className={S("menu__link", "opacity-hover")}
+      >
         <SVG src={PurchaseHistoryIcon} />
         Purchase History
       </Linkish>
@@ -31,11 +54,14 @@ const Menu = observer(() => {
   );
 });
 
-const Header = observer(({mediaItem, authorized}) => {
-  const [menuControls, setMenuControls] = useState(undefined);
+const MobileHeader = observer(({mediaItem}) => {
+  const [mobileMenuControls, setMobileMenuControls] = useState(undefined);
+
+  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
 
   let header;
-  if(mediaItem && (rootStore.backAction || (rootStore.mobile && !authorized))) {
+  if(mediaItem && rootStore.backAction) {
     header = (
       <header key="header--back" className={S("header", "header--back")}>
         {
@@ -53,8 +79,6 @@ const Header = observer(({mediaItem, authorized}) => {
       </header>
     );
   } else {
-    const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
-      rootStore.pocket.metadata.header_logo ? "header_logo" : "";
     header = (
       <header key="header" className={S("header")}>
         <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
@@ -69,10 +93,10 @@ const Header = observer(({mediaItem, authorized}) => {
               <SVG src={Logo} alt="Eluvio"/>
           }
         </Linkish>
-        <Linkish className={S("link")}>
+        <Linkish onClick={() => rootStore.SetMenu()} className={S("link")}>
           Watch
         </Linkish>
-        <Linkish onClick={() => menuControls.Show()} className={S("link")}>
+        <Linkish onClick={() => mobileMenuControls.Show()} className={S("link")}>
           <span>More</span>
           <SVG src={ChevronDownIcon} alt="More"/>
         </Linkish>
@@ -83,11 +107,45 @@ const Header = observer(({mediaItem, authorized}) => {
   return (
     <>
       { header }
-      <Modal align="top" SetMenuControls={setMenuControls}>
-        <Menu open={menuControls?.open} />
+      <Modal align="top" SetMenuControls={setMobileMenuControls}>
+        <MobileMenu menuControls={mobileMenuControls} />
       </Modal>
     </>
   );
 });
+
+const DesktopHeader = observer(() => {
+  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
+
+  return (
+    <header key="header" className={S("header")}>
+      <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+        {
+          logoKey ?
+            <HashedLoaderImage
+              width={200}
+              src={rootStore.pocket.metadata[logoKey].url}
+              hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+              className={S("logo__image")}
+            /> :
+            <SVG src={Logo} alt="Eluvio"/>
+        }
+      </Linkish>
+      <HeaderButton active={!rootStore.menu} icon={HomeIcon} onClick={() => rootStore.SetMenu()}>
+        Watch
+      </HeaderButton>
+      <HeaderButton active={rootStore.menu === "purchase-history"} icon={PurchaseHistoryIcon} onClick={() => rootStore.SetMenu("purchase-history")}>
+        Purchase History
+      </HeaderButton>
+    </header>
+  );
+});
+
+const Header = observer(({mediaItem}) =>
+  rootStore.mobile ?
+    <MobileHeader mediaItem={mediaItem} /> :
+    <DesktopHeader />
+);
 
 export default Header;

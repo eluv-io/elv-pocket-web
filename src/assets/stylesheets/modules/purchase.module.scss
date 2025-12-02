@@ -35,6 +35,11 @@
   opacity: 0.5;
 }
 
+.item-carousel {
+  max-width: 100%;
+  width: max-content;
+}
+
 .items {
   display: flex;
   flex-direction: column;

@@ -6,6 +6,7 @@
   --background-secondary: #1b1b1c;
   --background-tertiary: #272727;
   --background-content: #242121;
+  --background-button: #323232;
   --text-primary: #fff;
   --text-secondary: #BDBDBD;
   --text-secondary-alternate: #FAFAFA;
@@ -19,7 +20,7 @@
   --animation-fadein: fadein;
   --content-gutter-size: 10px;
   --gutter-size: 10px;
-  --block-radius: 10px;
+  --block-radius: 5px;
   --loader-height: 40px;
   --loader-width: 5px;
 
@@ -32,4 +33,16 @@
       opacity: 1;
     }
   }
+}
+
+@property --header-button-color-1 {
+  inherits: false;
+  initial-value: #FFAA01;
+  syntax: '<color>';
+}
+
+@property --header-button-color-2 {
+  inherits: false;
+  initial-value: #FFE000;
+  syntax: '<color>';
 }

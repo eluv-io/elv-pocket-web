@@ -1,15 +1,19 @@
 import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {CreateModuleClassMatcher, JoinClassNames, SetImageUrlDimensions} from "@/utils/Utils.js";
-import {forwardRef, useState} from "react";
+import {Copy, CreateModuleClassMatcher, JoinClassNames, SetImageUrlDimensions} from "@/utils/Utils.js";
+import {forwardRef, useEffect, useState} from "react";
 import {decodeThumbHash, thumbHashToApproximateAspectRatio, thumbHashToDataURL} from "@/utils/Thumbhash.js";
 import {Link} from "wouter";
 import {rootStore} from "@/stores/index.js";
 import Money from "js-money";
 import Currencies from "js-money/lib/currency";
+import SVG from "react-inlinesvg";
 
 const S = CreateModuleClassMatcher(CommonStyles);
+
+import CopyIcon from "@/assets/icons/copy.svg";
+import CheckIcon from "@/assets/icons/check-circle.svg";
 
 export const HashedLoaderImage = observer(({
   src,
@@ -212,3 +216,67 @@ export const FormatPriceString = (
 
   return formattedPrice;
 };
+
+let copyTimeout;
+export const CopyButton = observer(({value, onCopyChange, ...props}) => {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    onCopyChange?.(copied);
+  }, [copied]);
+
+  return (
+    <button
+      {...props}
+      onClick={event => {
+        event.stopPropagation();
+        event.preventDefault();
+
+        clearTimeout(copyTimeout);
+        Copy(value);
+        setCopied(true);
+
+        copyTimeout = setTimeout(() => setCopied(false), 2000);
+      }}
+      className={
+        JoinClassNames(
+          S("copy-button", copied ? "copy-button--copied" : ""),
+          props.className
+        )
+      }
+    >
+      <SVG src={CopyIcon} className={S("copy-button__icon", !copied ? "copy-button__icon--active" : "")} />
+      <SVG src={CheckIcon} className={S("copy-button__icon", copied ? "copy-button__icon--active" : "")} />
+    </button>
+  );
+});
+
+export const CopyableField = observer(({value, children, buttonProps={}, showOnHover=false, className="", ...props}) => {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div
+      {...props}
+      className={
+        JoinClassNames(
+          S(
+            "copyable-field",
+            showOnHover ? "copyable-field--show-hover" : "",
+            copied ? "copyable-field--copied" : ""
+          ),
+          className
+        )
+      }
+    >
+      <div className={S("copyable-field__value", "ellipsis")}>
+        { children || value }
+      </div>
+      <CopyButton
+        {...buttonProps}
+        onCopyChange={setCopied}
+        value={value}
+        className={JoinClassNames(S("copyable-field__button", "ellipsis"), buttonProps.className)}
+      />
+    </div>
+  );
+});

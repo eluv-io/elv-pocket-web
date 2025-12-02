@@ -78,3 +78,19 @@ export const SetHTMLMetaTags = (metaTags={}) => {
 
   document.title = metaTags.title || "Eluvio Pocket TV";
 };
+
+export const Copy = async (value) => {
+  try {
+    value = (value || "").toString();
+
+    await navigator.clipboard.writeText(value);
+  // eslint-disable-next-line no-unused-vars
+  } catch(error) {
+    const input = document.createElement("input");
+
+    input.value = value;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+  }
+};
