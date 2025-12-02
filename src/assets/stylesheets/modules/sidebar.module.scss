@@ -18,6 +18,14 @@
   width: max-content;
 }
 
+.content-info {
+  animation: var(--animation-fadein) 1s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+}
+
 .title-container {
   align-items: center;
   display: flex;
@@ -276,7 +284,9 @@
     height: 100%;
     overflow-y: auto;
     padding-bottom: 10px;
+  }
 
+  .content-info {
     & > .live-badge {
       display: none;
     }

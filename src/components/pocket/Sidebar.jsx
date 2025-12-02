@@ -165,7 +165,7 @@ export const Banners = observer(({position="below"}) => {
 
 const ContentInfo = observer(({mediaItem}) => {
   return (
-    <>
+    <div className={S("content-info")}>
       {
         !mediaItem.scheduleInfo.currentlyLive ? null :
           <div className={S("live-badge")}>LIVE</div>
@@ -198,7 +198,7 @@ const ContentInfo = observer(({mediaItem}) => {
             </div>
           </div>
       }
-    </>
+    </div>
   );
 });
 
@@ -210,7 +210,7 @@ const Sidebar = observer(({mediaItem}) => {
   return (
     <>
       <div className={S("sidebar")}>
-        <ContentInfo mediaItem={mediaItem} />
+        <ContentInfo key={mediaItem.id} mediaItem={mediaItem} />
         {
           rootStore.mobile ? null :
             <Banners position="below" />

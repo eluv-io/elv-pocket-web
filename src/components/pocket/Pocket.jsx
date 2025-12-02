@@ -13,6 +13,7 @@ import Purchase from "@/components/pocket/Purchase.jsx";
 
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
+import Page from "@/components/pocket/Page.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -86,13 +87,22 @@ const Pocket = observer(() => {
     permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
   }
 
+  const showPurchase = !permissions.authorized && !(showPreview && rootStore.mobile);
+  const hideSidebar = showPurchase && rootStore.mobile && permissions.permissionItems.length > 2;
+
   return (
     <>
-      {
-        permissions.authorized || (showPreview && rootStore.mobile) ?
-          <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} /> :
-          <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
-      }
+      <Page
+        mediaItem={mediaItem}
+        permissions={permissions}
+        hideSidebar={hideSidebar}
+      >
+        {
+           showPurchase ?
+             <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />:
+             <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
+        }
+      </Page>
       <Menu />
     </>
   );

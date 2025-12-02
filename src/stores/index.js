@@ -314,6 +314,7 @@ class RootStore {
     });
 
     this.permissionItems = allPermissionItems;
+    this.slugMap = slugMap;
     this.media = media;
     this.pocket = {
       ...this.pocket,
@@ -411,11 +412,8 @@ class RootStore {
         displayStartTime
       };
     } catch(error) {
-
       console.error(`Error parsing start/end time in media item ${mediaItem.name}`);
-
       console.error(error);
-
       console.error(mediaItem);
 
       return {
