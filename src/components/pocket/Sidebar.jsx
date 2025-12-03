@@ -2,7 +2,7 @@ import SidebarStyles from "@/assets/stylesheets/modules/sidebar.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
@@ -58,15 +58,15 @@ const MediaCard = observer(({mediaItem}) => {
 const SidebarContent = observer(() => {
   const [tabIndex, setTabIndex] = useState(0);
   const [containerRef, setContainerRef] = useState(null);
-  const tab = rootStore.sidebarContent[tabIndex];
+  const tab = pocketStore.sidebarContent[tabIndex];
 
   return (
     <div ref={setContainerRef} className={S("media")}>
       {
-        rootStore.sidebarContent.length <= 1 ? null :
+        pocketStore.sidebarContent.length <= 1 ? null :
           <div className={S("tabs")}>
             {
-              rootStore.sidebarContent.map((tab, index) =>
+              pocketStore.sidebarContent.map((tab, index) =>
                 <button
                   key={`tab-${index}`}
                   onClick={() => {
@@ -108,9 +108,9 @@ const SidebarContent = observer(() => {
 export const Banners = observer(({position="below"}) => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
 
-  const config = rootStore.pocket.metadata.sidebar_config || {};
+  const config = pocketStore.pocket.metadata.sidebar_config || {};
 
   const banners = (config.banners || [])
     .filter(banner =>
@@ -139,7 +139,7 @@ export const Banners = observer(({position="below"}) => {
               href={banner.link_type === "external" && banner.url}
               to={
                 banner.link_type === "media" &&
-                UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
+                UrlJoin("~/", pocketSlugOrId, pocketStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
               }
               onClick={
                 banner.link_type !== "reset" ? undefined :
@@ -171,7 +171,7 @@ const ContentInfo = observer(({mediaItem}) => {
           <div className={S("live-badge")}>LIVE</div>
       }
       {
-        rootStore.mobile && rootStore.contentEnded ? null :
+        rootStore.mobile && pocketStore.contentEnded ? null :
           <div className={S("current-item")}>
             <div className={S("title-container")}>
               {

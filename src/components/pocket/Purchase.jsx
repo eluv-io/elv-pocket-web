@@ -2,7 +2,7 @@ import PurchaseStyles from "@/assets/stylesheets/modules/purchase.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {paymentStore, rootStore} from "@/stores/index.js";
+import {pocketStore, paymentStore, rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
@@ -33,7 +33,7 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        setTimeout(() => rootStore.LoadMedia(), 1500);
+        setTimeout(() => pocketStore.LoadMedia(), 1500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
         setTimeout(() => Cancel(), 5000);
@@ -251,7 +251,7 @@ const Purchase = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
 
   useEffect(() => {
     if(selectedItemId) {
@@ -267,7 +267,7 @@ const Purchase = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
   const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
 
   return (
@@ -278,11 +278,11 @@ const Purchase = observer(({setShowPreview}) => {
             <HashedLoaderImage
               src={
                 mediaItem.poster_image?.url ||
-                rootStore.splashImage.url
+                pocketStore.splashImage.url
               }
               hash={
                 mediaItem.poster_image_hash ||
-                rootStore.splashImage.hash
+                pocketStore.splashImage.hash
               }
               className={S("background")}
             />

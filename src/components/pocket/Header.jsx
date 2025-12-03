@@ -4,7 +4,7 @@ import {observer} from "mobx-react-lite";
 import SVG from "react-inlinesvg";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
 
@@ -57,8 +57,8 @@ const MobileMenu = observer(({menuControls}) => {
 const MobileHeader = observer(({mediaItem}) => {
   const [mobileMenuControls, setMobileMenuControls] = useState(undefined);
 
-  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
-    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
+  const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
   let header;
   if(mediaItem && rootStore.backAction) {
@@ -81,13 +81,13 @@ const MobileHeader = observer(({mediaItem}) => {
   } else {
     header = (
       <header key="header" className={S("header")}>
-        <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+        <Linkish href={pocketStore.pocket.metadata.header_logo_link} className={S("logo")}>
           {
             logoKey ?
               <HashedLoaderImage
                 width={200}
-                src={rootStore.pocket.metadata[logoKey].url}
-                hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+                src={pocketStore.pocket.metadata[logoKey].url}
+                hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
               /> :
               <SVG src={Logo} alt="Eluvio"/>
@@ -115,18 +115,18 @@ const MobileHeader = observer(({mediaItem}) => {
 });
 
 const DesktopHeader = observer(() => {
-  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
-    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
+  const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
   return (
     <header key="header" className={S("header")}>
-      <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+      <Linkish href={pocketStore.pocket.metadata.header_logo_link} className={S("logo")}>
         {
           logoKey ?
             <HashedLoaderImage
               width={200}
-              src={rootStore.pocket.metadata[logoKey].url}
-              hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+              src={pocketStore.pocket.metadata[logoKey].url}
+              hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
               className={S("logo__image")}
             /> :
             <SVG src={Logo} alt="Eluvio"/>

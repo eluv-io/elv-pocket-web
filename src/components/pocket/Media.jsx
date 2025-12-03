@@ -2,7 +2,7 @@ import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
@@ -29,11 +29,11 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
       <HashedLoaderImage
         src={
           mediaItem[backgroundKey]?.url ||
-          rootStore.splashImage.url
+          pocketStore.splashImage.url
         }
         hash={
           mediaItem[`${backgroundKey}_hash`]?.url ||
-          rootStore.splashImage.hash
+          pocketStore.splashImage.hash
         }
         alt={mediaItem.title}
         className={S("countdown-page__image")}
@@ -77,19 +77,19 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
 });
 
 const EndScreen = observer(() => {
-  const backgroundKey = rootStore.mobile && rootStore.pocket.metadata.post_content_screen?.background_mobile ?
+  const backgroundKey = rootStore.mobile && pocketStore.pocket.metadata.post_content_screen?.background_mobile ?
     "background_mobile" :
     "background";
 
   return (
     <Linkish
-      href={rootStore.pocket.metadata.post_content_screen.link}
+      href={pocketStore.pocket.metadata.post_content_screen.link}
       className={S("end-screen")}
     >
       <HashedLoaderImage
-        src={rootStore.pocket.metadata.post_content_screen[backgroundKey]?.url || rootStore.splashImage.url}
-        hash={rootStore.pocket.metadata.post_content_screen[`${backgroundKey}_hash`] || rootStore.splashImage.hash}
-        alt={rootStore.pocket.metadata.post_content_screen.background_alt}
+        src={pocketStore.pocket.metadata.post_content_screen[backgroundKey]?.url || pocketStore.splashImage.url}
+        hash={pocketStore.pocket.metadata.post_content_screen[`${backgroundKey}_hash`] || pocketStore.splashImage.hash}
+        alt={pocketStore.pocket.metadata.post_content_screen.background_alt}
         className={S("end-screen__background")}
       />
     </Linkish>
@@ -99,8 +99,8 @@ const EndScreen = observer(() => {
 const Media = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
 
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
-  const scheduleInfo = mediaItem && rootStore.MediaItemScheduleInfo(mediaItem);
+  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
+  const scheduleInfo = mediaItem && pocketStore.MediaItemScheduleInfo(mediaItem);
   const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
 
   useEffect(() => {
@@ -111,7 +111,7 @@ const Media = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
 
   if(!permissions.authorized) {
     return (
@@ -119,8 +119,8 @@ const Media = observer(({setShowPreview}) => {
         <div role="button" tabIndex={0} className={S("video-preview")}>
           <HashedLoaderImage
             noAnimation
-            src={mediaItem.poster_image?.url || rootStore.splashImage.url}
-            hash={mediaItem.poster_image_hash || rootStore.splashImage.hash}
+            src={mediaItem.poster_image?.url || pocketStore.splashImage.url}
+            hash={mediaItem.poster_image_hash || pocketStore.splashImage.hash}
             className={S("video-preview__poster")}
           />
           <div className={S("video-preview__play-button")}>
@@ -136,16 +136,16 @@ const Media = observer(({setShowPreview}) => {
       {
         !started ?
           <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
-          rootStore.contentEnded && rootStore.pocket.metadata.post_content_screen?.enabled ?
+          pocketStore.contentEnded && pocketStore.pocket.metadata.post_content_screen?.enabled ?
             <EndScreen /> :
             <Video
               isLive={mediaItem.scheduleInfo.currentlyLive}
               videoLink={mediaItem.media_link}
               posterImage={
                 mediaItem.poster_image?.url ||
-                rootStore.splashImage.url
+                pocketStore.splashImage.url
               }
-              endCallback={() => rootStore.SetContentEnded(true)}
+              endCallback={() => pocketStore.SetContentEnded(true)}
               className={S("video")}
               contentInfo={{
                 title: mediaItem.title,

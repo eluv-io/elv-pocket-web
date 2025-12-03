@@ -20,7 +20,7 @@ const AccountForm = observer(() => {
 
     setSubmitting(true);
 
-    await rootStore.LoadPocket({pocketSlugOrId, customUserIdCode: input, force: true});
+    await rootStore.Initialize({pocketSlugOrId, customUserIdCode: input, force: true});
   };
 
   return (

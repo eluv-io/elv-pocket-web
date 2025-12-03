@@ -3,7 +3,7 @@ import PocketStyles from "@/assets/stylesheets/modules/pocket.module.scss";
 import {observer} from "mobx-react-lite";
 import {Redirect, useParams} from "wouter";
 import {useEffect, useState} from "react";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
@@ -31,7 +31,7 @@ const Pocket = observer(() => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
-    rootStore.LoadPocket({pocketSlugOrId})
+    rootStore.Initialize({pocketSlugOrId})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       );
@@ -42,20 +42,20 @@ const Pocket = observer(() => {
   }, [mediaItemSlugOrId]);
 
   useEffect(() => {
-    rootStore.SetContentEnded(false);
+    pocketStore.SetContentEnded(false);
   }, [mediaItemSlugOrId]);
 
-  if(!rootStore.pocket) {
+  if(!pocketStore.pocket) {
     return null;
   }
 
-  if(!rootStore.initialized || !rootStore?.pocket?.mediaLoaded) {
+  if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {
     return (
       <div className="page-container">
         <div className={S("splash")}>
           <HashedLoaderImage
-            src={rootStore.splashImage.url}
-            hash={rootStore.splashImage.hash}
+            src={pocketStore.splashImage.url}
+            hash={pocketStore.splashImage.hash}
             className={S("splash__image")}
           />
           <div className={S("logo")}>
@@ -68,10 +68,10 @@ const Pocket = observer(() => {
     );
   }
 
-  const mediaItem = mediaItemSlugOrId && rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = mediaItemSlugOrId && pocketStore.MediaItem(mediaItemSlugOrId);
   if(!mediaItem) {
     // Item not found - find first item from sidebar content and redirect
-    for(const tab of rootStore.sidebarContent) {
+    for(const tab of pocketStore.sidebarContent) {
       for(const group of tab.groups) {
         const item = group.content[0];
 
@@ -83,8 +83,8 @@ const Pocket = observer(() => {
   }
 
   let permissions = {};
-  if(rootStore.pocket?.mediaLoaded) {
-    permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
+  if(pocketStore.pocket?.mediaLoaded) {
+    permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
   }
 
   const showPurchase = !permissions.authorized && !(showPreview && rootStore.mobile);
