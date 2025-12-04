@@ -107,7 +107,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
                   {permissionItem.subtitle}
                 </div>
             }
-            <div className={S("vertical-item__select-container")}>
+            <div className={S("vertical-item__actions")}>
               <Linkish
                 onClick={Cancel}
                 className={S("vertical-item__action")}

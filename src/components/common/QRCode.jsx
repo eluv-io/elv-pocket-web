@@ -12,27 +12,20 @@ const CONFIG = {
   "data": "https://eluv.io/",
   "margin": 10,
   "qrOptions": {"typeNumber": "0", "mode": "Byte", "errorCorrectionLevel": "Q"},
-  "imageOptions": {"saveAsBlob": true, "hideBackgroundDots": true, "imageSize": 0.2, "margin": 0},
-  "dotsOptions": {"type": "dots", "color": "#545454", "roundSize": true},
+  "imageOptions": {"saveAsBlob": true, "hideBackgroundDots": true, "imageSize": 0.4, "margin": 10},
+  "dotsOptions": {"type": "dots", "color": "#555", "roundSize": true},
   "backgroundOptions": {"round": 0, "color": "#000000"},
   "image": "",
   "dotsOptionsHelper": {
-    "colorType": {"single": true, "gradient": false},
-    "gradient": {"linear": true, "radial": false, "color1": "#6a1a4c", "color2": "#6a1a4c", "rotation": "0"}
+    "colorType": {"single": true, "gradient": false}
   },
-  "cornersSquareOptions": {"type": "extra-rounded", "color": "#adadad"},
+  "cornersSquareOptions": {"type": "extra-rounded", "color": "#cdcdcd"},
   "cornersSquareOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
-    "gradient": {"linear": true, "radial": false, "color1": "#000000", "color2": "#000000", "rotation": "0"}
   },
-  "cornersDotOptions": {"type": "dot", "color": "#b8b8b8"},
+  "cornersDotOptions": {"type": "dot", "color": "#cdcdcd"},
   "cornersDotOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
-    "gradient": {"linear": true, "radial": false, "color1": "#000000", "color2": "#000000", "rotation": "0"}
-  },
-  "backgroundOptionsHelper": {
-    "colorType": {"single": true, "gradient": false},
-    "gradient": {"linear": true, "radial": false, "color1": "#ffffff", "color2": "#ffffff", "rotation": "0"}
   }
 };
 
@@ -50,12 +43,17 @@ const QRCode = observer(({image, url, className=""}) => {
 
     const qrCode = new QRCodeStyling(config);
 
+    container.innerHTML = "";
     qrCode.append(container);
     //qrCode.download({ name: "qr", extension: "svg" });
-  }, [container]);
+  }, [container, CONFIG]);
 
   return (
-    <div ref={setContainer} className={className} />
+    <div
+      ref={setContainer}
+      data-url={url}
+      className={className}
+    />
   );
 });
 
