@@ -257,7 +257,6 @@ class PocketStore {
     });
   }
 
-
   LoadPocket = flow(function * ({pocketSlugOrId}) {
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
@@ -270,6 +269,7 @@ class PocketStore {
     this.pocket = {
       objectId: pocketSlugOrId,
       versionHash,
+      tenantId: yield this.client.ContentObjectTenantId({versionHash}),
       metadata
     };
 

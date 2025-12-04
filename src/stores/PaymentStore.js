@@ -1,7 +1,12 @@
 import {flow, makeAutoObservable} from "mobx";
 import {parse as ParseUUID, v4 as UUID} from "uuid";
+//import {loadStripe} from "@stripe/stripe-js";
+import UrlJoin from "url-join";
 
 class PaymentStore {
+  currency = "USD";
+  stripe;
+
   get client() {
     return this.rootStore.client;
   }
@@ -20,7 +25,88 @@ class PaymentStore {
     return this.client.utils.B58(ParseUUID(UUID()));
   }
 
-  PurchaseStatus = flow(function * ({permissionItemId, confirmationId}) {
+  InitializeStripe = flow(function * (publishableKey) {
+    if(!this.stripe) {
+      this.stripe = yield window.Stripe(publishableKey);
+    }
+  });
+
+  InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId}) {
+    const permissionItem = this.rootStore.pocketStore.permissionItems[permissionItemId];
+    const confirmationId = this.ConfirmationId();
+    const response = yield this.client.utils.ResponseToJson(
+      this.client.authClient.MakeAuthServiceRequest({
+        method: "POST",
+        path: "/as/checkout/stripe/instant",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          items: [{ sku: permissionItem.marketplace_sku, quantity: 1 }],
+          elv_addr: this.client.CurrentAccountAddress(),
+          currency: this.currency,
+          success_url: window.location.href,
+          cancel_url: window.location.href,
+          name: this.rootStore.userIdCode,
+          client_reference_id: confirmationId
+        }
+      })
+    );
+
+    console.log(response);
+
+    // Initialize Stripe for polling
+    if(!this.stripe) {
+      yield this.InitializeStripe(response.publishable_key);
+    }
+
+    delete response.buy_url;
+    response.address = this.client.CurrentAccountAddress();
+    response.permissionItem = {
+      title: permissionItem.title,
+      subtitle: permissionItem.subtitle,
+      access_title: permissionItem.access_title,
+      price: permissionItem.marketplaceItem.price
+    };
+
+    const url = new URL(window.location.origin);
+    url.pathname = UrlJoin(
+      pocketSlugOrId,
+      "pay",
+      this.client.utils.B58(JSON.stringify(response))
+    );
+
+    return {
+      response,
+      url
+    };
+  });
+
+  CompletePurchase = flow(function * ({paymentIntent, clientReferenceId}) {
+    yield this.client.utils.ResponseToJson(
+      this.client.authClient.MakeAuthServiceRequest({
+        method: "POST",
+        path: "/as/otp/stripe/instant/callback",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          payment_intent: paymentIntent,
+          client_reference_id: clientReferenceId
+        }
+      })
+    );
+  });
+
+  PurchaseStatus = flow(function * ({clientSecret}) {
+    const { paymentIntent, error } = yield this.stripe.retrievePaymentIntent(clientSecret);
+
+    if(error) { throw error; }
+
+    return paymentIntent;
+  });
+
+  PurchaseStatus2 = flow(function * ({permissionItemId, confirmationId}) {
     const permissionItem = this.rootStore.permissionItems[permissionItemId];
     return yield this.walletClient.PurchaseStatus({
       marketplaceParams: {

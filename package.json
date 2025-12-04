@@ -16,9 +16,12 @@
   "dependencies": {
     "@eluvio/elv-client-js": "git+https://github.com/eluv-io/elv-client-js#develop",
     "@eluvio/elv-player-js": "git+https://github.com/eluv-io/elv-player-js#spatial-nav",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.5.3",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",
+    "qr-code-styling": "^1.9.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-inlinesvg": "^4.2.0",

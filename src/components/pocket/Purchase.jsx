@@ -179,7 +179,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
 const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
   if(orientation === "vertical") {
     return (
-      <div className={S("vertical-item")}>
+      <div data-pid={permissionItem.id} className={S("vertical-item")}>
         <div className={S("vertical-item__details")}>
           {
             !permissionItem.access_title ? null :
@@ -213,7 +213,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
   }
 
   return (
-    <div className={S("horizontal-item")}>
+    <div data-pid={permissionItem.id} className={S("horizontal-item")}>
       <div className={S("horizontal-item__details")}>
         {
           !permissionItem.access_title ? null :

@@ -8,8 +8,6 @@ console.time("Initial Load");
 
 class RootStore {
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
-  preferredCurrency = "USD";
-  currency = "USD";
 
   client;
   walletClient;
@@ -47,10 +45,6 @@ class RootStore {
 
     localStorage.setItem("user-id-code", this.userIdCode);
     localStorage.setItem("nonce", this.nonce);
-  }
-
-  SetContentEnded(ended) {
-    this.contentEnded = ended;
   }
 
   SetMenu(menu) {
