@@ -35,6 +35,42 @@ const CardPayment = async ({clientSecret, clientReferenceId, permissionItemId, c
   }
 };
 
+const WalletPayment = async ({
+  event,
+  clientSecret,
+  clientReferenceId,
+  permissionItemId,
+  onError,
+}) => {
+  try {
+    let { error, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret,
+      { payment_method: event.paymentMethod.id },
+      { handleActions: true }
+    );
+
+    if(error) { throw error; }
+
+    if(paymentIntent?.status === "requires_action") {
+      const response = await stripe.confirmCardPayment(clientSecret);
+
+      if(response.error) { throw response; }
+
+      paymentIntent = response.paymentIntent;
+    } else if(paymentIntent?.status !== "succeeded") {
+      throw "Payment processing.";
+    }
+
+    await paymentStore.CompletePurchase({
+      paymentIntent,
+      clientReferenceId,
+      permissionItemId
+    });
+  } catch(error) {
+    onError(error);
+  }
+};
+
 export const Payment = observer(({
   params,
   url,
@@ -71,6 +107,18 @@ export const Payment = observer(({
           //if(!result) { return; }
 
           if(result?.applePay || result?.googlePay) {
+            // Wallet payment flow
+            paymentRequest.on(
+              "paymentmethod",
+              async event => WalletPayment({
+                event,
+                onError: setError,
+                clientSecret: params.client_secret,
+                clientReferenceId: params.client_reference_id,
+                permissionItemId: params.permissionItem.id
+              })
+            );
+
             setFormDetails({
               type: "wallet",
               element: elements.create("paymentRequestButton", {
