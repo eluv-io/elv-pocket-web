@@ -8,6 +8,7 @@ class PocketStore {
   contentEnded = false;
   pocket;
   permissionItems = {};
+  userItems = [];
 
   get client() {
     return this.rootStore.client;
@@ -340,6 +341,7 @@ class PocketStore {
       })
     );
 
+    let allUserItems = [];
     let allMarketplaces = {};
     yield Promise.all(
       allMarketplaceIds.map(async marketplaceId => {
@@ -350,6 +352,8 @@ class PocketStore {
           marketplaceId,
           limit: 1000
         })).results || [];
+
+        allUserItems = [...allUserItems, ...allMarketplaces[marketplaceId].ownedItems];
       })
     );
 
@@ -366,6 +370,40 @@ class PocketStore {
           )
         );
     });
+
+    try {
+      /*
+      TODO: Subscription details
+      const subscriptions = (yield Utils.ResponseToJson(
+        walletClient.client.authClient.MakeAuthServiceRequest({
+          path: UrlJoin("as", "subs", "list"),
+          method: "POST",
+          body: {
+            tenant: tenantId
+          },
+          headers: {
+            Authorization: `Bearer ${walletClient.client.staticToken}`
+          }
+        })
+      ))?.subscriptions || [];
+
+       */
+
+      this.userItems = allUserItems;
+        /*
+        .map(item => ({
+          ...item,
+          subscription: subscriptions.find(sub =>
+            Utils.EqualAddress(sub.token_addr, item.details.ContractAddr) &&
+            sub.token_id === item.details.TokenIdStr
+          )
+        }));
+
+         */
+    } catch(error) {
+      console.error("Error loading items and subscriptions");
+      console.error(error);
+    }
 
     this.permissionItems = allPermissionItems;
     this.slugMap = slugMap;

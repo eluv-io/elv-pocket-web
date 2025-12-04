@@ -7,10 +7,11 @@ import {Utils} from "@eluvio/elv-client-js/src/index.js";
 import {useEffect, useState} from "react";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import {FormatPriceString, Linkish, Loader} from "@/components/common/Common.jsx";
+import QRCode from "@/components/common/QRCode.jsx";
 
 const S = CreateModuleClassMatcher(PaymentStyles);
 
-const CardPayment = async ({clientSecret, clientReferenceId, cardElement}) => {
+const CardPayment = async ({clientSecret, clientReferenceId, permissionItemId, cardElement}) => {
   const { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(clientSecret, {
     payment_method: { card: cardElement }
   });
@@ -20,7 +21,8 @@ const CardPayment = async ({clientSecret, clientReferenceId, cardElement}) => {
   if(paymentIntent && paymentIntent.status === "succeeded") {
     await paymentStore.CompletePurchase({
       paymentIntent,
-      clientReferenceId
+      clientReferenceId,
+      permissionItemId
     });
 
     return true;
@@ -33,24 +35,27 @@ const CardPayment = async ({clientSecret, clientReferenceId, cardElement}) => {
   }
 };
 
-const Payment = observer(({onSuccess, className=""}) => {
-  const {paymentParams} = useParams();
-  const [params, setParams] = useState();
+export const Payment = observer(({
+  params,
+  url,
+  showQR,
+  onSuccess,
+  onCancel,
+  className=""
+}) => {
   const [container, setContainer] = useState(undefined);
   const [error, setError] = useState(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   const [formDetails, setFormDetails] = useState({});
 
+  console.log(params);
+
   useEffect(() => {
-    const params = JSON.parse(Utils.FromB58ToStr(paymentParams));
+    if(!params) { return; }
 
     paymentStore.InitializeStripe(params.publishable_key)
       .then(() => {
-        if(paymentStore.stripe) {
-          setParams(params);
-        }
-
         const elements = paymentStore.stripe.elements({ appearance: { theme: "night" } });
         const paymentRequest = paymentStore.stripe.paymentRequest({
           country: "US",
@@ -62,7 +67,7 @@ const Payment = observer(({onSuccess, className=""}) => {
         });
 
         paymentRequest.canMakePayment().then(function (result) {
-          console.log(result, paymentRequest)
+          console.log(result, paymentRequest);
           //if(!result) { return; }
 
           if(result?.applePay || result?.googlePay) {
@@ -94,7 +99,7 @@ const Payment = observer(({onSuccess, className=""}) => {
           }
         });
       });
-  }, []);
+  }, [!!params]);
 
   useEffect(() => {
     if(!container || !formDetails?.element) { return; }
@@ -110,14 +115,22 @@ const Payment = observer(({onSuccess, className=""}) => {
       </div>
     );
   }
-  //console.log(params)
+
+  if(formDetails.type === "card" && showQR && url) {
+    return (
+      <QRCode
+        url={url.toString()}
+        className={S("qr")}
+      />
+    );
+  }
 
   return (
     <div className={JoinClassNames(className, S("payment"))}>
       {
         formDetails.type === "card" ?
           <div className={S("card")}>
-            <div ref={setContainer} className={S("card__input")} />
+            <div ref={setContainer} className={S("card__input")}/>
             <button
               disabled={submitting}
               onClick={async () => {
@@ -126,15 +139,16 @@ const Payment = observer(({onSuccess, className=""}) => {
                   await CardPayment({
                     clientSecret: params.client_secret,
                     clientReferenceId: params.client_reference_id,
-                    cardElement: formDetails.element
+                    cardElement: formDetails.element,
+                    permissionItemId: params.permissionItem.id
                   });
 
-                  onSuccess();
+                  onSuccess?.();
                 } catch(error) {
                   console.error(error);
                   if(typeof error === "string") {
                     setError(error);
-                  // Let stripe form show validation errors
+                    // Let stripe form show validation errors
                   } else if(error?.type !== "validation_error") {
                     setError("Something went wrong, please try again");
                   }
@@ -148,9 +162,21 @@ const Payment = observer(({onSuccess, className=""}) => {
             </button>
           </div> :
           <div className={S("wallet")}>
-            <div ref={setContainer} className={S("wallet__input")} />
+            <div ref={setContainer} className={S("wallet__input")}/>
           </div>
       }
+      <div className={S("terms")}>
+        {
+          !rootStore.mobileLandscape || !onCancel ? null :
+            <Linkish onClick={onCancel}>
+              BACK
+            </Linkish>
+        }
+        <div>
+          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.
+        </a>
+        </div>
+      </div>
       {
         !error ? null :
           <div className={S("error")}>{error}</div>
@@ -172,7 +198,7 @@ const Item = observer(({item}) => {
         {item.title}
       </div>
       <div className={S("item__price")}>
-        {FormatPriceString(item.price)}
+      {FormatPriceString(item.price)}
       </div>
       {
         !item.subtitle ? null :
@@ -214,7 +240,7 @@ const PaymentPage = observer(() => {
   return (
     <div className={S("payment-page")}>
       <Item item={params.permissionItem} />
-      <Payment onSuccess={() => setSuccess(true)} />
+      <Payment params={params} onSuccess={() => setSuccess(true)} />
     </div>
   );
 });
