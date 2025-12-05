@@ -73,8 +73,11 @@ const WalletPayment = async ({
       clientReferenceId,
       permissionItemId
     });
+
+    event.complete("Success");
   } catch(error) {
     onError(error);
+    event.complete("Failure");
   }
 };
 
