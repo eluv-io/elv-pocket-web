@@ -62,7 +62,7 @@ const PaymentActions = observer(({permissionItemId, Cancel}) => {
     paymentStore.purchaseStatus[permissionItemId]?.status === "succeeded"
   ) {
     return (
-      <div className={S("payment__actions")}>
+      <div className={S("payment__status")}>
         <MintingStatus
           permissionItemId={permissionItemId}
           confirmationId={paymentStore.purchaseDetails[permissionItemId].response.client_reference_id}
@@ -74,7 +74,7 @@ const PaymentActions = observer(({permissionItemId, Cancel}) => {
   return (
     <div className={S("payment__actions")}>
       <Payment
-        showQR
+        showQR={!rootStore.mobile}
         url={paymentStore.purchaseDetails[permissionItemId]?.url}
         params={paymentStore.purchaseDetails[permissionItemId]?.response}
         onCancel={Cancel}

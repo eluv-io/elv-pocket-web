@@ -43,7 +43,7 @@ class PocketStore {
   }
 
   get splashImage() {
-    const backgroundKey = this.mobile && this.pocket.metadata.splash_screen_background_mobile ?
+    const backgroundKey = this.mobile && this.pocket?.metadata?.splash_screen_background_mobile ?
       "splash_screen_background_mobile" :
       "splash_screen_background";
 
@@ -258,7 +258,7 @@ class PocketStore {
     });
   }
 
-  LoadPocket = flow(function * ({pocketSlugOrId}) {
+  LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -273,6 +273,10 @@ class PocketStore {
       tenantId: yield this.client.ContentObjectTenantId({versionHash}),
       metadata
     };
+
+    if(noMedia) {
+      return;
+    }
 
     yield Promise.all([
       new Promise(resolve => setTimeout(resolve, 3000)),

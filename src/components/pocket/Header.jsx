@@ -114,7 +114,7 @@ const MobileHeader = observer(({mediaItem}) => {
   );
 });
 
-const DesktopHeader = observer(() => {
+const DesktopHeader = observer(({simple}) => {
   const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
     pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
@@ -132,20 +132,25 @@ const DesktopHeader = observer(() => {
             <SVG src={Logo} alt="Eluvio"/>
         }
       </Linkish>
-      <HeaderButton active={!rootStore.menu} icon={HomeIcon} onClick={() => rootStore.SetMenu()}>
-        Watch
-      </HeaderButton>
-      <HeaderButton active={rootStore.menu === "purchase-history"} icon={PurchaseHistoryIcon} onClick={() => rootStore.SetMenu("purchase-history")}>
-        Purchase History
-      </HeaderButton>
+      {
+        simple ? null :
+          <>
+            <HeaderButton active={!rootStore.menu} icon={HomeIcon} onClick={() => rootStore.SetMenu()}>
+              Watch
+            </HeaderButton>
+            <HeaderButton active={rootStore.menu === "purchase-history"} icon={PurchaseHistoryIcon} onClick={() => rootStore.SetMenu("purchase-history")}>
+              Purchase History
+            </HeaderButton>
+          </>
+      }
     </header>
   );
 });
 
-const Header = observer(({mediaItem}) =>
-  rootStore.mobile ?
+const Header = observer(({mediaItem, simple}) =>
+  rootStore.mobile && !simple ?
     <MobileHeader mediaItem={mediaItem} /> :
-    <DesktopHeader />
+    <DesktopHeader simple={simple} />
 );
 
 export default Header;

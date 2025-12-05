@@ -167,15 +167,17 @@ export const Payment = observer(({
 
   if(formDetails.type === "card" && showQR && url) {
     return (
-      <QRCode
-        url={url.toString()}
-        className={S("qr")}
-      />
+      <div className={S("qr-container")}>
+        <QRCode
+          url={url.toString()}
+          className={JoinClassNames(S("qr"), className)}
+        />
+      </div>
     );
   }
 
   return (
-    <div className={JoinClassNames(className, S("payment"))}>
+    <div className={JoinClassNames(S("payment"), className)}>
       {
         formDetails.type === "card" ?
           <div className={S("card")}>
@@ -265,12 +267,12 @@ const PaymentPage = observer(() => {
   const params = JSON.parse(Utils.FromB58ToStr(paymentParams));
 
   useEffect(() => {
-    rootStore.InitializeClient({pocketSlugOrId});
+    rootStore.Initialize({pocketSlugOrId, noMedia: true});
   }, []);
 
-  if(!rootStore.client) {
+  if(!rootStore.initialized) {
     return (
-      <div className={S("payment-page")}>
+      <div className={S("payment-page", "payment-page--loading")}>
         <Loader/>
       </div>
     );
@@ -289,7 +291,11 @@ const PaymentPage = observer(() => {
   return (
     <div className={S("payment-page")}>
       <Item item={params.permissionItem} />
-      <Payment params={params} onSuccess={() => setSuccess(true)} />
+      <Payment
+        params={params}
+        onSuccess={() => setSuccess(true)}
+        className={S("payment-page__payment")}
+      />
     </div>
   );
 });

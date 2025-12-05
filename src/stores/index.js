@@ -110,7 +110,7 @@ class RootStore {
     console.timeEnd("Initialize Client");
   });
 
-  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, noMedia=false, force=false}) {
     if(this.loading && !force) { return; }
 
     this.loading = true;
@@ -118,7 +118,7 @@ class RootStore {
 
     yield this.InitializeClient({pocketSlugOrId, customUserIdCode});
 
-    yield this.pocketStore.LoadPocket({pocketSlugOrId});
+    yield this.pocketStore.LoadPocket({pocketSlugOrId, noMedia});
 
     this.initialized = true;
     this.loading = false;

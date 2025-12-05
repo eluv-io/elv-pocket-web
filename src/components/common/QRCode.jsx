@@ -46,7 +46,7 @@ const QRCode = observer(({image, url, className=""}) => {
     container.innerHTML = "";
     qrCode.append(container);
     //qrCode.download({ name: "qr", extension: "svg" });
-  }, [container, CONFIG]);
+  }, [container, CONFIG, rootStore.pageDimensions]);
 
   return (
     <div
