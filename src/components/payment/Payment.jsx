@@ -44,7 +44,7 @@ const WalletPayment = async ({
 }) => {
   try {
     console.log("wp", event, clientSecret, clientReferenceId, permissionItemId)
-    let { error, paymentIntent } = await stripe.confirmCardPayment(
+    let { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(
       clientSecret,
       { payment_method: event.paymentMethod.id },
       { handleActions: true }
@@ -56,7 +56,7 @@ const WalletPayment = async ({
 
     if(paymentIntent?.status === "requires_action") {
       console.log("ra")
-      const response = await stripe.confirmCardPayment(clientSecret);
+      const response = await paymentStore.stripe.confirmCardPayment(clientSecret);
       conosle.log("ra", response)
 
       if(response.error) { throw response; }
