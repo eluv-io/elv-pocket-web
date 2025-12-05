@@ -43,24 +43,31 @@ const WalletPayment = async ({
   onError,
 }) => {
   try {
+    console.log("wp", event, clientSecret, clientReferenceId, permissionItemId)
     let { error, paymentIntent } = await stripe.confirmCardPayment(
       clientSecret,
       { payment_method: event.paymentMethod.id },
       { handleActions: true }
     );
 
+    console.log("pi", error, paymentIntent);
+
     if(error) { throw error; }
 
     if(paymentIntent?.status === "requires_action") {
+      console.log("ra")
       const response = await stripe.confirmCardPayment(clientSecret);
+      conosle.log("ra", response)
 
       if(response.error) { throw response; }
 
       paymentIntent = response.paymentIntent;
+      console.log("pia", paymentIntent)
     } else if(paymentIntent?.status !== "succeeded") {
       throw "Payment processing.";
     }
 
+    console.log("cp")
     await paymentStore.CompletePurchase({
       paymentIntent,
       clientReferenceId,
@@ -85,8 +92,6 @@ export const Payment = observer(({
 
   const [formDetails, setFormDetails] = useState({});
 
-  console.log(params);
-
   useEffect(() => {
     if(!params) { return; }
 
@@ -103,7 +108,7 @@ export const Payment = observer(({
         });
 
         paymentRequest.canMakePayment().then(function (result) {
-          console.log(result, paymentRequest);
+          console.log("cmp", result, paymentRequest);
           //if(!result) { return; }
 
           if(result?.applePay || result?.googlePay) {
@@ -152,9 +157,12 @@ export const Payment = observer(({
   useEffect(() => {
     if(!container || !formDetails?.element) { return; }
 
+    console.log("mount")
     container.innerHTML = "";
     formDetails.element.mount(container);
   }, [container, formDetails]);
+
+  console.log("p,fd, e", params, formDetails, error)
 
   if(!params || !formDetails.type) {
     return (
@@ -227,7 +235,7 @@ export const Payment = observer(({
       </div>
       {
         !error ? null :
-          <div className={S("error")}>{error}</div>
+          <div className={S("error")}>{error.toString()}</div>
       }
     </div>
   );

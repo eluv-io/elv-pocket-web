@@ -13,17 +13,17 @@ const CONFIG = {
   "margin": 10,
   "qrOptions": {"typeNumber": "0", "mode": "Byte", "errorCorrectionLevel": "Q"},
   "imageOptions": {"saveAsBlob": true, "hideBackgroundDots": true, "imageSize": 0.4, "margin": 10},
-  "dotsOptions": {"type": "dots", "color": "#555", "roundSize": true},
+  "dotsOptions": {"type": "dots", "color": "white", "roundSize": true},
   "backgroundOptions": {"round": 0, "color": "#000000"},
   "image": "",
   "dotsOptionsHelper": {
     "colorType": {"single": true, "gradient": false}
   },
-  "cornersSquareOptions": {"type": "extra-rounded", "color": "#cdcdcd"},
+  "cornersSquareOptions": {"type": "extra-rounded", "color": "white"},
   "cornersSquareOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
   },
-  "cornersDotOptions": {"type": "dot", "color": "#cdcdcd"},
+  "cornersDotOptions": {"type": "dot", "color": "white"},
   "cornersDotOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
   }
