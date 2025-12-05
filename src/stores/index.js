@@ -64,7 +64,7 @@ class RootStore {
     console.time("Log in");
     if(
       !customUserIdCode &&
-      localStorage.getItem("token") &&
+      localStorage.getItem(`token-${EluvioConfiguration.network}`) &&
       parseInt(localStorage.getItem("token-expires")) - Date.now() > 6 * 60 * 60 * 1000
     ) {
       yield walletClient.Authenticate({token: localStorage.getItem("token")});
@@ -77,8 +77,8 @@ class RootStore {
           force
         });
 
-        localStorage.setItem("token", signingToken);
-        localStorage.setItem("token-expires", (Date.now() + 24 * 60 * 60 * 1000).toString());
+        localStorage.setItem(`token-${EluvioConfiguration.network}`, signingToken);
+        localStorage.setItem(`token-expires-${EluvioConfiguration.network}`, (Date.now() + 24 * 60 * 60 * 1000).toString());
       } catch(error) {
         console.error(error);
         if(confirm("Too many logins - force?")) {
@@ -149,8 +149,8 @@ class RootStore {
   }
 
   ResetAccount() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("token-expires");
+    localStorage.removeItem(`token-${EluvioConfiguration.network}`);
+    localStorage.removeItem(`token-expires-${EluvioConfiguration.network}`);
     localStorage.removeItem("nonce");
     localStorage.removeItem("user-id-code");
 
