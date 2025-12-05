@@ -30,7 +30,7 @@
   .content {
     display: grid;
     gap: var(--gutter-size);
-    grid-template-columns: 1fr 500px;
+    grid-template-columns: 1fr 465px;
     height: calc(100 * var(--vh));
     max-height: calc(100 * var(--vh) - 60px);
     overflow: hidden;

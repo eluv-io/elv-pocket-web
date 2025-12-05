@@ -2,7 +2,7 @@ import PurchaseHistoryStyles from "@/assets/stylesheets/modules/purchase-history
 
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
-import {rootStore} from "@/stores/index.js";
+import {pocketStore, rootStore} from "@/stores/index.js";
 import {useEffect, useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
 import {CopyableField} from "@/components/common/Common.jsx";
@@ -82,11 +82,11 @@ const PurchaseHistory = observer(() => {
       <div className={S("menu")}>
         <AccountForm />
         {
-          rootStore.userItems.length === 0 ?
+          pocketStore.userItems.length === 0 ?
             <div className={S("no-items")}>
               {"You haven't purchased any items yet"}
             </div> :
-            rootStore.userItems.map(item =>
+            pocketStore.userItems.map(item =>
               <div key={item.id} className={S("item")}>
                 <div className={S("item__name")}>
                   { item.name }

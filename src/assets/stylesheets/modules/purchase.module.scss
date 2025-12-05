@@ -52,7 +52,7 @@
 
   &--vertical {
     align-items: center;
-    display: flex;
+    display: grid;
     flex-wrap: wrap;
     height: 100%;
     justify-content: center;
@@ -179,45 +179,12 @@
   text-align: center;
 
   &__actions {
-    animation: var(--animation-fadein) 0.5s ease;
-    position: relative;
-  }
-
-  &__options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-
-  &__option {
     align-items: center;
-    border-radius: 12px;
+    animation: var(--animation-fadein) 0.5s ease;
     display: flex;
     justify-content: center;
-    padding: 10px 0;
+    position: relative;
     width: 100%;
-
-    &--apple {
-      background-color: black;
-
-      svg {
-        filter: invert(100%);
-        height: 100%;
-        width: auto;
-      }
-    }
-  }
-
-  &__terms {
-    color: var(--text-tertiary-alternate);
-    font-size: 11px;
-    margin-top: 20px;
-    text-align: center;
-
-    a {
-      text-decoration: underline;
-    }
   }
 
   &__item-info {
@@ -233,7 +200,6 @@
     font-weight: 600;
     inset: 0;
     justify-content: center;
-    position: absolute;
   }
 }
 
@@ -284,6 +250,8 @@
     }
 
     &__actions {
+      flex-grow: 1;
+      height: 100%;
       margin-inline: auto;
       max-width: 250px;
     }
@@ -335,15 +303,18 @@
   }
 
   .payment {
-    padding: 50px;
     width: 420px;
 
     &__option {
       height: 60px;
     }
 
+    &__actions {
+      height: 100%;
+    }
+
     &__error {
-      font-size: 24px;
+      font-size: 20px;
     }
 
     &__status {
@@ -385,7 +356,6 @@
   }
 
   .payment {
-    padding: 20px 50px;
     width: 350px;
 
     &__option {
@@ -394,10 +364,6 @@
 
     &__terms {
       font-size: 9px;
-    }
-
-    &__error {
-      font-size: 18px;
     }
 
     &__status {
@@ -409,9 +375,6 @@
 @media screen and (width <= 1000px) {
   .items {
     height: 100%;
-
-    // max-height: calc(40 * var(--vh));
-    // min-height: calc(20 * var(--vh));
     width: 100%;
 
     &--vertical {
@@ -505,13 +468,13 @@
 
   .selected-item {
     height: 100%;
+    padding-bottom: 25vh;
     width: 100%;
   }
 
   .payment {
     height: 100%;
     min-height: 300px;
-    padding: 20px;
     width: 100%;
 
     &__options {
@@ -531,6 +494,14 @@
       --loader-height: 50px;
     }
 
+    &__error {
+      font-size: 12px;
+    }
+
+    &__actions {
+      padding-inline: 20px;
+    }
+
     &__terms {
       display: flex;
       font-size: 10px;
@@ -545,6 +516,12 @@
         text-decoration: underline;
       }
     }
+  }
+}
+
+@media screen and (width <= 1000px) and (orientation: landscape) {
+  .selected-item {
+    padding-bottom: 0;
   }
 }
 

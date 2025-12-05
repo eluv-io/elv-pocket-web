@@ -6,28 +6,17 @@ import {pocketStore, paymentStore, rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
-import ApplePayImage from "@/assets/images/apple-pay.svg";
-import SVG from "react-inlinesvg";
 import Carousel from "@/components/common/Carousel.jsx";
+import {Payment} from "@/components/payment/Payment.jsx";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
-const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
+const MintingStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
-    //let count = 0;
     const statusInterval = setInterval(async () => {
-      let status = await paymentStore.PurchaseStatus({permissionItemId, confirmationId});
-
-      /*
-        // For testing
-        count += 1;
-
-        if(count >= 3) {
-          status = { status: "complete" };
-        }
-       */
+      let status = await paymentStore.MintingStatus({permissionItemId, confirmationId});
 
       setStatus(status);
 
@@ -59,55 +48,37 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
 });
 
 const PaymentActions = observer(({permissionItemId, Cancel}) => {
-  const [confirmationId, setConfirmationId] = useState(undefined);
-  const [error, setError] = useState();
+  const {pocketSlugOrId} = useParams();
 
   useEffect(() => {
-    setTimeout(() => setError(undefined), 5000);
-  }, [error]);
+    paymentStore.InitiatePurchase({pocketSlugOrId, permissionItemId})
+      .then(() => paymentStore.StartPollPurchaseStatus({permissionItemId}));
+
+    return () => paymentStore.StopPollPurchaseStatus({permissionItemId});
+  }, []);
+
+  if(
+    paymentStore.purchaseDetails[permissionItemId]?.success ||
+    paymentStore.purchaseStatus[permissionItemId]?.status === "succeeded"
+  ) {
+    return (
+      <div className={S("payment__status")}>
+        <MintingStatus
+          permissionItemId={permissionItemId}
+          confirmationId={paymentStore.purchaseDetails[permissionItemId].response.client_reference_id}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div key={!!error} className={S("payment__actions")}>
-      <div key="options" className={S("payment__options")}>
-        <Linkish
-          onClick={async () => {
-            const {result, confirmationId} = await paymentStore.PurchaseApplePay({permissionItemId});
-            if(result?.error && !result?.error?.cancelled) {
-              setError(result.error);
-            } else if(!result?.error) {
-              setConfirmationId(confirmationId);
-            }
-          }}
-          className={S("payment__option", "payment__option--apple")}
-        >
-          <SVG src={ApplePayImage} alt="Apple Pay"/>
-        </Linkish>
-      </div>
-      <div className={S("payment__terms")}>
-        {
-          !rootStore.mobileLandscape ? null :
-            <Linkish onClick={Cancel}>
-              BACK
-            </Linkish>
-        }
-        <div>
-          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.</a>
-        </div>
-      </div>
-      {
-        !error ? null :
-          <div key="error" className={S("payment__error")}>
-            Something went wrong, please try again
-          </div>
-      }
-      {
-        !confirmationId ? null :
-          <PurchaseStatus
-            permissionItemId={permissionItemId}
-            confirmationId={confirmationId}
-            Cancel={() => setConfirmationId(undefined)}
-          />
-      }
+    <div className={S("payment__actions")}>
+      <Payment
+        showQR={!rootStore.mobile}
+        url={paymentStore.purchaseDetails[permissionItemId]?.url}
+        params={paymentStore.purchaseDetails[permissionItemId]?.response}
+        onCancel={Cancel}
+      />
     </div>
   );
 });
@@ -136,7 +107,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
                   {permissionItem.subtitle}
                 </div>
             }
-            <div className={S("vertical-item__select-container")}>
+            <div className={S("vertical-item__actions")}>
               <Linkish
                 onClick={Cancel}
                 className={S("vertical-item__action")}
@@ -179,7 +150,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
 const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
   if(orientation === "vertical") {
     return (
-      <div className={S("vertical-item")}>
+      <div data-pid={permissionItem.id} className={S("vertical-item")}>
         <div className={S("vertical-item__details")}>
           {
             !permissionItem.access_title ? null :
@@ -213,7 +184,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
   }
 
   return (
-    <div className={S("horizontal-item")}>
+    <div data-pid={permissionItem.id} className={S("horizontal-item")}>
       <div className={S("horizontal-item__details")}>
         {
           !permissionItem.access_title ? null :

@@ -8,21 +8,17 @@ console.time("Initial Load");
 
 class RootStore {
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
-  preferredCurrency = "USD";
-  currency = "USD";
 
   client;
   walletClient;
   initialized = false;
-  contentEnded = false;
+  shortURLs = {};
   permissionItems = {};
   menu;
 
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
   nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
   tokenStatusInterval;
-
-  userItems = [];
 
   pageDimensions = {
     width: window.innerWidth,
@@ -47,10 +43,6 @@ class RootStore {
 
     localStorage.setItem("user-id-code", this.userIdCode);
     localStorage.setItem("nonce", this.nonce);
-  }
-
-  SetContentEnded(ended) {
-    this.contentEnded = ended;
   }
 
   SetMenu(menu) {
@@ -113,46 +105,12 @@ class RootStore {
       CheckTokenStatus();
     }, 60000);
 
-    try {
-      /*
-      TODO: Subscription details
-      const subscriptions = (yield Utils.ResponseToJson(
-        walletClient.client.authClient.MakeAuthServiceRequest({
-          path: UrlJoin("as", "subs", "list"),
-          method: "POST",
-          body: {
-            tenant: tenantId
-          },
-          headers: {
-            Authorization: `Bearer ${walletClient.client.staticToken}`
-          }
-        })
-      ))?.subscriptions || [];
-
-       */
-
-      this.userItems = ((yield walletClient.UserItems({tenantId, limit: 1000}))?.results || []);
-        /*
-        .map(item => ({
-          ...item,
-          subscription: subscriptions.find(sub =>
-            Utils.EqualAddress(sub.token_addr, item.details.ContractAddr) &&
-            sub.token_id === item.details.TokenIdStr
-          )
-        }));
-
-         */
-    } catch(error) {
-      console.error("Error loading items and subscriptions");
-      console.error(error);
-    }
-
     this.walletClient = walletClient;
     this.client = walletClient.client;
     console.timeEnd("Initialize Client");
   });
 
-  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, noMedia=false, force=false}) {
     if(this.loading && !force) { return; }
 
     this.loading = true;
@@ -160,10 +118,27 @@ class RootStore {
 
     yield this.InitializeClient({pocketSlugOrId, customUserIdCode});
 
-    yield this.pocketStore.LoadPocket({pocketSlugOrId});
+    yield this.pocketStore.LoadPocket({pocketSlugOrId, noMedia});
 
     this.initialized = true;
     this.loading = false;
+  });
+
+  CreateShortURL = flow(function * (url) {
+    try {
+      // Normalize URL
+      url = new URL(url).toString();
+
+      if(!this.shortURLs[url]) {
+        const {url_mapping} = yield (yield fetch("https://elv.lv/tiny/create", {method: "POST", body: url})).json();
+
+        this.shortURLs[url] = url_mapping.shortened_url;
+      }
+
+      return this.shortURLs[url];
+    } catch(error) {
+      console.error(error);
+    }
   });
 
   UpdatePageDimensions() {
