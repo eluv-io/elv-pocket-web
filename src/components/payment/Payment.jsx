@@ -40,34 +40,28 @@ const WalletPayment = async ({
   clientSecret,
   clientReferenceId,
   permissionItemId,
+  onSuccess,
   onError,
 }) => {
   try {
-    console.log("wp", event, clientSecret, clientReferenceId, permissionItemId)
     let { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(
       clientSecret,
       { payment_method: event.paymentMethod.id },
       { handleActions: true }
     );
 
-    console.log("pi", error, paymentIntent);
-
     if(error) { throw error; }
 
     if(paymentIntent?.status === "requires_action") {
-      console.log("ra")
       const response = await paymentStore.stripe.confirmCardPayment(clientSecret);
-      conosle.log("ra", response)
 
       if(response.error) { throw response; }
 
       paymentIntent = response.paymentIntent;
-      console.log("pia", paymentIntent)
     } else if(paymentIntent?.status !== "succeeded") {
       throw "Payment processing.";
     }
 
-    console.log("cp")
     await paymentStore.CompletePurchase({
       paymentIntent,
       clientReferenceId,
@@ -75,6 +69,7 @@ const WalletPayment = async ({
     });
 
     event.complete("success");
+    onSuccess?.();
   } catch(error) {
     onError(error);
     event.complete("fail");
@@ -111,9 +106,6 @@ export const Payment = observer(({
         });
 
         paymentRequest.canMakePayment().then(function (result) {
-          console.log("cmp", result, paymentRequest);
-          //if(!result) { return; }
-
           if(result?.applePay || result?.googlePay) {
             // Wallet payment flow
             paymentRequest.on(
@@ -121,6 +113,7 @@ export const Payment = observer(({
               async event => WalletPayment({
                 event,
                 onError: setError,
+                onSuccess,
                 clientSecret: params.client_secret,
                 clientReferenceId: params.client_reference_id,
                 permissionItemId: params.permissionItem.id
@@ -160,12 +153,9 @@ export const Payment = observer(({
   useEffect(() => {
     if(!container || !formDetails?.element) { return; }
 
-    console.log("mount")
     container.innerHTML = "";
     formDetails.element.mount(container);
   }, [container, formDetails]);
-
-  console.log("p,fd, e", params, formDetails, error)
 
   if(!params || !formDetails.type) {
     return (
