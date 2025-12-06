@@ -80,18 +80,21 @@ class PocketStore {
     return this.media[mediaItemId];
   }
 
-  MediaItemPermissions(mediaItemSlugOrId) {
-    const item = this.MediaItem(mediaItemSlugOrId);
+  MediaItemPermissions({mediaItemSlugOrId, mediaItem}) {
+    if(mediaItemSlugOrId) {
+      mediaItem = this.MediaItem(mediaItemSlugOrId);
+    }
 
-    if(!item) { return; }
+    if(!mediaItem) { return; }
 
     let permissions = {
-      authorized: (item?.permissions || []).length === 0,
+      public: mediaItem.public,
+      authorized: mediaItem.public || (mediaItem?.permissions || []).length === 0,
       dvr: false,
       permissionItems: []
     };
 
-    permissions.permissionItems = item.permissions
+    permissions.permissionItems = mediaItem.permissions
       .map(({permission_item_id}) => {
         if(!permission_item_id || !this.permissionItems[permission_item_id]) {
           return;
@@ -171,7 +174,22 @@ class PocketStore {
   };
 
   FilteredMedia({select}) {
-    let content = Object.values(this.media);
+    let content = Object.values(this.media)
+      .filter(mediaItem => mediaItem.media_type === "Video");
+
+    if(select.permissions === "authorized") {
+      content = content.filter(mediaItem => {
+        const permissions = this.MediaItemPermissions({mediaItem});
+
+        return !permissions.public && permissions.authorized && permissions.permissionItems.length > 0;
+      });
+    } else if(select.permissions === "unauthorized") {
+      content = content.filter(mediaItem => {
+        const permissions = this.MediaItemPermissions({mediaItem});
+
+        return !permissions.public && !permissions.authorized && permissions.permissionItems.length > 0;
+      });
+    }
 
     // Schedule filter
     // Only videos can be filtered by schedule

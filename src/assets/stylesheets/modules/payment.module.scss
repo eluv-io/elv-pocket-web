@@ -20,7 +20,7 @@
   @media screen and (width <= 650px) and (orientation: portrait) {
     padding: 20px;
 
-    &:not(.payment-page--loading) {
+    &:not(.payment-page--centered) {
       justify-content: flex-start;
     }
   }
@@ -48,6 +48,7 @@
 
 .qr-container {
   align-items: center;
+  animation: var(--animation-fadein) 0.25s ease;
   background-color: black;
   display: flex;
   height: 100%;

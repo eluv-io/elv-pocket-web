@@ -272,7 +272,7 @@ const PaymentPage = observer(() => {
 
   if(!rootStore.initialized) {
     return (
-      <div className={S("payment-page", "payment-page--loading")}>
+      <div className={S("payment-page", "payment-page--centered")}>
         <Loader/>
       </div>
     );
@@ -280,7 +280,7 @@ const PaymentPage = observer(() => {
 
   if(success) {
     return (
-      <div className={S("payment-page")}>
+      <div className={S("payment-page", "payment-page--centered")}>
         <div className={S("success")}>
           Thank you for your purchase!
         </div>

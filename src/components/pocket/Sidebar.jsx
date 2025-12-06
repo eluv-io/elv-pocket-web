@@ -7,9 +7,10 @@ import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
+import {useState} from "react";
 
 import Logo from "@/assets/icons/logo.svg";
-import {useState} from "react";
+import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
@@ -21,6 +22,7 @@ const MediaCard = observer(({mediaItem}) => {
 
   return (
     <Linkish
+      disabled={mediaItem.scheduleInfo.isLiveContent && mediaItem.scheduleInfo.ended}
       to={UrlJoin("~/", pocketSlugOrId, mediaItem.slug || mediaItem.id)}
       className={S("media-card", isActive ? "media-card--active" : "")}
     >
@@ -45,9 +47,11 @@ const MediaCard = observer(({mediaItem}) => {
           {
             !mediaItem.scheduleInfo.isLiveContent ?
               mediaItem.subtitle :
-              !mediaItem.scheduleInfo.currentlyLive ?
+              mediaItem.scheduleInfo.currentlyLive ?
                 "Live Now" :
-                `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+                mediaItem.scheduleInfo.ended ?
+                  "Ended" :
+                  `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
           }
         </div>
       </div>
@@ -59,6 +63,32 @@ const SidebarContent = observer(() => {
   const [tabIndex, setTabIndex] = useState(0);
   const [containerRef, setContainerRef] = useState(null);
   const tab = pocketStore.sidebarContent[tabIndex];
+
+  if(rootStore.menu === "my-items") {
+    return (
+      <>
+        <div className={S("media")}>
+          <div className={S("media-section")}>
+            <div className={S("media-section__title", "media-section__title--large")}>My Items</div>
+            <div className={S("media-section__media")}>
+              {
+                (pocketStore.FilteredMedia({select: {permissions: "authorized", sort_order: "time_asc"}}))
+                  .map((mediaItem, index) =>
+                    <MediaCard
+                      key={`${mediaItem.id}-${index}`}
+                      mediaItem={mediaItem}
+                    />
+                  )
+              }
+            </div>
+          </div>
+        </div>
+        <div className={S("history-link")}>
+          Missing something? Check your <Linkish onClick={() => rootStore.SetMenu("purchase-history")}>Purchase History</Linkish>.
+        </div>
+      </>
+    );
+  }
 
   return (
     <div ref={setContainerRef} className={S("media")}>
@@ -121,7 +151,7 @@ export const Banners = observer(({position="below"}) => {
       (position === "above" ? banner.mobile_position === "above" : !banner.mobile_position)
     );
 
-  if(banners.length === 0){
+  if(banners.length === 0 || rootStore.menu === "my-items"){
     return null;
   }
 
@@ -210,10 +240,16 @@ const Sidebar = observer(({mediaItem}) => {
   return (
     <>
       <div className={S("sidebar")}>
-        <ContentInfo key={mediaItem.id} mediaItem={mediaItem} />
+        {
+          rootStore.menu !== "my-items" ? null :
+            <Linkish onClick={() => rootStore.SetMenu()} className={S("sidebar__close")}>
+              <SVG src={XIcon} />
+            </Linkish>
+        }
+        <ContentInfo key={mediaItem.id} mediaItem={mediaItem}/>
         {
           rootStore.mobile ? null :
-            <Banners position="below" />
+            <Banners position="below"/>
         }
         <SidebarContent/>
         <div className={S("logo")}>

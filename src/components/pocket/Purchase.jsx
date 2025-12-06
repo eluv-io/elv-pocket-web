@@ -238,7 +238,7 @@ const Purchase = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
   const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
 
   return (

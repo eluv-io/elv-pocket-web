@@ -72,6 +72,7 @@
 .vertical-item {
   animation: var(--animation-fadein) 0.5s ease;
   background-color: var(--background-secondary);
+  box-shadow: 0 0 30px rgb(0 0 0 / 60%);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -166,9 +167,16 @@
 
 .selected-item {
   animation: var(--animation-fadein) 0.5s ease;
-  background-color: var(--background-tertiary);
+  background-color: var(--background-secondary);
+  border-radius: 5px;
   display: flex;
   height: max-content;
+  overflow: hidden;
+
+  .vertical-item {
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 .payment {
@@ -322,6 +330,10 @@
       --loader-width: 8px;
     }
   }
+
+  .selected-item {
+    background-color: var(--background-tertiary);
+  }
 }
 
 @media screen and (width <= 1300px) and (width >= 1001px) {
@@ -467,6 +479,7 @@
   }
 
   .selected-item {
+    background-color: var(--background-primary);
     height: 100%;
     padding-bottom: 25vh;
     width: 100%;

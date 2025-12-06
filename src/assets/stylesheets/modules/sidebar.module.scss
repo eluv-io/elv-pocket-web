@@ -4,6 +4,21 @@
   gap: 10px;
   overflow: hidden auto;
   position: relative;
+  scrollbar-gutter: stable;
+
+  &__close {
+    height: 30px;
+    padding: 7px;
+    position: absolute;
+    right: 0;
+    top: 10px;
+    width: 30px;
+
+    svg {
+      height: 100%;
+      width: 100%;
+    }
+  }
 }
 
 .live-badge {
@@ -128,6 +143,11 @@
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 10px;
+
+    &--large {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
   }
 
   &__media {
@@ -143,6 +163,7 @@
   max-width: 100%;
   overflow-x: hidden;
   padding-bottom: 15px;
+  text-align: left;
   transition: opacity 0.5s ease;
 
   &:not(:last-child) {
@@ -152,6 +173,12 @@
   &:hover {
     opacity: 0.8;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    user-select: none;
+  }
+
 
   &--active {
     .media-card__title {
@@ -204,6 +231,20 @@
     position: absolute;
     top: 5px;
     z-index: 1;
+  }
+}
+
+.history-link {
+  align-items: center;
+  color: var(--text-tertiary-alternate);
+  display: flex;
+  font-size: 12px;
+  margin-top: 10px;
+  white-space: nowrap;
+
+  button {
+    margin-left: 4px;
+    text-decoration: underline;
   }
 }
 

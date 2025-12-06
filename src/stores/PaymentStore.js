@@ -1,6 +1,5 @@
 import {flow, makeAutoObservable, runInAction} from "mobx";
 import {parse as ParseUUID, v4 as UUID} from "uuid";
-//import {loadStripe} from "@stripe/stripe-js";
 import UrlJoin from "url-join";
 
 class PaymentStore {

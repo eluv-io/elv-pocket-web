@@ -111,7 +111,7 @@ const Media = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
 
   if(!permissions.authorized) {
     return (

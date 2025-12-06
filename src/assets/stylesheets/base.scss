@@ -29,6 +29,20 @@ body {
   font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;
 }
 
+a,
+input,
+textarea,
+button {
+  &:focus {
+    outline: 0;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 3px white;
+    outline: 0;
+  }
+}
+
 .page-container {
   position: relative;
 }

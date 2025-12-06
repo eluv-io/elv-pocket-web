@@ -84,7 +84,7 @@ const Pocket = observer(() => {
 
   let permissions = {};
   if(pocketStore.pocket?.mediaLoaded) {
-    permissions = pocketStore.MediaItemPermissions(mediaItemSlugOrId);
+    permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
   }
 
   const showPurchase = !permissions.authorized && !(showPreview && rootStore.mobile);
