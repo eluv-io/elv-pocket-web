@@ -12,7 +12,11 @@ export default defineConfig(() => {
         {
           src: "configuration.js",
           dest: ""
-        }
+        },
+        {
+          src: "src/assets/icons/favicon.png",
+          dest: ""
+        },
       ]
     }),
     mkcert()
