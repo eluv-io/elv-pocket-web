@@ -77,6 +77,10 @@
   .message {
     color: var(--text-tertiary-alternate);
     margin-bottom: 5px;
+
+    @media screen and (width <= 1000px) {
+      display: none;
+    }
   }
 }
 
