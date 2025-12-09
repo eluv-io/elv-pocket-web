@@ -311,7 +311,7 @@
   }
 
   .payment {
-    width: 420px;
+    width: 100%;
 
     &__option {
       height: 60px;
@@ -336,8 +336,17 @@
     }
   }
 
-  .selected-item {
-    background-color: var(--background-tertiary);
+  @media screen and (width >= 1301px) {
+    .selected-item {
+      background-color: var(--background-tertiary);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      .vertical-item {
+        max-width: unset;
+        width: 100%;
+      }
+    }
   }
 }
 
@@ -510,6 +519,8 @@
     height: 100%;
     min-height: 300px;
     width: 100%;
+    justify-content: flex-start;
+    padding-top: 20px;
 
     &__item-info {
       margin-bottom: 0;
