@@ -8,10 +8,8 @@ import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
 import UrlJoin from "url-join";
-import SVG from "react-inlinesvg";
 import Purchase from "@/components/pocket/Purchase.jsx";
 
-import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
 import Page from "@/components/pocket/Page.jsx";
 
@@ -58,10 +56,8 @@ const Pocket = observer(() => {
             hash={pocketStore.splashImage.hash}
             className={S("splash__image")}
           />
-          <div className={S("logo")}>
-            <SVG src={EIcon} alt="Eluvio"/>
-            <span>POCKET TV</span>
-            <Loader className={S("logo__loader")}/>
+          <div className={S("splash__loader")}>
+            <Loader />
           </div>
         </div>
       </div>
@@ -96,6 +92,7 @@ const Pocket = observer(() => {
         mediaItem={mediaItem}
         permissions={permissions}
         hideSidebar={hideSidebar}
+        hideSidebarTitle={showPurchase}
       >
         {
            showPurchase ?

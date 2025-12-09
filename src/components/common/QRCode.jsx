@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import QRCodeStyling from "qr-code-styling";
 
 import Logo from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import {pocketStore} from "@/stores/index.js";
 
 const CONFIG = {
   "type": "canvas",
@@ -10,9 +11,8 @@ const CONFIG = {
   "width": 540,
   "height": 540,
   "data": "https://eluv.io/",
-  "margin": 10,
   "qrOptions": {"typeNumber": "0", "mode": "Byte", "errorCorrectionLevel": "Q"},
-  "imageOptions": {"saveAsBlob": true, "hideBackgroundDots": true, "imageSize": 0.4, "margin": 10},
+  "imageOptions": {"saveAsBlob": true, "hideBackgroundDots": true, "imageSize": 0.4, "margin": 5},
   "dotsOptions": {"type": "dots", "color": "white", "roundSize": true},
   "backgroundOptions": {"round": 0, "color": "#000000"},
   "image": "",
@@ -29,7 +29,7 @@ const CONFIG = {
   }
 };
 
-const QRCode = observer(({image, url, className=""}) => {
+const QRCode = observer(({url, className=""}) => {
   const [container, setContainer] = useState(undefined);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const QRCode = observer(({image, url, className=""}) => {
     config.width = container.getBoundingClientRect().width;
     config.height = container.getBoundingClientRect().height;
     config.data = url;
-    config.image = image || Logo;
+    config.image = pocketStore.pocket?.metadata?.qr_code_logo?.url || Logo;
 
     const qrCode = new QRCodeStyling(config);
 

@@ -9,7 +9,6 @@ import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
 import {useState} from "react";
 
-import Logo from "@/assets/icons/logo.svg";
 import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
@@ -69,7 +68,12 @@ const SidebarContent = observer(() => {
       <>
         <div className={S("media")}>
           <div className={S("media-section")}>
-            <div className={S("media-section__title", "media-section__title--large")}>My Items</div>
+            <div className={S("media-section__title", "media-section__title--large")}>
+              <span>My Items</span>
+              <Linkish onClick={() => rootStore.SetMenu()} className={S("media-section__close")}>
+              <SVG src={XIcon} />
+            </Linkish>
+            </div>
             <div className={S("media-section__media")}>
               {
                 (pocketStore.FilteredMedia({select: {permissions: "authorized", sort_order: "time_asc"}}))
@@ -232,7 +236,7 @@ const ContentInfo = observer(({mediaItem}) => {
   );
 });
 
-const Sidebar = observer(({mediaItem}) => {
+const Sidebar = observer(({mediaItem, hideTitle}) => {
   if(!mediaItem || rootStore.mobileLandscape) {
     return null;
   }
@@ -246,16 +250,16 @@ const Sidebar = observer(({mediaItem}) => {
               <SVG src={XIcon} />
             </Linkish>
         }
-        <ContentInfo key={mediaItem.id} mediaItem={mediaItem}/>
+        {
+          hideTitle ? null :
+            <ContentInfo key={mediaItem.id} mediaItem={mediaItem}/>
+        }
         {
           rootStore.mobile ? null :
             <Banners position="below"/>
         }
         <SidebarContent/>
         <div className={S("logo")}>
-          <Linkish href="https://eluv.io" target="_blank">
-            <SVG src={Logo} title="Eluvio Pocket TV" alt="Eluvio Pocket TV"/>
-          </Linkish>
           <button
             onClick={
               () => confirm("Are you sure you want to reset your account?") ?

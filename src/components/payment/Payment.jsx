@@ -11,6 +11,10 @@ import QRCode from "@/components/common/QRCode.jsx";
 
 const S = CreateModuleClassMatcher(PaymentStyles);
 
+import ApplePayLogo from "@/assets/images/apple-pay.svg";
+import GoogleWalletLogo from "@/assets/images/google-wallet.svg";
+import SVG from "react-inlinesvg";
+
 const CardPayment = async ({clientSecret, clientReferenceId, permissionItemId, cardElement}) => {
   const { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(clientSecret, {
     payment_method: { card: cardElement }
@@ -82,7 +86,8 @@ export const Payment = observer(({
   showQR,
   onSuccess,
   onCancel,
-  className=""
+  className="",
+  qrClassName=""
 }) => {
   const [container, setContainer] = useState(undefined);
   const [error, setError] = useState(undefined);
@@ -167,11 +172,18 @@ export const Payment = observer(({
 
   if(formDetails.type === "card" && showQR && url) {
     return (
-      <div className={S("qr-container")}>
+      <div className={JoinClassNames(S("qr-container"), qrClassName)}>
+        <div className={S("qr-container__text")}>
+          Scan the code with your phone
+        </div>
         <QRCode
           url={url.toString()}
-          className={JoinClassNames(S("qr"), className)}
+          className={S("qr-container__code")}
         />
+        <div className={S("qr-container__logos")}>
+          <SVG src={ApplePayLogo} alt="Apple Pay" className={S("qr-container__logo", "qr-container__logo--apple")} />
+          <SVG src={GoogleWalletLogo} alt="Google Wallet"  className={S("qr-container__logo", "qr-container__logo--google")} />
+        </div>
       </div>
     );
   }
@@ -212,9 +224,12 @@ export const Payment = observer(({
               Pay with Card
             </button>
           </div> :
-          <div className={S("wallet")}>
-            <div ref={setContainer} className={S("wallet__input")}/>
-          </div>
+          <>
+            <div className={S("message")}> Press the payment button to complete the transaction</div>
+            <div className={S("wallet")}>
+              <div ref={setContainer} className={S("wallet__input")}/>
+            </div>
+          </>
       }
       <div className={S("terms")}>
         {
@@ -236,31 +251,6 @@ export const Payment = observer(({
   );
 });
 
-const Item = observer(({item}) => {
-  return (
-    <div className={S("item")}>
-      {
-        !item.access_title ? null :
-          <div className={S("item__access-title")}>
-            {item.access_title}
-          </div>
-      }
-      <div className={S("item__title")}>
-        {item.title}
-      </div>
-      <div className={S("item__price")}>
-      {FormatPriceString(item.price)}
-      </div>
-      {
-        !item.subtitle ? null :
-          <div className={S("item__subtitle")}>
-            {item.subtitle}
-          </div>
-      }
-    </div>
-  );
-});
-
 const PaymentPage = observer(() => {
   const {pocketSlugOrId, paymentParams} = useParams();
   const [success, setSuccess] = useState(false);
@@ -272,17 +262,24 @@ const PaymentPage = observer(() => {
 
   if(!rootStore.initialized) {
     return (
-      <div className={S("payment-page", "payment-page--centered")}>
-        <Loader/>
+      <div className={S("payment-page")}>
+        <div className={S("payment-page__loader")}>
+          <Loader/>
+        </div>
       </div>
     );
   }
 
   if(success) {
     return (
-      <div className={S("payment-page", "payment-page--centered")}>
-        <div className={S("success")}>
-          Thank you for your purchase!
+      <div className={S("payment-page")}>
+        <div className={S("payment-page__success")}>
+          <div className={S("payment-page__success-title")}>
+            Your purchase was successful
+          </div>
+          <div className={S("payment-page__success-subtitle")}>
+            Return to your original browser to enjoy your media
+          </div>
         </div>
       </div>
     );
@@ -290,12 +287,34 @@ const PaymentPage = observer(() => {
 
   return (
     <div className={S("payment-page")}>
-      <Item item={params.permissionItem} />
-      <Payment
-        params={params}
-        onSuccess={() => setSuccess(true)}
-        className={S("payment-page__payment")}
-      />
+      <div className={S("payment-page__header")}>
+        {params.mediaTitle}
+      </div>
+      <div className={S("item")}>
+        {
+          !params.permissionItem.access_title ? null :
+            <div className={S("item__access-title")}>
+              {params.permissionItem.access_title}
+            </div>
+        }
+        <div className={S("item__title")}>
+          {params.permissionItem.title}
+        </div>
+        <div className={S("item__price")}>
+          {FormatPriceString(params.permissionItem.price)}
+        </div>
+        {
+          !params.permissionItem.subtitle ? null :
+            <div className={S("item__subtitle")}>
+              {params.permissionItem.subtitle}
+            </div>
+        }
+        <Payment
+          params={params}
+          onSuccess={() => setSuccess(true)}
+          className={S("payment-page__payment")}
+        />
+      </div>
     </div>
   );
 });

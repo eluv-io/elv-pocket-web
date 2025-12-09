@@ -7,12 +7,14 @@
   scrollbar-gutter: stable;
 
   &__close {
+    color: var(--text-tertiary);
     height: 30px;
     padding: 7px;
     position: absolute;
     right: 0;
     top: 10px;
     width: 30px;
+    z-index: 10;
 
     svg {
       height: 100%;
@@ -139,14 +141,33 @@
   animation: var(--animation-fadein) 0.75s ease;
 
   &__title {
+    align-items: center;
     color: var(--text-primary);
+    display: flex;
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 10px;
+    position: relative;
 
     &--large {
+      border-bottom: 1px solid var(--background-tertiary);
       font-size: 22px;
       margin-bottom: 20px;
+      padding-bottom: 5px;
+    }
+  }
+
+  &__close {
+    color: var(--text-tertiary);
+    display: flex;
+    height: 15px;
+    position: absolute;
+    right: 0;
+    width: 15px;
+
+    svg {
+      height: 100%;
+      width: 100%;
     }
   }
 
@@ -182,13 +203,14 @@
 
   &--active {
     .media-card__title {
-      color: var(--text-highlight);
+      text-decoration: underline;
     }
   }
 
   &__title {
     color: var(--text-primary);
     font-weight: 600;
+    padding-right: 5px;
   }
 
   &__subtitle {
@@ -294,6 +316,10 @@
     font-size: 20px;
   }
 
+  .media-section__close {
+    display: none;
+  }
+
   .media-card {
     grid-template-columns: 170px 1fr;
 
@@ -325,6 +351,10 @@
     height: 100%;
     overflow-y: auto;
     padding-bottom: 10px;
+
+    &__close {
+      display: none;
+    }
   }
 
   .content-info {
@@ -349,7 +379,7 @@
   .current-item {
     background-color: var(--background-primary);
     box-shadow: 0 0 10px black;
-    padding: 15px 20px 10px 10px;
+    padding: 15px 40px 10px 10px;
     top: 0;
     z-index: 2;
   }

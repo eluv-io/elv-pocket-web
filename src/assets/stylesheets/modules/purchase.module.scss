@@ -86,7 +86,6 @@
 
   &__access-title {
     color: var(--text-tertiary-alternate);
-    margin-bottom: 10px;
   }
 
   &__title,
@@ -176,6 +175,7 @@
   .vertical-item {
     border-radius: 0;
     box-shadow: none;
+    height: 100%;
   }
 }
 
@@ -329,6 +329,11 @@
       --loader-height: 80px;
       --loader-width: 8px;
     }
+
+    // Specificity
+    .payment__form {
+      padding-inline: 50px;
+    }
   }
 
   .selected-item {
@@ -410,25 +415,29 @@
     height: 100%;
     justify-content: center;
     margin-inline: auto;
-    min-height: 300px;
-    padding: 20px 10px;
+    min-height: 250px;
+    padding: 20px;
     position: relative;
     width: 100%;
+
+    &__details {
+      justify-content: center;
+    }
 
     &__access-title {
       font-size: 12px;
     }
 
     &__price {
-      font-size: 32px;
+      font-size: 24px;
     }
 
     &__title {
-      font-size: 18px;
+      font-size: 14px;
     }
 
     &__subtitle {
-      font-size: 12px;
+      font-size: 11px;
       padding-inline: 10px;
     }
 
@@ -436,6 +445,12 @@
       background-color: white;
       color: black;
       height: 40px;
+    }
+
+    &:only-child {
+      .vertical-item__title {
+        font-size: 24px;
+      }
     }
   }
 
@@ -481,14 +496,24 @@
   .selected-item {
     background-color: var(--background-primary);
     height: 100%;
-    padding-bottom: 25vh;
+    padding-top: 10px;
     width: 100%;
+
+    .vertical-item {
+      &__title {
+        font-size: 20px;
+      }
+    }
   }
 
   .payment {
     height: 100%;
     min-height: 300px;
     width: 100%;
+
+    &__item-info {
+      margin-bottom: 0;
+    }
 
     &__options {
       max-width: 400px;

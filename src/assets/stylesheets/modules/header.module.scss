@@ -81,13 +81,13 @@
       font-size: 20px;
     }
 
-    &__options {
-      font-size: 18px;
+    &__option {
+      font-size: 20px;
     }
   }
 
   .logo {
-    margin-right: 30px;
+    margin-right: 10px;
   }
 
   .header {
@@ -102,7 +102,7 @@
 
 @media screen and (width <= 1000px) {
   .header {
-    gap: 15px;
+    gap: 0;
     height: 50px;
     padding: 12px 10px;
 
@@ -125,7 +125,7 @@
   }
 
   .title {
-    font-size: 12px;
+    font-size: 13px;
   }
 }
 

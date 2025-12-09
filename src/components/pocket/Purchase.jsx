@@ -47,11 +47,11 @@ const MintingStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
   );
 });
 
-const PaymentActions = observer(({permissionItemId, Cancel}) => {
+const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
   const {pocketSlugOrId} = useParams();
 
   useEffect(() => {
-    paymentStore.InitiatePurchase({pocketSlugOrId, permissionItemId})
+    paymentStore.InitiatePurchase({pocketSlugOrId, permissionItemId, mediaTitle: mediaItem.title})
       .then(() => paymentStore.StartPollPurchaseStatus({permissionItemId}));
 
     return () => paymentStore.StopPollPurchaseStatus({permissionItemId});
@@ -78,12 +78,13 @@ const PaymentActions = observer(({permissionItemId, Cancel}) => {
         url={paymentStore.purchaseDetails[permissionItemId]?.url}
         params={paymentStore.purchaseDetails[permissionItemId]?.response}
         onCancel={Cancel}
+        className={S("payment__form")}
       />
     </div>
   );
 });
 
-const SelectedItem = observer(({permissionItem, Cancel}) => {
+const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
   return (
     <div className={S("selected-item")}>
       {
@@ -141,7 +142,11 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
               }
             </div>
         }
-        <PaymentActions permissionItemId={permissionItem.id} Cancel={Cancel} />
+        <PaymentActions
+          mediaItem={mediaItem}
+          permissionItemId={permissionItem.id}
+          Cancel={Cancel}
+        />
       </div>
     </div>
   );
@@ -280,6 +285,7 @@ const Purchase = observer(({setShowPreview}) => {
             {
               selectedItemId ?
                 <SelectedItem
+                  mediaItem={mediaItem}
                   permissionItem={permissions.permissionItems.find(item => item.id === selectedItemId)}
                   Cancel={() => setSelectedItemId(undefined)}
                 /> :

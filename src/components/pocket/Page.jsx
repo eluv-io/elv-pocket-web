@@ -8,7 +8,7 @@ import Sidebar, {Banners} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
-const Page = observer(({children, mediaItem, permissions, hideSidebar, className=""}) => {
+const Page = observer(({children, mediaItem, permissions, hideSidebar, hideSidebarTitle, className=""}) => {
   return (
     <div className={JoinClassNames("page-container", className)}>
       {
@@ -37,6 +37,7 @@ const Page = observer(({children, mediaItem, permissions, hideSidebar, className
         {
           hideSidebar ? null :
             <Sidebar
+              hideTitle={hideSidebarTitle}
               mediaItem={mediaItem}
               permissions={permissions}
             />

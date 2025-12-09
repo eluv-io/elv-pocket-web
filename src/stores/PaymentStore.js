@@ -32,7 +32,7 @@ class PaymentStore {
     }
   });
 
-  InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId}) {
+  InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId, mediaTitle}) {
     if(!this.purchaseDetails[permissionItemId]) {
       const permissionItem = this.rootStore.pocketStore.permissionItems[permissionItemId];
       const confirmationId = this.ConfirmationId();
@@ -59,12 +59,13 @@ class PaymentStore {
 
       delete response.buy_url;
       response.address = this.client.CurrentAccountAddress();
+      response.mediaTitle = mediaTitle;
       response.permissionItem = {
         id: permissionItemId,
         title: permissionItem.title,
         subtitle: permissionItem.subtitle,
         access_title: permissionItem.access_title,
-        price: permissionItem.marketplaceItem.price
+        price: permissionItem.marketplaceItem.price,
       };
 
       const url = new URL(window.location.origin);

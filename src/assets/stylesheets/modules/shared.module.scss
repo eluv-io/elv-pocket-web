@@ -29,7 +29,7 @@
 
 .loader::before {
   animation: l1 1.5s linear infinite;
-  background: conic-gradient(#E10158 35%,#A80184,#3C01C9 65%);
+  background: conic-gradient(var(--text-primary) 35%,var(--text-secondary),var(--text-disabled) 65%);
   content: "";
   inset: 0;
   position: absolute;
