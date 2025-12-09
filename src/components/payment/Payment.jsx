@@ -101,7 +101,7 @@ export const Payment = observer(({
           currency: params.currency.toLowerCase(),
           total: { label: params.description, amount: params.amount },
           requestPayerName: false,
-          requestPayerEmail: false,
+          requestPayerEmail: true,
           requestShipping: false
         });
 
