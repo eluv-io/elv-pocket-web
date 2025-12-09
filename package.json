@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "serve": "rm -rf node_modules/.vite; vite",
-    "build": "rm -rf dist/* ; vite build --mode development",
+    "build": "rm -rf dist/* ; vite build",
     "bump-version": "npm --git-tag-version --no-commit-hooks version patch",
     "lint": "npm-run-all -s -c lint-js-fix lint-scss-fix",
     "lint-js": "eslint ./src --ext js,jsx --report-unused-disable-directives",

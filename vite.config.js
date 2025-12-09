@@ -45,7 +45,20 @@ export default defineConfig(() => {
       }
     },
     build: {
-      manifest: true
+      manifest: true,
+      rollupOptions: {
+        output: {
+          entryFileNames: "index.js",
+          assetFileNames: assetInfo => {
+            const ext = assetInfo.names[0].split(".").slice(-1)[0];
+            if(ext === "css") {
+              return "index.css";
+            } else {
+              return assetInfo.originalFileName;
+            }
+          }
+        }
+      }
     }
   };
 });
