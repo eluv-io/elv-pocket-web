@@ -61,7 +61,7 @@ const HeaderMenu = observer(() => {
           if(!menuElement.contains(document.activeElement)) {
             setShowMenu(false);
           }
-        }, 10);
+        }, 100);
       };
 
       window.addEventListener("focusout", onClickOutside, {passive: true});
