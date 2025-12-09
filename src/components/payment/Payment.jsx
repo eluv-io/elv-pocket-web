@@ -16,9 +16,10 @@ import GoogleWalletLogo from "@/assets/images/google-wallet.svg";
 import SVG from "react-inlinesvg";
 
 const CardPayment = async ({clientSecret, clientReferenceId, permissionItemId, cardElement}) => {
-  const { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(clientSecret, {
-    payment_method: { card: cardElement }
-  });
+  const { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(
+    clientSecret,
+    { payment_method: { card: cardElement } }
+  );
 
   if(error) { throw error; }
 
@@ -48,6 +49,7 @@ const WalletPayment = async ({
   onError,
 }) => {
   try {
+    const email = event.payerEmail;
     let { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(
       clientSecret,
       { payment_method: event.paymentMethod.id },
@@ -69,7 +71,8 @@ const WalletPayment = async ({
     await paymentStore.CompletePurchase({
       paymentIntent,
       clientReferenceId,
-      permissionItemId
+      permissionItemId,
+      email
     });
 
     event.complete("success");

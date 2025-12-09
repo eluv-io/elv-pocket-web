@@ -112,12 +112,13 @@ class PaymentStore {
     clearInterval(this.purchaseDetails[permissionItemId]?.pollIntervalId);
   }
 
-  CompletePurchase = flow(function * ({paymentIntent, clientReferenceId, permissionItemId}) {
+  CompletePurchase = flow(function * ({paymentIntent, clientReferenceId, permissionItemId, email}) {
     yield this.client.utils.ResponseToJson(
       this.client.authClient.MakeAuthServiceRequest({
         method: "POST",
         path: "/as/otp/stripe/instant/callback",
         body: {
+          email,
           payment_intent: paymentIntent,
           client_reference_id: clientReferenceId
         }
