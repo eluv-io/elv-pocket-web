@@ -8,6 +8,9 @@ import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/component
 import {useEffect, useState} from "react";
 import Carousel from "@/components/common/Carousel.jsx";
 import {Payment} from "@/components/payment/Payment.jsx";
+import SVG from "react-inlinesvg";
+
+import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
@@ -155,7 +158,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
 const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
   if(orientation === "vertical") {
     return (
-      <div data-pid={permissionItem.id} className={S("vertical-item")}>
+      <div data-pid={permissionItem.id} className={S("vertical-item", permissionItem.owned ? "vertical-item--owned" : "")}>
         <div className={S("vertical-item__details")}>
           {
             !permissionItem.access_title ? null :
@@ -181,7 +184,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
             onClick={Select}
             className={S("vertical-item__action")}
           >
-            SELECT
+            { permissionItem.owned ? "SELECTED" : "SELECT" }
           </Linkish>
         </div>
       </div>
@@ -189,7 +192,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
   }
 
   return (
-    <div data-pid={permissionItem.id} className={S("horizontal-item")}>
+    <div data-pid={permissionItem.id} className={S("horizontal-item", permissionItem.owned ? "horizontal-item--owned" : "")}>
       <div className={S("horizontal-item__details")}>
         {
           !permissionItem.access_title ? null :
@@ -215,7 +218,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
           onClick={Select}
           className={S("horizontal-item__action")}
         >
-          SELECT
+          { permissionItem.owned ? "SELECTED" : "SELECT" }
         </Linkish>
       </div>
     </div>
@@ -228,12 +231,17 @@ const Purchase = observer(({setShowPreview}) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
 
   const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
   useEffect(() => {
     if(selectedItemId) {
       rootStore.SetBackAction(() => setSelectedItemId(undefined));
     } else if(rootStore.mobile) {
-      rootStore.SetBackAction(() => setShowPreview(true));
+      if(permissions.authorized) {
+        rootStore.SetBackAction(() => rootStore.SetShowAdditionalPurchaseOptions(false));
+      } else {
+        rootStore.SetBackAction(() => setShowPreview(true));
+      }
     }
 
     return () => rootStore.SetBackAction(undefined);
@@ -243,7 +251,6 @@ const Purchase = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
   const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
 
   return (
@@ -301,6 +308,17 @@ const Purchase = observer(({setShowPreview}) => {
                 )
             }
           </div>
+      }
+
+      {
+        !rootStore.showAdditionalPurchaseOptions ? null :
+          <button
+            title="Back to Media"
+            onClick={() => rootStore.SetShowAdditionalPurchaseOptions(false)}
+            className={S("close", "opacity-hover")}
+          >
+            <SVG src={XIcon} />
+          </button>
       }
     </div>
   );

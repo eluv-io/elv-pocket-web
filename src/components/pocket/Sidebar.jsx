@@ -10,11 +10,13 @@ import SVG from "react-inlinesvg";
 import {useEffect, useState} from "react";
 
 import XIcon from "@/assets/icons/x.svg";
+import BagIcon from "@/assets/icons/bag.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
 const MediaCard = observer(({mediaItem}) => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
   const imageInfo = MediaItemImageUrl({mediaItem});
   const isActive = mediaItem.slug === mediaItemSlugOrId || mediaItem.id === mediaItemSlugOrId;
@@ -37,22 +39,42 @@ const MediaCard = observer(({mediaItem}) => {
           !mediaItem.scheduleInfo.currentlyLive ? null :
             <div className={S("live-badge")}>LIVE</div>
         }
+        {
+          permissions.authorized || permissions.permissionItems.length === 0 ? null :
+            <div className={S("purchase-badge")}>
+              <SVG src={BagIcon} />
+            </div>
+        }
       </div>
       <div className={S("media-card__content")}>
         <div className={S("media-card__title")}>
           {mediaItem.title}
         </div>
-        <div className={S("media-card__subtitle")}>
-          {
-            !mediaItem.scheduleInfo.isLiveContent ?
-              mediaItem.subtitle :
-              mediaItem.scheduleInfo.currentlyLive ?
-                "Live Now" :
-                mediaItem.scheduleInfo.ended ?
-                  "Ended" :
-                  `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
-          }
-        </div>
+        {
+          isActive && !rootStore.showAdditionalPurchaseOptions && permissions.authorized && permissions.anyItemsAvailable ?
+            // Link to additional purchase options for this content
+            <Linkish
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                rootStore.SetShowAdditionalPurchaseOptions(true);
+              }}
+              className={S("media-card__subtitle", "media-card__subtitle--purchase")}
+            >
+              Additional Purchase Options
+            </Linkish> :
+            <div className={S("media-card__subtitle")}>
+              {
+                !mediaItem.scheduleInfo.isLiveContent ?
+                  mediaItem.subtitle :
+                  mediaItem.scheduleInfo.currentlyLive ?
+                    "Live Now" :
+                    mediaItem.scheduleInfo.ended ?
+                      "Ended" :
+                      `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+              }
+            </div>
+        }
       </div>
     </Linkish>
   );

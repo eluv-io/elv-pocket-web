@@ -145,6 +145,8 @@ class PocketStore {
           if(this.permissionItems[permission_item_id].dvr) {
             permissions.dvr = true;
           }
+        } else {
+          permissions.anyItemsAvailable = true;
         }
 
         return this.permissionItems[permission_item_id];

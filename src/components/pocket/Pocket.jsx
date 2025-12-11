@@ -37,10 +37,8 @@ const Pocket = observer(() => {
 
   useEffect(() => {
     setShowPreview(false);
-  }, [mediaItemSlugOrId]);
-
-  useEffect(() => {
     pocketStore.SetContentEnded(false);
+    rootStore.SetShowAdditionalPurchaseOptions(false);
   }, [mediaItemSlugOrId]);
 
   if(!pocketStore.pocket) {
@@ -83,7 +81,9 @@ const Pocket = observer(() => {
     permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
   }
 
-  const showPurchase = !permissions.authorized && !(showPreview && rootStore.mobile);
+  const showPurchase =
+    !permissions.authorized && !(showPreview && rootStore.mobile) ||
+    (rootStore.showAdditionalPurchaseOptions && permissions.anyItemsAvailable);
   const hideSidebar = showPurchase && rootStore.mobile && permissions.permissionItems.length > 2;
 
   return (

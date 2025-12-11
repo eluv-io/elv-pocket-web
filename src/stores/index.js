@@ -15,6 +15,7 @@ class RootStore {
   shortURLs = {};
   permissionItems = {};
   menu;
+  showAdditionalPurchaseOptions = false;
 
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
   nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
@@ -47,6 +48,10 @@ class RootStore {
 
   SetMenu(menu) {
     this.menu = menu;
+  }
+
+  SetShowAdditionalPurchaseOptions(show) {
+    this.showAdditionalPurchaseOptions = show;
   }
 
   InitializeClient = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
