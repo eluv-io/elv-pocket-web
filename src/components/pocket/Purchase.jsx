@@ -14,7 +14,7 @@ import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
-const MintingStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
+const MintingStatus = observer(({permissionItemId, confirmationId}) => {
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
@@ -28,7 +28,6 @@ const MintingStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
         setTimeout(() => pocketStore.LoadMedia(), 1500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
-        setTimeout(() => Cancel(), 5000);
       }
     }, 1000);
 
@@ -77,7 +76,7 @@ const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
   return (
     <div className={S("payment__actions")}>
       <Payment
-        showQR={!rootStore.mobile}
+        //showQR={!rootStore.mobile}
         url={paymentStore.purchaseDetails[permissionItemId]?.url}
         params={paymentStore.purchaseDetails[permissionItemId]?.response}
         onCancel={Cancel}
@@ -156,6 +155,10 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
 });
 
 const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
+  if(permissionItem.subsumed) {
+    return null;
+  }
+
   if(orientation === "vertical") {
     return (
       <div data-pid={permissionItem.id} className={S("vertical-item", permissionItem.owned ? "vertical-item--owned" : "")}>

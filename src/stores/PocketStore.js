@@ -149,7 +149,7 @@ class PocketStore {
           if(this.permissionItems[permission_item_id].dvr) {
             permissions.dvr = true;
           }
-        } else {
+        } else if(!this.permissionItems[permission_item_id].subsumed) {
           permissions.anyItemsAvailable = true;
         }
 
@@ -448,6 +448,18 @@ class PocketStore {
             marketplaceItem.nftTemplateMetadata.address
           )
         );
+    });
+
+    Object.keys(allPermissionItems).forEach(permissionItemId => {
+      const permissionItem = allPermissionItems[permissionItemId];
+
+      if(!permissionItem.owned) { return; }
+
+      permissionItem.subsumes?.forEach(otherItemId => {
+        if(allPermissionItems[otherItemId]) {
+          allPermissionItems[otherItemId].subsumed = true;
+        }
+      });
     });
 
     try {
