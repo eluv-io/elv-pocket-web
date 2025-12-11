@@ -3,11 +3,6 @@ import { fileURLToPath, URL } from "url";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import react from "@vitejs/plugin-react-swc";
 import mkcert from "vite-plugin-mkcert";
-import Path from "path";
-
-if(!process.env.ELV_ENV) {
-  throw Error("Please specify ELV_ENV=<dv3|prod-dev> for merchant IDs");
-}
 
 export default defineConfig(() => {
   let plugins = [
@@ -19,9 +14,9 @@ export default defineConfig(() => {
           dest: ""
         },
         {
-          src: Path.join("src", "assets", "misc", "apple_domain_associations", process.env.ELV_ENV, "apple-developer-merchantid-domain-association.txt"),
-          dest: Path.join(".well-known")
-        }
+          src: "src/assets/icons/favicon.png",
+          dest: ""
+        },
       ]
     }),
     mkcert()
@@ -54,7 +49,20 @@ export default defineConfig(() => {
       }
     },
     build: {
-      manifest: true
+      manifest: true,
+      rollupOptions: {
+        output: {
+          entryFileNames: "index.js",
+          assetFileNames: assetInfo => {
+            const ext = assetInfo.names[0].split(".").slice(-1)[0];
+            if(ext === "css") {
+              return "index.css";
+            } else {
+              return assetInfo.originalFileName;
+            }
+          }
+        }
+      }
     }
   };
 });

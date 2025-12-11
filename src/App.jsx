@@ -6,6 +6,7 @@ import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import SVG from "react-inlinesvg";
 
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
+import Payment from "@/components/payment/Payment.jsx";
 
 const S = CreateModuleClassMatcher();
 
@@ -55,6 +56,9 @@ const App = () => {
     <Switch>
       <Route path="/clear">
         <ClearKey />
+      </Route>
+      <Route path="/:pocketSlugOrId/pay/:paymentParams">
+        <Payment />
       </Route>
       <Route path="/:pocketSlugOrId/:mediaItemSlugOrId?">
         <Pocket />

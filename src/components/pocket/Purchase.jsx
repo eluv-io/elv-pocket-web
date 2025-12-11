@@ -2,39 +2,30 @@ import PurchaseStyles from "@/assets/stylesheets/modules/purchase.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {paymentStore, rootStore} from "@/stores/index.js";
+import {pocketStore, paymentStore, rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
-import ApplePayImage from "@/assets/images/apple-pay.svg";
-import SVG from "react-inlinesvg";
 import Carousel from "@/components/common/Carousel.jsx";
-import Page from "@/components/pocket/Page.jsx";
+import {Payment} from "@/components/payment/Payment.jsx";
+import SVG from "react-inlinesvg";
+
+import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
-const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
+const MintingStatus = observer(({permissionItemId, confirmationId, Cancel}) => {
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
-    //let count = 0;
     const statusInterval = setInterval(async () => {
-      let status = await paymentStore.PurchaseStatus({permissionItemId, confirmationId});
-
-      /*
-        // For testing
-        count += 1;
-
-        if(count >= 3) {
-          status = { status: "complete" };
-        }
-       */
+      let status = await paymentStore.MintingStatus({permissionItemId, confirmationId});
 
       setStatus(status);
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        setTimeout(() => rootStore.LoadMedia(), 1500);
+        setTimeout(() => pocketStore.LoadMedia(), 1500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
         setTimeout(() => Cancel(), 5000);
@@ -59,61 +50,44 @@ const PurchaseStatus = observer(({permissionItemId, confirmationId, Cancel}) => 
   );
 });
 
-const PaymentActions = observer(({permissionItemId, Cancel}) => {
-  const [confirmationId, setConfirmationId] = useState(undefined);
-  const [error, setError] = useState();
+const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
+  const {pocketSlugOrId} = useParams();
 
   useEffect(() => {
-    setTimeout(() => setError(undefined), 5000);
-  }, [error]);
+    paymentStore.InitiatePurchase({pocketSlugOrId, permissionItemId, mediaTitle: mediaItem.title})
+      .then(() => paymentStore.StartPollPurchaseStatus({permissionItemId}));
+
+    return () => paymentStore.StopPollPurchaseStatus({permissionItemId});
+  }, []);
+
+  if(
+    paymentStore.purchaseDetails[permissionItemId]?.success ||
+    paymentStore.purchaseStatus[permissionItemId]?.status === "succeeded"
+  ) {
+    return (
+      <div className={S("payment__status")}>
+        <MintingStatus
+          permissionItemId={permissionItemId}
+          confirmationId={paymentStore.purchaseDetails[permissionItemId].response.client_reference_id}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div key={!!error} className={S("payment__actions")}>
-      <div key="options" className={S("payment__options")}>
-        <Linkish
-          onClick={async () => {
-            const {result, confirmationId} = await paymentStore.PurchaseApplePay({permissionItemId});
-            if(result?.error && !result?.error?.cancelled) {
-              setError(result.error);
-            } else if(!result?.error) {
-              setConfirmationId(confirmationId);
-            }
-          }}
-          className={S("payment__option", "payment__option--apple")}
-        >
-          <SVG src={ApplePayImage} alt="Apple Pay"/>
-        </Linkish>
-      </div>
-      <div className={S("payment__terms")}>
-        {
-          !rootStore.mobileLandscape ? null :
-            <Linkish onClick={Cancel}>
-              BACK
-            </Linkish>
-        }
-        <div>
-          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.</a>
-        </div>
-      </div>
-      {
-        !error ? null :
-          <div key="error" className={S("payment__error")}>
-            Something went wrong, please try again
-          </div>
-      }
-      {
-        !confirmationId ? null :
-          <PurchaseStatus
-            permissionItemId={permissionItemId}
-            confirmationId={confirmationId}
-            Cancel={() => setConfirmationId(undefined)}
-          />
-      }
+    <div className={S("payment__actions")}>
+      <Payment
+        showQR={!rootStore.mobile}
+        url={paymentStore.purchaseDetails[permissionItemId]?.url}
+        params={paymentStore.purchaseDetails[permissionItemId]?.response}
+        onCancel={Cancel}
+        className={S("payment__form")}
+      />
     </div>
   );
 });
 
-const SelectedItem = observer(({permissionItem, Cancel}) => {
+const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
   return (
     <div className={S("selected-item")}>
       {
@@ -137,7 +111,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
                   {permissionItem.subtitle}
                 </div>
             }
-            <div className={S("vertical-item__select-container")}>
+            <div className={S("vertical-item__actions")}>
               <Linkish
                 onClick={Cancel}
                 className={S("vertical-item__action")}
@@ -171,7 +145,11 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
               }
             </div>
         }
-        <PaymentActions permissionItemId={permissionItem.id} Cancel={Cancel} />
+        <PaymentActions
+          mediaItem={mediaItem}
+          permissionItemId={permissionItem.id}
+          Cancel={Cancel}
+        />
       </div>
     </div>
   );
@@ -180,7 +158,7 @@ const SelectedItem = observer(({permissionItem, Cancel}) => {
 const PurchaseItem = observer(({permissionItem, orientation="vertical", Select}) => {
   if(orientation === "vertical") {
     return (
-      <div className={S("vertical-item")}>
+      <div data-pid={permissionItem.id} className={S("vertical-item", permissionItem.owned ? "vertical-item--owned" : "")}>
         <div className={S("vertical-item__details")}>
           {
             !permissionItem.access_title ? null :
@@ -206,7 +184,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
             onClick={Select}
             className={S("vertical-item__action")}
           >
-            SELECT
+            { permissionItem.owned ? "SELECTED" : "SELECT" }
           </Linkish>
         </div>
       </div>
@@ -214,7 +192,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
   }
 
   return (
-    <div className={S("horizontal-item")}>
+    <div data-pid={permissionItem.id} className={S("horizontal-item", permissionItem.owned ? "horizontal-item--owned" : "")}>
       <div className={S("horizontal-item__details")}>
         {
           !permissionItem.access_title ? null :
@@ -240,7 +218,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
           onClick={Select}
           className={S("horizontal-item__action")}
         >
-          SELECT
+          { permissionItem.owned ? "SELECTED" : "SELECT" }
         </Linkish>
       </div>
     </div>
@@ -252,13 +230,18 @@ const Purchase = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
   useEffect(() => {
     if(selectedItemId) {
       rootStore.SetBackAction(() => setSelectedItemId(undefined));
     } else if(rootStore.mobile) {
-      rootStore.SetBackAction(() => setShowPreview(true));
+      if(permissions.authorized) {
+        rootStore.SetBackAction(() => rootStore.SetShowAdditionalPurchaseOptions(false));
+      } else {
+        rootStore.SetBackAction(() => setShowPreview(true));
+      }
     }
 
     return () => rootStore.SetBackAction(undefined);
@@ -268,73 +251,76 @@ const Purchase = observer(({setShowPreview}) => {
     return null;
   }
 
-  const permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
   const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
-  const hideSidebar = rootStore.mobile && permissions.permissionItems.length > 2;
 
   return (
-    <Page
-      mediaItem={mediaItem}
-      permissions={permissions}
-      hideSidebar={hideSidebar}
-      className={S("purchase-page")}
-    >
-      <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
-        {
-          rootStore.mobile ? null :
-            <>
-              <HashedLoaderImage
-                src={
-                  mediaItem.poster_image?.url ||
-                  rootStore.splashImage.url
-                }
-                hash={
-                  mediaItem.poster_image_hash ||
-                  rootStore.splashImage.hash
-                }
-                className={S("background")}
-              />
-              <div className={S("background-cover")} />
-            </>
-        }
-        {
-          !rootStore.mobile && !selectedItemId ?
-            <Carousel className={S("item-carousel")}>
-              {
-                permissions.permissionItems.map((permissionItem, index) =>
-                    selectedItemId && selectedItemId !== permissionItem.id ? null :
-                      <PurchaseItem
-                        orientation={orientation}
-                        key={permissionItem.id + index}
-                        selected={selectedItemId === permissionItem.id}
-                        Select={() => setSelectedItemId(permissionItem.id)}
-                        permissionItem={permissionItem}
-                      />
-                  )
+    <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
+      {
+        rootStore.mobile ? null :
+          <>
+            <HashedLoaderImage
+              src={
+                mediaItem.poster_image?.url ||
+                pocketStore.splashImage.url
               }
-            </Carousel> :
-            <div className={S("items", `items--${orientation}`)}>
-              {
-                selectedItemId ?
-                  <SelectedItem
-                    permissionItem={permissions.permissionItems.find(item => item.id === selectedItemId)}
-                    Cancel={() => setSelectedItemId(undefined)}
-                  /> :
-                  permissions.permissionItems.map(permissionItem =>
-                    selectedItemId && selectedItemId !== permissionItem.id ? null :
-                      <PurchaseItem
-                        orientation={orientation}
-                        key={permissionItem.id}
-                        selected={selectedItemId === permissionItem.id}
-                        Select={() => setSelectedItemId(permissionItem.id)}
-                        permissionItem={permissionItem}
-                      />
-                  )
+              hash={
+                mediaItem.poster_image_hash ||
+                pocketStore.splashImage.hash
               }
-            </div>
-        }
-      </div>
-    </Page>
+              className={S("background")}
+            />
+            <div className={S("background-cover")} />
+          </>
+      }
+      {
+        !rootStore.mobile && !selectedItemId ?
+          <Carousel className={S("item-carousel")}>
+            {
+              permissions.permissionItems.map((permissionItem, index) =>
+                  selectedItemId && selectedItemId !== permissionItem.id ? null :
+                    <PurchaseItem
+                      orientation={orientation}
+                      key={permissionItem.id + index}
+                      selected={selectedItemId === permissionItem.id}
+                      Select={() => setSelectedItemId(permissionItem.id)}
+                      permissionItem={permissionItem}
+                    />
+                )
+            }
+          </Carousel> :
+          <div className={S("items", `items--${orientation}`)}>
+            {
+              selectedItemId ?
+                <SelectedItem
+                  mediaItem={mediaItem}
+                  permissionItem={permissions.permissionItems.find(item => item.id === selectedItemId)}
+                  Cancel={() => setSelectedItemId(undefined)}
+                /> :
+                permissions.permissionItems.map(permissionItem =>
+                  selectedItemId && selectedItemId !== permissionItem.id ? null :
+                    <PurchaseItem
+                      orientation={orientation}
+                      key={permissionItem.id}
+                      selected={selectedItemId === permissionItem.id}
+                      Select={() => setSelectedItemId(permissionItem.id)}
+                      permissionItem={permissionItem}
+                    />
+                )
+            }
+          </div>
+      }
+
+      {
+        !rootStore.showAdditionalPurchaseOptions ? null :
+          <button
+            title="Back to Media"
+            onClick={() => rootStore.SetShowAdditionalPurchaseOptions(false)}
+            className={S("close", "opacity-hover")}
+          >
+            <SVG src={XIcon} />
+          </button>
+      }
+    </div>
   );
 });
 

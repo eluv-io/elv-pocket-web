@@ -11,14 +11,14 @@
     width: 100%;
   }
 
-  .logo {
-    animation: var(--animation-fadein) 1.25s ease;
-    background-color: var(--background-primary);
-    border-radius: 10px;
-    box-shadow: 0 0 10px black;
-    padding: 10px 20px;
+  &__loader {
+    bottom: 10px;
+    display: block;
+    height: 50px;
     position: absolute;
-    z-index: 1;
+    right: 10px;
+    width: 50px;
+    z-index: 10;
   }
 }
 
@@ -30,7 +30,7 @@
   .content {
     display: grid;
     gap: var(--gutter-size);
-    grid-template-columns: 1fr 500px;
+    grid-template-columns: 1fr 465px;
     height: calc(100 * var(--vh));
     max-height: calc(100 * var(--vh) - 60px);
     overflow: hidden;

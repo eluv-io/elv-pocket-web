@@ -3,16 +3,15 @@ import PocketStyles from "@/assets/stylesheets/modules/pocket.module.scss";
 import {observer} from "mobx-react-lite";
 import {Redirect, useParams} from "wouter";
 import {useEffect, useState} from "react";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
 import UrlJoin from "url-join";
-import SVG from "react-inlinesvg";
 import Purchase from "@/components/pocket/Purchase.jsx";
 
-import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
+import Page from "@/components/pocket/Page.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -30,7 +29,7 @@ const Pocket = observer(() => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
-    rootStore.LoadPocket({pocketSlugOrId})
+    rootStore.Initialize({pocketSlugOrId})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       );
@@ -38,39 +37,35 @@ const Pocket = observer(() => {
 
   useEffect(() => {
     setShowPreview(false);
+    pocketStore.SetContentEnded(false);
+    rootStore.SetShowAdditionalPurchaseOptions(false);
   }, [mediaItemSlugOrId]);
 
-  useEffect(() => {
-    rootStore.SetContentEnded(false);
-  }, [mediaItemSlugOrId]);
-
-  if(!rootStore.pocket) {
+  if(!pocketStore.pocket) {
     return null;
   }
 
-  if(!rootStore.initialized || !rootStore?.pocket?.mediaLoaded) {
+  if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {
     return (
       <div className="page-container">
         <div className={S("splash")}>
           <HashedLoaderImage
-            src={rootStore.splashImage.url}
-            hash={rootStore.splashImage.hash}
+            src={pocketStore.splashImage.url}
+            hash={pocketStore.splashImage.hash}
             className={S("splash__image")}
           />
-          <div className={S("logo")}>
-            <SVG src={EIcon} alt="Eluvio"/>
-            <span>POCKET TV</span>
-            <Loader className={S("logo__loader")}/>
+          <div className={S("splash__loader")}>
+            <Loader />
           </div>
         </div>
       </div>
     );
   }
 
-  const mediaItem = mediaItemSlugOrId && rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = mediaItemSlugOrId && pocketStore.MediaItem(mediaItemSlugOrId);
   if(!mediaItem) {
     // Item not found - find first item from sidebar content and redirect
-    for(const tab of rootStore.sidebarContent) {
+    for(const tab of pocketStore.sidebarContent) {
       for(const group of tab.groups) {
         const item = group.content[0];
 
@@ -82,17 +77,29 @@ const Pocket = observer(() => {
   }
 
   let permissions = {};
-  if(rootStore.pocket?.mediaLoaded) {
-    permissions = rootStore.MediaItemPermissions(mediaItemSlugOrId);
+  if(pocketStore.pocket?.mediaLoaded) {
+    permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
   }
+
+  const showPurchase =
+    !permissions.authorized && !(showPreview && rootStore.mobile) ||
+    (rootStore.showAdditionalPurchaseOptions && permissions.anyItemsAvailable);
+  const hideSidebar = showPurchase && rootStore.mobile && permissions.permissionItems.length > 2;
 
   return (
     <>
-      {
-        permissions.authorized || (showPreview && rootStore.mobile) ?
-          <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} /> :
-          <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
-      }
+      <Page
+        mediaItem={mediaItem}
+        permissions={permissions}
+        hideSidebar={hideSidebar}
+        hideSidebarTitle={showPurchase && rootStore.mobile}
+      >
+        {
+           showPurchase ?
+             <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />:
+             <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
+        }
+      </Page>
       <Menu />
     </>
   );

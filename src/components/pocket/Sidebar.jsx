@@ -2,25 +2,28 @@ import SidebarStyles from "@/assets/stylesheets/modules/sidebar.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
+import {useEffect, useState} from "react";
 
-import Logo from "@/assets/icons/logo.svg";
-import {useState} from "react";
+import XIcon from "@/assets/icons/x.svg";
+import BagIcon from "@/assets/icons/bag.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
 const MediaCard = observer(({mediaItem}) => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
   const imageInfo = MediaItemImageUrl({mediaItem});
   const isActive = mediaItem.slug === mediaItemSlugOrId || mediaItem.id === mediaItemSlugOrId;
 
   return (
     <Linkish
+      disabled={mediaItem.scheduleInfo.isLiveContent && mediaItem.scheduleInfo.ended}
       to={UrlJoin("~/", pocketSlugOrId, mediaItem.slug || mediaItem.id)}
       className={S("media-card", isActive ? "media-card--active" : "")}
     >
@@ -36,37 +39,99 @@ const MediaCard = observer(({mediaItem}) => {
           !mediaItem.scheduleInfo.currentlyLive ? null :
             <div className={S("live-badge")}>LIVE</div>
         }
+        {
+          permissions.authorized || permissions.permissionItems.length === 0 ? null :
+            <div className={S("purchase-badge")}>
+              <SVG src={BagIcon} />
+            </div>
+        }
       </div>
       <div className={S("media-card__content")}>
         <div className={S("media-card__title")}>
           {mediaItem.title}
         </div>
-        <div className={S("media-card__subtitle")}>
-          {
-            !mediaItem.scheduleInfo.isLiveContent ?
-              mediaItem.subtitle :
-              !mediaItem.scheduleInfo.currentlyLive ?
-                "Live Now" :
-                `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
-          }
-        </div>
+        {
+          isActive && !rootStore.showAdditionalPurchaseOptions && permissions.authorized && permissions.anyItemsAvailable ?
+            // Link to additional purchase options for this content
+            <Linkish
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                rootStore.SetShowAdditionalPurchaseOptions(true);
+              }}
+              className={S("media-card__subtitle", "media-card__subtitle--purchase")}
+            >
+              Additional Purchase Options
+            </Linkish> :
+            <div className={S("media-card__subtitle")}>
+              {
+                !mediaItem.scheduleInfo.isLiveContent ?
+                  mediaItem.subtitle :
+                  mediaItem.scheduleInfo.currentlyLive ?
+                    "Live Now" :
+                    mediaItem.scheduleInfo.ended ?
+                      "Ended" :
+                      `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+              }
+            </div>
+        }
       </div>
     </Linkish>
   );
 });
 
 const SidebarContent = observer(() => {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(parseInt(sessionStorage.getItem("sidebar-tab-index") || 0));
   const [containerRef, setContainerRef] = useState(null);
-  const tab = rootStore.sidebarContent[tabIndex];
+  const tab = pocketStore.sidebarContent[tabIndex];
+
+  useEffect(() => {
+    // Preserve selected tab
+    sessionStorage.setItem("sidebar-tab-index", tabIndex.toString());
+  }, [tabIndex]);
+
+  if(!tab) {
+    return null;
+  }
+
+  if(rootStore.menu === "my-items") {
+    return (
+      <>
+        <div className={S("media")}>
+          <div className={S("media-section")}>
+            <div className={S("media-section__title", "media-section__title--large")}>
+              <span>My Items</span>
+              <Linkish onClick={() => rootStore.SetMenu()} className={S("media-section__close")}>
+              <SVG src={XIcon} />
+            </Linkish>
+            </div>
+            <div className={S("media-section__media")}>
+              {
+                (pocketStore.FilteredMedia({select: {permissions: "authorized", sort_order: "time_asc"}}))
+                  .map((mediaItem, index) =>
+                    <MediaCard
+                      key={`${mediaItem.id}-${index}`}
+                      mediaItem={mediaItem}
+                    />
+                  )
+              }
+            </div>
+          </div>
+        </div>
+        <div className={S("history-link")}>
+          Missing something? Check your <Linkish onClick={() => rootStore.SetMenu("purchase-history")}>Purchase History</Linkish>.
+        </div>
+      </>
+    );
+  }
 
   return (
     <div ref={setContainerRef} className={S("media")}>
       {
-        rootStore.sidebarContent.length <= 1 ? null :
+        pocketStore.sidebarContent.length <= 1 ? null :
           <div className={S("tabs")}>
             {
-              rootStore.sidebarContent.map((tab, index) =>
+              pocketStore.sidebarContent.map((tab, index) =>
                 <button
                   key={`tab-${index}`}
                   onClick={() => {
@@ -108,9 +173,9 @@ const SidebarContent = observer(() => {
 export const Banners = observer(({position="below"}) => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
-  const mediaItem = rootStore.MediaItem(mediaItemSlugOrId);
+  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
 
-  const config = rootStore.pocket.metadata.sidebar_config || {};
+  const config = pocketStore.pocket.metadata.sidebar_config || {};
 
   const banners = (config.banners || [])
     .filter(banner =>
@@ -121,7 +186,7 @@ export const Banners = observer(({position="below"}) => {
       (position === "above" ? banner.mobile_position === "above" : !banner.mobile_position)
     );
 
-  if(banners.length === 0){
+  if(banners.length === 0 || rootStore.menu === "my-items"){
     return null;
   }
 
@@ -139,7 +204,7 @@ export const Banners = observer(({position="below"}) => {
               href={banner.link_type === "external" && banner.url}
               to={
                 banner.link_type === "media" &&
-                UrlJoin("~/", pocketSlugOrId, rootStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
+                UrlJoin("~/", pocketSlugOrId, pocketStore.PocketMediaItem(banner.media_id)?.slug || banner.media_id)
               }
               onClick={
                 banner.link_type !== "reset" ? undefined :
@@ -165,13 +230,12 @@ export const Banners = observer(({position="below"}) => {
 
 const ContentInfo = observer(({mediaItem}) => {
   return (
-    <>
+    <div className={S("content-info")}>
       {
         !mediaItem.scheduleInfo.currentlyLive ? null :
           <div className={S("live-badge")}>LIVE</div>
       }
       {
-        rootStore.mobile && rootStore.contentEnded ? null :
           <div className={S("current-item")}>
             <div className={S("title-container")}>
               {
@@ -198,11 +262,11 @@ const ContentInfo = observer(({mediaItem}) => {
             </div>
           </div>
       }
-    </>
+    </div>
   );
 });
 
-const Sidebar = observer(({mediaItem}) => {
+const Sidebar = observer(({mediaItem, hideTitle}) => {
   if(!mediaItem || rootStore.mobileLandscape) {
     return null;
   }
@@ -210,16 +274,22 @@ const Sidebar = observer(({mediaItem}) => {
   return (
     <>
       <div className={S("sidebar")}>
-        <ContentInfo mediaItem={mediaItem} />
+        {
+          rootStore.menu !== "my-items" ? null :
+            <Linkish onClick={() => rootStore.SetMenu()} className={S("sidebar__close")}>
+              <SVG src={XIcon} />
+            </Linkish>
+        }
+        {
+          hideTitle ? null :
+            <ContentInfo key={mediaItem.id} mediaItem={mediaItem}/>
+        }
         {
           rootStore.mobile ? null :
-            <Banners position="below" />
+            <Banners position="below"/>
         }
         <SidebarContent/>
         <div className={S("logo")}>
-          <Linkish href="https://eluv.io" target="_blank">
-            <SVG src={Logo} title="Eluvio Pocket TV" alt="Eluvio Pocket TV"/>
-          </Linkish>
           <button
             onClick={
               () => confirm("Are you sure you want to reset your account?") ?

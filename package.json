@@ -14,11 +14,12 @@
     "lint-scss-fix": "npx stylelint \"src/**/*.{css,scss}\" --fix"
   },
   "dependencies": {
-    "@eluvio/elv-client-js": "^4.2.13",
-    "@eluvio/elv-player-js": "git+https://github.com/eluv-io/elv-player-js#spatial-nav",
+    "@eluvio/elv-client-js": "git+https://github.com/eluv-io/elv-client-js#develop",
+    "@eluvio/elv-player-js": "^2.1.14",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",
+    "qr-code-styling": "^1.9.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-inlinesvg": "^4.2.0",

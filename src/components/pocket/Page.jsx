@@ -1,14 +1,14 @@
 import PocketStyles from "@/assets/stylesheets/modules/pocket.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {rootStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import Header from "@/components/pocket/Header.jsx";
 import Sidebar, {Banners} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
-const Page = observer(({children, mediaItem, permissions, hideSidebar, className=""}) => {
+const Page = observer(({children, mediaItem, permissions, hideSidebar, hideSidebarTitle, className=""}) => {
   return (
     <div className={JoinClassNames("page-container", className)}>
       {
@@ -19,11 +19,11 @@ const Page = observer(({children, mediaItem, permissions, hideSidebar, className
           />
       }
       <div
-        key={`content-${rootStore.pocket?.mediaLoadIndex}`}
+        key={`content-${pocketStore.pocket?.mediaLoadIndex}`}
         className={
           S(
             "content",
-            rootStore.hasTopBanners ? "content--with-top-banners" : "",
+            pocketStore.hasTopBanners ? "content--with-top-banners" : "",
             permissions.authorized ? "content--authorized " : "content--unauthorized",
             hideSidebar ? "content--no-sidebar" : ""
           )
@@ -37,6 +37,7 @@ const Page = observer(({children, mediaItem, permissions, hideSidebar, className
         {
           hideSidebar ? null :
             <Sidebar
+              hideTitle={hideSidebarTitle}
               mediaItem={mediaItem}
               permissions={permissions}
             />

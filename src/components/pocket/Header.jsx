@@ -4,39 +4,28 @@ import {observer} from "mobx-react-lite";
 import SVG from "react-inlinesvg";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
-import {rootStore} from "@/stores/index.js";
-import {useState} from "react";
+import {rootStore, pocketStore} from "@/stores/index.js";
+import {useEffect, useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
 
 import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
 import Logo from "@/assets/icons/logo.svg";
-import HomeIcon from "@/assets/icons/home.svg";
 import ItemsIcon from "@/assets/icons/my-items.svg";
 import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
 
 const S = CreateModuleClassMatcher(HeaderStyles);
 
-const HeaderButton = observer(({icon, children, onClick, active}) => {
-  return (
-    <Linkish onClick={onClick} className={S("button", active ? "button--active" : "")}>
-      <div className={S("button__content")}>
-        {
-          !icon ? null :
-            <SVG src={icon} className={S("button__icon")} />
-        }
-        <div className={S("button__text")}>
-          { children }
-        </div>
-      </div>
-    </Linkish>
-  );
-});
-
 const MobileMenu = observer(({menuControls}) => {
   return (
     <div className={S("menu")}>
-      <Linkish className={S("menu__link", "opacity-hover")}>
+      <Linkish
+        onClick={() => {
+          rootStore.SetMenu("my-items");
+          menuControls.Hide();
+        }}
+        className={S("menu__link", "opacity-hover")}
+      >
         <SVG src={ItemsIcon} />
         My Items
       </Linkish>
@@ -54,15 +43,96 @@ const MobileMenu = observer(({menuControls}) => {
   );
 });
 
-const MobileHeader = observer(({mediaItem}) => {
+const HeaderMenu = observer(() => {
+  const [showMenu, setShowMenu] = useState(false);
   const [mobileMenuControls, setMobileMenuControls] = useState(undefined);
+  const [menuElement, setMenuElement] = useState(undefined);
 
-  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
-    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
+  useEffect(() => {
+    setShowMenu(false);
+    setMobileMenuControls(undefined);
+  }, [rootStore.mobile]);
 
-  let header;
+  useEffect(() => {
+    if(menuElement && showMenu) {
+      // Click outside handler
+      const onClickOutside = () => {
+        setTimeout(() => {
+          if(!menuElement.contains(document.activeElement)) {
+            setShowMenu(false);
+          }
+        }, 100);
+      };
+
+      window.addEventListener("focusout", onClickOutside, {passive: true});
+      window.addEventListener("blur", onClickOutside, {passive: true});
+
+      return () => {
+        window.removeEventListener("focusout", onClickOutside);
+        window.removeEventListener("blur", onClickOutside);
+      };
+    }
+  }, [showMenu, menuElement]);
+
+  return (
+    <>
+      <div ref={setMenuElement} className={S("header-menu")}>
+        <Linkish
+          onClick={() => {
+            if(rootStore.mobile) {
+              mobileMenuControls.Show();
+            } else {
+              setShowMenu(!showMenu);
+            }
+          }}
+          className={S("header-menu__button")}
+        >
+          <span>More</span>
+          <SVG src={ChevronDownIcon} alt="More"/>
+        </Linkish>
+        {
+          !showMenu ? null :
+            <div className={S("header-menu__dropdown")}>
+              <Linkish
+                autoFocus={true}
+                onClick={() => {
+                  rootStore.SetMenu("my-items");
+                  setShowMenu(false);
+                }}
+                className={S("header-menu__option")}
+              >
+                <SVG src={ItemsIcon} />
+                <span>My Items</span>
+              </Linkish>
+              <Linkish
+                onClick={() => {
+                  rootStore.SetMenu("purchase-history");
+                  setShowMenu(false);
+                }}
+                className={S("header-menu__option")}
+              >
+                <SVG src={PurchaseHistoryIcon} />
+                <span>Purchase History</span>
+              </Linkish>
+            </div>
+        }
+      </div>
+      {
+        !rootStore.mobile ? null :
+          <Modal align="top" SetMenuControls={setMobileMenuControls}>
+            <MobileMenu menuControls={mobileMenuControls} />
+          </Modal>
+      }
+    </>
+  );
+});
+
+const MobileHeader = observer(({mediaItem}) => {
+  const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
+
   if(mediaItem && rootStore.backAction) {
-    header = (
+    return (
       <header key="header--back" className={S("header", "header--back")}>
         {
           !rootStore.backAction ? null :
@@ -79,73 +149,56 @@ const MobileHeader = observer(({mediaItem}) => {
       </header>
     );
   } else {
-    header = (
+    return (
       <header key="header" className={S("header")}>
-        <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+        <Linkish href={pocketStore.pocket.metadata.header_logo_link} className={S("logo")}>
           {
             logoKey ?
               <HashedLoaderImage
                 width={200}
-                src={rootStore.pocket.metadata[logoKey].url}
-                hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+                src={pocketStore.pocket.metadata[logoKey].url}
+                hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
               /> :
               <SVG src={Logo} alt="Eluvio"/>
           }
         </Linkish>
-        <Linkish onClick={() => rootStore.SetMenu()} className={S("link")}>
-          Watch
-        </Linkish>
-        <Linkish onClick={() => mobileMenuControls.Show()} className={S("link")}>
-          <span>More</span>
-          <SVG src={ChevronDownIcon} alt="More"/>
-        </Linkish>
+        <HeaderMenu />
       </header>
     );
   }
-
-  return (
-    <>
-      { header }
-      <Modal align="top" SetMenuControls={setMobileMenuControls}>
-        <MobileMenu menuControls={mobileMenuControls} />
-      </Modal>
-    </>
-  );
 });
 
-const DesktopHeader = observer(() => {
-  const logoKey = rootStore.mobile && rootStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
-    rootStore.pocket.metadata.header_logo ? "header_logo" : "";
+const DesktopHeader = observer(({simple}) => {
+  const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
+    pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
   return (
     <header key="header" className={S("header")}>
-      <Linkish href={rootStore.pocket.metadata.header_logo_link} className={S("logo")}>
+      <Linkish href={pocketStore.pocket.metadata.header_logo_link} className={S("logo")}>
         {
           logoKey ?
             <HashedLoaderImage
               width={200}
-              src={rootStore.pocket.metadata[logoKey].url}
-              hash={rootStore.pocket.metadata[`${logoKey}_hash`]}
+              src={pocketStore.pocket.metadata[logoKey].url}
+              hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
               className={S("logo__image")}
             /> :
             <SVG src={Logo} alt="Eluvio"/>
         }
       </Linkish>
-      <HeaderButton active={!rootStore.menu} icon={HomeIcon} onClick={() => rootStore.SetMenu()}>
-        Watch
-      </HeaderButton>
-      <HeaderButton active={rootStore.menu === "purchase-history"} icon={PurchaseHistoryIcon} onClick={() => rootStore.SetMenu("purchase-history")}>
-        Purchase History
-      </HeaderButton>
+      {
+        simple ? null :
+          <HeaderMenu />
+      }
     </header>
   );
 });
 
-const Header = observer(({mediaItem}) =>
-  rootStore.mobile ?
+const Header = observer(({mediaItem, simple}) =>
+  rootStore.mobile && !simple ?
     <MobileHeader mediaItem={mediaItem} /> :
-    <DesktopHeader />
+    <DesktopHeader simple={simple} />
 );
 
 export default Header;

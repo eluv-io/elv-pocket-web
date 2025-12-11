@@ -1,5 +1,6 @@
 import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
 import {observer} from "mobx-react-lite";
+import {rootStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import {useEffect, useState} from "react";
 import SVG from "react-inlinesvg";
@@ -31,9 +32,11 @@ const Carousel = observer(({children, className=""}) => {
           items.map(child => {
             const dimensions = child.getBoundingClientRect();
 
-            const visibleLeft = dimensions.left > 0;
-            const visibleRight = dimensions.right > 0 && dimensions.right < parentDimensions.width;
+            const relativeLeft = dimensions.left - parentDimensions.left;
+            const relativeRight = dimensions.right - parentDimensions.left;
 
+            const visibleLeft = relativeLeft > 0 && relativeLeft < parentDimensions.width;
+            const visibleRight =  relativeRight > 0 && relativeRight < parentDimensions.width;
 
             return visibleLeft && visibleRight;
           })
@@ -52,7 +55,7 @@ const Carousel = observer(({children, className=""}) => {
       containerRef.removeEventListener("scroll", Update);
       document.removeEventListener("resize", Update);
     };
-  }, [containerRef]);
+  }, [containerRef, rootStore.pageDimensions]);
 
   const ScrollTo = index => {
     if(!containerRef) { return; }
@@ -71,11 +74,13 @@ const Carousel = observer(({children, className=""}) => {
     nextIndex = lastActiveIndex + 1 > containerRef?.children.length - 3 ? -1 : lastActiveIndex + 1;
   }
 
+  const allVisible = visibility.filter(visible => !visible).length === 0;
+
   return (
     <div ref={setContainerRef} className={JoinClassNames(S("carousel"), className)}>
       <button
         data-ignore="true"
-        disabled={previousIndex < 0}
+        disabled={allVisible || previousIndex < 0}
         onClick={() => ScrollTo(previousIndex)}
         className={S("carousel__button", "carousel__button--previous")}
       >
@@ -84,7 +89,7 @@ const Carousel = observer(({children, className=""}) => {
       {children}
       <button
         data-ignore="true"
-        disabled={nextIndex < 0}
+        disabled={allVisible || nextIndex < 0}
         onClick={() => ScrollTo(nextIndex)}
         className={S("carousel__button", "carousel__button--next")}
       >

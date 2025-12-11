@@ -108,6 +108,8 @@ export const Linkish = forwardRef(function Linkish({
     } else {
       return <button disabled={disabled} onClick={onClick} ref={ref} {...props} />;
     }
+  } else if(disabled) {
+    return <button disabled ref={ref} {...props} />;
   } else {
     return <div ref={ref} {...props} />;
   }

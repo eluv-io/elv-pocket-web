@@ -8,6 +8,12 @@
   width: 100vw;
   z-index: 1;
 
+  &--align-top {
+    .container {
+      align-items: start;
+    }
+  }
+
   &--align-center {
     .container {
       align-items: center;

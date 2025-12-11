@@ -52,7 +52,7 @@
 
   &--vertical {
     align-items: center;
-    display: flex;
+    display: grid;
     flex-wrap: wrap;
     height: 100%;
     justify-content: center;
@@ -72,10 +72,21 @@
 .vertical-item {
   animation: var(--animation-fadein) 0.5s ease;
   background-color: var(--background-secondary);
+  box-shadow: 0 0 30px rgb(0 0 0 / 60%);
   display: flex;
   flex-direction: column;
   gap: 10px;
   text-align: center;
+
+  &--owned {
+    background-color: var(--background-primary);
+    pointer-events: none;
+    user-select: none;
+
+    & > * {
+      opacity: 0.5;
+    }
+  }
 
   &__details {
     display: flex;
@@ -85,7 +96,6 @@
 
   &__access-title {
     color: var(--text-tertiary-alternate);
-    margin-bottom: 10px;
   }
 
   &__title,
@@ -123,6 +133,16 @@
   background-color: var(--background-secondary);
   display: flex;
   gap: 30px;
+
+  &--owned {
+    background-color: var(--background-primary);
+    pointer-events: none;
+    user-select: none;
+
+    & > * {
+      opacity: 0.5;
+    }
+  }
 
   &__details {
     display: flex;
@@ -166,9 +186,17 @@
 
 .selected-item {
   animation: var(--animation-fadein) 0.5s ease;
-  background-color: var(--background-tertiary);
+  background-color: var(--background-secondary);
+  border-radius: 5px;
   display: flex;
   height: max-content;
+  overflow: hidden;
+
+  .vertical-item {
+    border-radius: 0;
+    box-shadow: none;
+    height: 100%;
+  }
 }
 
 .payment {
@@ -179,45 +207,12 @@
   text-align: center;
 
   &__actions {
-    animation: var(--animation-fadein) 0.5s ease;
-    position: relative;
-  }
-
-  &__options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-
-  &__option {
     align-items: center;
-    border-radius: 12px;
+    animation: var(--animation-fadein) 0.5s ease;
     display: flex;
     justify-content: center;
-    padding: 10px 0;
+    position: relative;
     width: 100%;
-
-    &--apple {
-      background-color: black;
-
-      svg {
-        filter: invert(100%);
-        height: 100%;
-        width: auto;
-      }
-    }
-  }
-
-  &__terms {
-    color: var(--text-tertiary-alternate);
-    font-size: 11px;
-    margin-top: 20px;
-    text-align: center;
-
-    a {
-      text-decoration: underline;
-    }
   }
 
   &__item-info {
@@ -233,8 +228,23 @@
     font-weight: 600;
     inset: 0;
     justify-content: center;
-    position: absolute;
   }
+}
+
+.close {
+  align-items: center;
+  background-color: var(--background-tertiary);
+  border-radius: 100%;
+  box-shadow: 2px 2px 5px rgb(0 0 0 / 30%);
+  display: flex;
+  height: 50px;
+  justify-content: center;
+  padding: 15px;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 50px;
+  z-index: 1;
 }
 
 @media screen and (width >= 1001px) {
@@ -269,6 +279,7 @@
 
     &__access-title {
       font-size: 16px;
+      margin-bottom: 5px;
     }
 
     &__title {
@@ -284,6 +295,8 @@
     }
 
     &__actions {
+      flex-grow: 1;
+      height: 100%;
       margin-inline: auto;
       max-width: 250px;
     }
@@ -335,20 +348,41 @@
   }
 
   .payment {
-    padding: 50px;
-    width: 420px;
+    width: 100%;
 
     &__option {
       height: 60px;
     }
 
+    &__actions {
+      height: 100%;
+    }
+
     &__error {
-      font-size: 24px;
+      font-size: 20px;
     }
 
     &__status {
       --loader-height: 80px;
       --loader-width: 8px;
+    }
+
+    // Specificity
+    .payment__form {
+      padding-inline: 50px;
+    }
+  }
+
+  @media screen and (width >= 1301px) {
+    .selected-item {
+      background-color: var(--background-tertiary);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      .vertical-item {
+        max-width: unset;
+        width: 100%;
+      }
     }
   }
 }
@@ -385,7 +419,6 @@
   }
 
   .payment {
-    padding: 20px 50px;
     width: 350px;
 
     &__option {
@@ -396,10 +429,6 @@
       font-size: 9px;
     }
 
-    &__error {
-      font-size: 18px;
-    }
-
     &__status {
       --loader-height: 50px;
     }
@@ -407,11 +436,12 @@
 }
 
 @media screen and (width <= 1000px) {
+  .close {
+    display: none;
+  }
+
   .items {
     height: 100%;
-
-    // max-height: calc(40 * var(--vh));
-    // min-height: calc(20 * var(--vh));
     width: 100%;
 
     &--vertical {
@@ -435,25 +465,29 @@
     height: 100%;
     justify-content: center;
     margin-inline: auto;
-    min-height: 300px;
-    padding: 20px 10px;
+    min-height: 250px;
+    padding: 20px;
     position: relative;
     width: 100%;
+
+    &__details {
+      justify-content: center;
+    }
 
     &__access-title {
       font-size: 12px;
     }
 
     &__price {
-      font-size: 32px;
+      font-size: 24px;
     }
 
     &__title {
-      font-size: 18px;
+      font-size: 14px;
     }
 
     &__subtitle {
-      font-size: 12px;
+      font-size: 11px;
       padding-inline: 10px;
     }
 
@@ -461,6 +495,12 @@
       background-color: white;
       color: black;
       height: 40px;
+    }
+
+    &:only-child {
+      .vertical-item__title {
+        font-size: 24px;
+      }
     }
   }
 
@@ -504,15 +544,28 @@
   }
 
   .selected-item {
+    background-color: var(--background-primary);
     height: 100%;
+    padding-top: 10px;
     width: 100%;
+
+    .vertical-item {
+      &__title {
+        font-size: 20px;
+      }
+    }
   }
 
   .payment {
     height: 100%;
+    justify-content: flex-start;
     min-height: 300px;
-    padding: 20px;
+    padding-top: 20px;
     width: 100%;
+
+    &__item-info {
+      margin-bottom: 0;
+    }
 
     &__options {
       max-width: 400px;
@@ -531,6 +584,14 @@
       --loader-height: 50px;
     }
 
+    &__error {
+      font-size: 12px;
+    }
+
+    &__actions {
+      padding-inline: 20px;
+    }
+
     &__terms {
       display: flex;
       font-size: 10px;
@@ -545,6 +606,12 @@
         text-decoration: underline;
       }
     }
+  }
+}
+
+@media screen and (width <= 1000px) and (orientation: landscape) {
+  .selected-item {
+    padding-bottom: 0;
   }
 }
 
