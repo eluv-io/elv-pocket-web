@@ -260,7 +260,10 @@ const PaymentPage = observer(() => {
   const params = JSON.parse(Utils.FromB58ToStr(paymentParams));
 
   useEffect(() => {
-    rootStore.Initialize({pocketSlugOrId, noMedia: true});
+    rootStore.Initialize({
+      pocketSlugOrId,
+      noMedia: true
+    });
   }, []);
 
   if(!rootStore.initialized) {

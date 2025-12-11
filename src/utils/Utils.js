@@ -94,3 +94,8 @@ export const Copy = async (value) => {
     document.execCommand("copy");
   }
 };
+
+export const SHA512 = async (str) => {
+  const buf = await crypto.subtle.digest("SHA-512", new TextEncoder("utf-8").encode(str));
+  return Array.prototype.map.call(new Uint8Array(buf), x=>(("00"+x.toString(16)).slice(-2))).join("");
+};
