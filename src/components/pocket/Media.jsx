@@ -1,7 +1,7 @@
 import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {useParams} from "wouter";
+import {Redirect, useParams} from "wouter";
 import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
@@ -12,6 +12,7 @@ import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import SVG from "react-inlinesvg";
 
 import PlayIcon from "@/assets/icons/play.svg";
+import UrlJoin from "url-join";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -76,22 +77,133 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
   );
 });
 
-const EndScreen = observer(() => {
-  const backgroundKey = rootStore.mobile && pocketStore.pocket.metadata.post_content_screen?.background_mobile ?
+const EndScreen = observer(({mediaItem}) => {
+  const {pocketSlugOrId} = useParams();
+  const info = pocketStore.MediaItemInfo(mediaItem.id);
+  const [ended, setEnded] = useState(!info.endScreenSettings?.enabled);
+  const [countdown, setCountdown] = useState(10);
+  const [redirect, setRedirect] = useState(false);
+  const backgroundKey = rootStore.mobile && info.endScreenSettings?.background_mobile ?
     "background_mobile" :
     "background";
 
+  const disabled = !info.endScreenSettings?.enabled && !info.nextItemId;
+
+  useEffect(() => {
+    if(disabled || ended || info.endScreenSettings.video) {
+      return;
+    }
+
+    setTimeout(() => setEnded(true), 8000);
+  }, []);
+
+  useEffect(() => {
+    if(disabled || !info.nextItemId) { return; }
+
+    const transitionAt = Date.now() + 10.5 * 1000;
+
+    const interval = setInterval(() => {
+      const countdown = Math.floor((transitionAt - Date.now()) / 1000);
+
+      if(countdown < 0) {
+        setRedirect(true);
+      }
+
+      setCountdown(Math.max(1, countdown));
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [ended]);
+
+  if(redirect) {
+    return <Redirect to={UrlJoin("/", pocketSlugOrId, info.nextItemId)} />;
+  }
+
+  if(disabled) {
+    return null;
+  }
+
+  if(ended && info.nextItemId) {
+    const nextItem = pocketStore.MediaItem(info.nextItemId);
+
+    return (
+      <div className={S("end-screen", "end-screen--next")}>
+        <HashedLoaderImage
+          src={mediaItem.poster_image?.url || mediaItem.thumbnail_image_landscape?.url}
+          hash={mediaItem.poster_image_hash || mediaItem.thumbnail_image_landscape_hash}
+          alt={mediaItem.title}
+          className={S("end-screen__background", "end-screen__background--cover")}
+        />
+        <div className={S("end-screen__cover")} />
+        <div className={S("next")}>
+          <div className={S("next__timer")}>
+            Up Next in {countdown}
+          </div>
+          <div className={S("next__card")}>
+            <HashedLoaderImage
+              src={nextItem.thumbnail_image_landscape?.url}
+              hash={nextItem.thumbnail_image_landscape_hash}
+              alt={nextItem.title}
+              width={300}
+              className={S("next__card-thumbnail")}
+            />
+            <div className={S("next__card-content")}>
+              <div className={S("next__card-title")}>
+                { nextItem.title }
+              </div>
+              {
+                nextItem.subtitle ? null :
+                  <div className={S("next__card-subtitle")}>
+                    Season 27, episode 4
+                  </div>
+              }
+            </div>
+          </div>
+          <div className={S("next__actions")}>
+            <button
+              onClick={() => pocketStore.SetContentEnded(false)}
+              className={S("next__action", "next__action--cancel", "opacity-hover")}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => setRedirect(true)}
+              className={S("next__action", "next__action--next", "opacity-hover")}
+            >
+              Play Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Linkish
-      href={pocketStore.pocket.metadata.post_content_screen.link}
+      href={info.endScreenSettings.link}
       className={S("end-screen")}
     >
-      <HashedLoaderImage
-        src={pocketStore.pocket.metadata.post_content_screen[backgroundKey]?.url || pocketStore.splashImage.url}
-        hash={pocketStore.pocket.metadata.post_content_screen[`${backgroundKey}_hash`] || pocketStore.splashImage.hash}
-        alt={pocketStore.pocket.metadata.post_content_screen.background_alt}
-        className={S("end-screen__background")}
-      />
+      {
+        !info.endScreenSettings.video || ended ?
+          <HashedLoaderImage
+            src={info.endScreenSettings[backgroundKey]?.url || pocketStore.splashImage.url}
+            hash={info.endScreenSettings[`${backgroundKey}_hash`] || pocketStore.splashImage.hash}
+            alt={info.endScreenSettings.background_alt}
+            className={S("end-screen__background")}
+          /> :
+          <Video
+            videoLink={info.endScreenSettings.video}
+            posterImage={info.endScreenSettings[backgroundKey]?.url || pocketStore.splashImage.url}
+            endCallback={() => setEnded(true)}
+            className={S("end-screen__video")}
+            autoAspectRatio={false}
+            playerOptions={{
+              controls: EluvioPlayerParameters.controls.OFF,
+              autoplay: EluvioPlayerParameters.autoplay.ON,
+              muted: EluvioPlayerParameters.muted.OFF_IF_POSSIBLE
+            }}
+          />
+      }
     </Linkish>
   );
 });
@@ -136,24 +248,26 @@ const Media = observer(({setShowPreview}) => {
       {
         !started ?
           <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
-          pocketStore.contentEnded && pocketStore.pocket.metadata.post_content_screen?.enabled ?
-            <EndScreen /> :
-            <Video
-              isLive={mediaItem.scheduleInfo.currentlyLive}
-              videoLink={mediaItem.media_link}
-              posterImage={
-                mediaItem.poster_image?.url ||
-                pocketStore.splashImage.url
-              }
-              endCallback={() => pocketStore.SetContentEnded(true)}
-              className={S("video")}
-              contentInfo={{
-                title: mediaItem.title,
-                subtitle: mediaItem.subtitle,
-                description: mediaItem.description,
-                liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
-              }}
-            />
+          <Video
+            isLive={mediaItem.scheduleInfo.currentlyLive}
+            videoLink={mediaItem.media_link}
+            posterImage={
+              mediaItem.poster_image?.url ||
+              pocketStore.splashImage.url
+            }
+            endCallback={() => pocketStore.SetContentEnded(true)}
+            className={S("video")}
+            contentInfo={{
+              title: mediaItem.title,
+              subtitle: mediaItem.subtitle,
+              description: mediaItem.description,
+              liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
+            }}
+          />
+      }
+      {
+        !pocketStore.contentEnded ? null :
+          <EndScreen mediaItem={mediaItem} />
       }
     </div>
   );

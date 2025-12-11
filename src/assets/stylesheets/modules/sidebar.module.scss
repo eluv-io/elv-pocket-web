@@ -200,7 +200,6 @@
     user-select: none;
   }
 
-
   &--active {
     .media-card__title {
       text-decoration: underline;
@@ -243,8 +242,10 @@
   }
 
   &__image {
+    height: 100%;
     max-width: 100%;
     object-fit: cover;
+    width: 100%;
   }
 
   .live-badge {

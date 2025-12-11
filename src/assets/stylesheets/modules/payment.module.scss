@@ -69,10 +69,10 @@
 
   &--loader {
     align-items: center;
+    background-color: transparent;
     display: flex;
     justify-content: center;
     min-height: 100px;
-    background-color: transparent;
   }
 
   .message {

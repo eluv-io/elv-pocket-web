@@ -7,7 +7,7 @@ import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 import XIcon from "@/assets/icons/x.svg";
 
@@ -59,9 +59,18 @@ const MediaCard = observer(({mediaItem}) => {
 });
 
 const SidebarContent = observer(() => {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(parseInt(sessionStorage.getItem("sidebar-tab-index") || 0));
   const [containerRef, setContainerRef] = useState(null);
   const tab = pocketStore.sidebarContent[tabIndex];
+
+  useEffect(() => {
+    // Preserve selected tab
+    sessionStorage.setItem("sidebar-tab-index", tabIndex.toString());
+  }, [tabIndex]);
+
+  if(!tab) {
+    return null;
+  }
 
   if(rootStore.menu === "my-items") {
     return (
@@ -205,7 +214,6 @@ const ContentInfo = observer(({mediaItem}) => {
           <div className={S("live-badge")}>LIVE</div>
       }
       {
-        rootStore.mobile && pocketStore.contentEnded ? null :
           <div className={S("current-item")}>
             <div className={S("title-container")}>
               {

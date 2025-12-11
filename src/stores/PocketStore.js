@@ -80,6 +80,45 @@ class PocketStore {
     return this.media[mediaItemId];
   }
 
+  MediaItemInfo(mediaItemId) {
+    let endScreenSettings = this.pocket.metadata.post_content_screen || {};
+    let sequential = false;
+
+    for(let tabIndex = 0; tabIndex < this.sidebarContent.length; tabIndex++) {
+      const tab = this.sidebarContent[tabIndex];
+      for(let groupIndex = 0; groupIndex < tab.groups.length; groupIndex++) {
+        const group = tab.groups[groupIndex];
+        const itemIndex = group.content.findIndex(item => item.id === mediaItemId);
+
+        if(itemIndex >= 0) {
+          sequential = tab.sequential || group.sequential;
+          endScreenSettings = tab.post_content_screen?.enabled ? tab.post_content_screen : endScreenSettings;
+
+          let nextItemId;
+          if(sequential) {
+            nextItemId = (
+              group.content[itemIndex + 1] ||
+              (tab.sequential && tab.groups[groupIndex + 1]?.content[0])
+            )?.id;
+          }
+
+          return {
+            tab,
+            tabIndex,
+            group,
+            groupIndex,
+            itemIndex,
+            sequential,
+            nextItemId,
+            endScreenSettings
+          };
+        }
+      }
+    }
+
+    return {};
+  }
+
   MediaItemPermissions({mediaItemSlugOrId, mediaItem}) {
     if(mediaItemSlugOrId) {
       mediaItem = this.MediaItem(mediaItemSlugOrId);

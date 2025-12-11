@@ -92,7 +92,7 @@ const Pocket = observer(() => {
         mediaItem={mediaItem}
         permissions={permissions}
         hideSidebar={hideSidebar}
-        hideSidebarTitle={showPurchase}
+        hideSidebarTitle={showPurchase && rootStore.mobile}
       >
         {
            showPurchase ?
