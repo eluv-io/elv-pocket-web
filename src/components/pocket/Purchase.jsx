@@ -25,7 +25,7 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        setTimeout(() => pocketStore.LoadMedia(), 1500);
+        setTimeout(() => pocketStore.LoadMedia(), 3500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
       }
