@@ -3,6 +3,7 @@ import {SHA512} from "@/utils/Utils.js";
 
 console.time("Initial Load");
 
+const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
   media = {};
   slugMap = {};
@@ -11,6 +12,7 @@ class PocketStore {
   permissionItems = {};
   userItems = [];
 
+  preview = urlParams.has("preview") || urlParams.has("previewAll") || sessionStorage.getItem("preview");
   requirePassword = false;
   previewPasswordDigest;
 
@@ -47,7 +49,7 @@ class PocketStore {
   }
 
   get splashImage() {
-    const backgroundKey = this.mobile && this.pocket?.metadata?.splash_screen_background_mobile ?
+    const backgroundKey = this.mobile && !this.mobileLandscape && this.pocket?.metadata?.splash_screen_background_mobile ?
       "splash_screen_background_mobile" :
       "splash_screen_background";
 
@@ -72,6 +74,10 @@ class PocketStore {
     makeAutoObservable(this);
 
     this.rootStore = rootStore;
+
+    if(this.preview) {
+      sessionStorage.setItem("preview", "true");
+    }
   }
 
   SetContentEnded(ended) {
@@ -328,7 +334,11 @@ class PocketStore {
     const metadata = yield this.client.ContentObjectMetadata({
       versionHash,
       metadataSubtree: "/public/asset_metadata/info",
-      produceLinkUrls: true
+      produceLinkUrls: true,
+      // Don't resolve catalog/permission links when previewing, since we will load them separately
+      resolveLinks: !this.preview,
+      resolveIgnoreErrors: true,
+      linkDepthLimit: 1
     });
 
     // Check for preview password, except in payment flow
@@ -364,28 +374,36 @@ class PocketStore {
 
     const metadata = {...this.pocket.metadata};
 
+    let mediaCatalogInfo = {...metadata.media_catalog_links};
+    if(this.preview) {
+      mediaCatalogInfo = {};
+      yield Promise.all(
+        (metadata.media_catalogs || []).map(async mediaCatalogId =>
+          mediaCatalogInfo[mediaCatalogId] = await this.client.ContentObjectMetadata({
+            versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
+            metadataSubtree: "/public/asset_metadata/info",
+            select: [ "media", "slug_map" ],
+            produceLinkUrls: true
+          })
+        )
+      );
+    }
+
     let media = {};
     let slugMap = {};
-    yield Promise.all(
-      metadata.media_catalogs.map(async mediaCatalogId => {
-        const info = await this.client.ContentObjectMetadata({
-          versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
-          metadataSubtree: "/public/asset_metadata/info",
-          select: [ "media", "slug_map" ],
-          produceLinkUrls: true
-        });
+    Object.keys(mediaCatalogInfo).forEach(mediaCatalogId => {
+      const info = mediaCatalogInfo[mediaCatalogId];
 
-        media = {
-          ...media,
-          ...(info?.media || {})
-        };
+      media = {
+        ...media,
+        ...(info?.media || {})
+      };
 
-        slugMap = {
-          ...slugMap,
-          ...(info.slug_map || {})
-        };
-      })
-    );
+      slugMap = {
+        ...slugMap,
+        ...(info.slug_map || {})
+      };
+    });
 
     // Determine permission ids and generate schedule info
     let permissionItemIds = [];
@@ -400,25 +418,39 @@ class PocketStore {
       );
     });
 
+    let permissionSetInfo = {...metadata.permission_set_links};
+    if(this.preview) {
+      permissionSetInfo = {};
+      yield Promise.all(
+        (metadata.permission_sets || []).map(async permissionSetId =>
+          permissionSetInfo[permissionSetId] = await this.client.ContentObjectMetadata({
+            versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
+            metadataSubtree: "/public/asset_metadata/info",
+            produceLinkUrls: true
+          })
+        )
+      );
+    }
+
     // Load permission items and determine marketplaces
     let allPermissionItems = {};
     let allMarketplaceIds = [];
     yield Promise.all(
-      metadata.permission_sets.map(async permissionSetId => {
-        const permissionItems = await this.client.ContentObjectMetadata({
-          versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
-          metadataSubtree: "/public/asset_metadata/info/permission_items",
-          select: permissionItemIds,
-          produceLinkUrls: true
-        });
+      Object.keys(permissionSetInfo).map(async permissionSetId => {
+        const permissionItems = permissionSetInfo[permissionSetId].permission_items || {};
 
-        Object.keys(permissionItems || {}).forEach(permissionItemId => {
+        Object.keys(permissionItems).forEach(permissionItemId => {
           allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
           const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
           !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
         });
       })
     );
+
+    while(!this.rootStore.loggedIn) {
+      // Don't start determining permissions until logged in
+      yield new Promise(resolve => setTimeout(resolve, 250));
+    }
 
     let allUserItems = [];
     let allMarketplaces = {};

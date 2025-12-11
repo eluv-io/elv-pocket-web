@@ -57,6 +57,12 @@ const Pocket = observer(() => {
           <div className={S("splash__loader")}>
             <Loader />
           </div>
+          {
+            !pocketStore.preview ? null :
+              <div className={S("splash__preview")}>
+                Preview
+              </div>
+          }
         </div>
       </div>
     );
