@@ -76,7 +76,7 @@ const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
   return (
     <div className={S("payment__actions")}>
       <Payment
-        //showQR={!rootStore.mobile}
+        showQR={!rootStore.mobile}
         url={paymentStore.purchaseDetails[permissionItemId]?.url}
         params={paymentStore.purchaseDetails[permissionItemId]?.response}
         onCancel={Cancel}
