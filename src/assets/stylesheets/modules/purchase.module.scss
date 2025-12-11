@@ -228,6 +228,8 @@
     font-weight: 600;
     inset: 0;
     justify-content: center;
+    padding: 20px;
+    width: 50%;
   }
 }
 
@@ -383,6 +385,10 @@
         max-width: unset;
         width: 100%;
       }
+    }
+
+    .payment {
+      min-width: 400px;
     }
   }
 }
