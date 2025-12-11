@@ -1,4 +1,5 @@
 import {makeAutoObservable, flow} from "mobx";
+import {SHA512} from "@/utils/Utils.js";
 
 console.time("Initial Load");
 
@@ -9,6 +10,9 @@ class PocketStore {
   pocket;
   permissionItems = {};
   userItems = [];
+
+  requirePassword = false;
+  previewPasswordDigest;
 
   get client() {
     return this.rootStore.client;
@@ -318,6 +322,7 @@ class PocketStore {
   }
 
   LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
+    this.requirePassword = false;
     const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -325,6 +330,17 @@ class PocketStore {
       metadataSubtree: "/public/asset_metadata/info",
       produceLinkUrls: true
     });
+
+    // Check for preview password, except in payment flow
+    // TODO: check if staging/preview mode
+    if(!noMedia && metadata.preview_password_digest) {
+      const digest = yield SHA512(localStorage.getItem(`preview-password-${pocketSlugOrId}`) || "");
+       if(digest !== metadata.preview_password_digest) {
+         this.requirePassword = true;
+         this.previewPasswordDigest = metadata.preview_password_digest;
+         return;
+       }
+    }
 
     this.pocket = {
       objectId: pocketSlugOrId,

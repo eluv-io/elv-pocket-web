@@ -144,7 +144,7 @@ const EndScreen = observer(({mediaItem}) => {
               src={nextItem.thumbnail_image_landscape?.url}
               hash={nextItem.thumbnail_image_landscape_hash}
               alt={nextItem.title}
-              width={300}
+              width={400}
               className={S("next__card-thumbnail")}
             />
             <div className={S("next__card-content")}>

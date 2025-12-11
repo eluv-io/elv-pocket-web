@@ -113,3 +113,51 @@
   }
 }
 
+.preview-password {
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-tertiary);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 95vw;
+  padding: 20px;
+  text-align: center;
+  width: 500px;
+
+  &__message {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  &__input {
+    background-color: var(--background-tertiary);
+    border: 1px solid var(--text-tertiary-alternate);
+    border-radius: 5px;
+    height: 45px;
+    padding: 0 20px;
+    text-align: center;
+    width: 100%;
+
+    &--invalid {
+      border: 1px solid red;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__action {
+    border: 1px solid var(--text-tertiary-alternate);
+    border-radius: 5px;
+    color: white;
+    font-weight: 600;
+    height: 45px;
+    width: 100%;
+  }
+}
+

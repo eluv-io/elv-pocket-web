@@ -9,9 +9,9 @@ import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
 import UrlJoin from "url-join";
 import Purchase from "@/components/pocket/Purchase.jsx";
-
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
 import Page from "@/components/pocket/Page.jsx";
+import PreviewPasswordForm from "@/components/common/PreviewPasswordForm.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -41,8 +41,8 @@ const Pocket = observer(() => {
     rootStore.SetShowAdditionalPurchaseOptions(false);
   }, [mediaItemSlugOrId]);
 
-  if(!pocketStore.pocket) {
-    return null;
+  if(pocketStore.requirePassword) {
+    return <PreviewPasswordForm />;
   }
 
   if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {

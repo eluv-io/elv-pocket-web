@@ -9,7 +9,7 @@ import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(ModalStyles);
 
-const Modal = observer(({children, align="center", SetMenuControls, onHide}) => {
+const Modal = observer(({children, align="center", SetMenuControls, onHide, closable=true}) => {
   const [dialog, setDialog] = useState(undefined);
   const [container, setContainer] = useState(undefined);
   const [controls, setControls] = useState({});
@@ -29,6 +29,8 @@ const Modal = observer(({children, align="center", SetMenuControls, onHide}) => 
     };
 
     const Hide = () => {
+      if(!closable) { return; }
+
       setOpen(false);
       setClosing(true);
 
@@ -91,12 +93,15 @@ const Modal = observer(({children, align="center", SetMenuControls, onHide}) => 
       className={S("modal", `modal--align-${align}`, open ? "modal--visible" : "modal--hidden")}
     >
       <div ref={setContainer} className={S("container")}>
-        <button
-          onClick={() => controls.Hide()}
-          className={S("close", "opacity-hover")}
-        >
-          <SVG src={XIcon}/>
-        </button>
+        {
+          !closable ? null :
+            <button
+              onClick={() => controls.Hide()}
+              className={S("close", "opacity-hover")}
+            >
+              <SVG src={XIcon}/>
+            </button>
+        }
         <div
           onClick={event => {
             event.stopPropagation();
