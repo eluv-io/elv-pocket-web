@@ -329,7 +329,14 @@ class PocketStore {
 
   LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
     this.requirePassword = false;
-    const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
+
+    const propertyInfo = ((yield this.walletClient.TopLevelInfo()).pocket_properties || [])
+      .find(info => info.slug === pocketSlugOrId || info.id === pocketSlugOrId);
+
+    let versionHash = propertyInfo?.hash;
+    if(!versionHash || this.preview) {
+      versionHash = yield this.client.LatestVersionHash({objectId: propertyInfo?.id || pocketSlugOrId});
+    }
 
     const metadata = yield this.client.ContentObjectMetadata({
       versionHash,
@@ -342,8 +349,7 @@ class PocketStore {
     });
 
     // Check for preview password, except in payment flow
-    // TODO: check if staging/preview mode
-    if(!noMedia && metadata.preview_password_digest) {
+    if((this.preview || EluvioConfiguration.mode !== "production") && !noMedia && metadata.preview_password_digest) {
       const digest = yield SHA512(localStorage.getItem(`preview-password-${pocketSlugOrId}`) || "");
        if(digest !== metadata.preview_password_digest) {
          this.requirePassword = true;
