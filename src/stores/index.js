@@ -16,6 +16,7 @@ class RootStore {
   permissionItems = {};
   menu;
   showAdditionalPurchaseOptions = false;
+  loggedIn = false;
 
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
   nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
@@ -54,17 +55,9 @@ class RootStore {
     this.showAdditionalPurchaseOptions = show;
   }
 
-  InitializeClient = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
-    clearInterval(this.tokenStatusInterval);
-
-    console.time("Initialize Client");
-    const walletClient = yield ElvWalletClient.Initialize({
-      appId: "pocket",
-      network: EluvioConfiguration.network,
-      mode: EluvioConfiguration.mode
-    });
-
-    const tenantId = yield walletClient.client.ContentObjectTenantId({objectId: pocketSlugOrId});
+  LogIn = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+    this.loggedIn = false;
+    const tenantId = yield this.walletClient.client.ContentObjectTenantId({objectId: pocketSlugOrId});
 
     console.time("Log in");
     if(
@@ -72,10 +65,10 @@ class RootStore {
       localStorage.getItem(`token-${EluvioConfiguration.network}`) &&
       parseInt(localStorage.getItem("token-expires")) - Date.now() > 6 * 60 * 60 * 1000
     ) {
-      yield walletClient.Authenticate({token: localStorage.getItem("token")});
+      yield this.walletClient.Authenticate({token: localStorage.getItem("token")});
     } else {
       try {
-        const {signingToken} = yield walletClient.AuthenticateOAuth({
+        const {signingToken} = yield this.walletClient.AuthenticateOAuth({
           userIdCode: customUserIdCode || this.userIdCode,
           tenantId,
           nonce: this.nonce,
@@ -84,6 +77,8 @@ class RootStore {
 
         localStorage.setItem(`token-${EluvioConfiguration.network}`, signingToken);
         localStorage.setItem(`token-expires-${EluvioConfiguration.network}`, (Date.now() + 24 * 60 * 60 * 1000).toString());
+
+        this.loggedIn = true;
       } catch(error) {
         console.error(error);
         if(confirm("Too many logins - force?")) {
@@ -100,7 +95,7 @@ class RootStore {
 
     // Periodically check to ensure the token has not been revoked
     const CheckTokenStatus = async () => {
-      if(!(await walletClient.TokenStatus())) {
+      if(!(await this.walletClient.TokenStatus())) {
         alert("Too many logins! Stop sharing!");
       }
     };
@@ -109,9 +104,23 @@ class RootStore {
     this.tokenStatusInterval = setInterval(() => {
       CheckTokenStatus();
     }, 60000);
+  });
+
+  InitializeClient = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+    clearInterval(this.tokenStatusInterval);
+
+    console.time("Initialize Client");
+    const walletClient = yield ElvWalletClient.Initialize({
+      appId: "pocket",
+      network: EluvioConfiguration.network,
+      mode: EluvioConfiguration.mode
+    });
+
 
     this.walletClient = walletClient;
     this.client = walletClient.client;
+
+    this.LogIn({pocketSlugOrId, customUserIdCode, force});
     console.timeEnd("Initialize Client");
   });
 

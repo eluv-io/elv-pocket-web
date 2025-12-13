@@ -55,7 +55,7 @@ export const HashedLoaderImage = observer(({
         loaded || !hash ? null :
           <div
             {...props}
-            className={JoinClassNames(loaderClassName, props.className)}
+            className={JoinClassNames(S("loader-image__hash"), loaderClassName, props.className)}
             style={{
               aspectRatio: loaderAspectRatio,
               background: `center / cover url(${thumbHashToDataURL(hash)})`
