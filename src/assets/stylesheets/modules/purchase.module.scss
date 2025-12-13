@@ -257,9 +257,10 @@
   .vertical-item {
     border-radius: 5px;
     height: 100%;
-    max-height: 450px;
+    max-height: 420px;
     max-width: 350px;
     min-width: 350px;
+    height: 420px;
     padding: 70px 20px 50px;
     width: 350px;
 
@@ -358,6 +359,7 @@
       background-color: var(--background-tertiary);
       display: grid;
       grid-template-columns: 1fr 1fr;
+      height: 420px;
 
       .vertical-item {
         max-width: unset;
@@ -461,7 +463,11 @@
 
     &__title,
     &__price {
-      font-size: 24px;
+      font-size: 18px;
+    }
+
+    &__price {
+      margin: 0;
     }
 
     &__subtitle {
