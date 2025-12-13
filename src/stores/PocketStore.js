@@ -1,6 +1,8 @@
 import {makeAutoObservable, flow} from "mobx";
 import {SHA512} from "@/utils/Utils.js";
 
+import SanitizeHTML from "sanitize-html";
+
 console.time("Initial Load");
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -173,6 +175,9 @@ class PocketStore {
 
         return i1.priority < i2.priority ? -1 : 1;
       });
+
+    permissions.displayedPermissionItems = permissions.permissionItems
+      .filter(item => !item?.subsumed);
 
     return permissions;
   }
@@ -347,6 +352,8 @@ class PocketStore {
       resolveIgnoreErrors: true,
       linkDepthLimit: 1
     });
+
+    this.LoadCustomization(metadata);
 
     // Check for preview password, except in payment flow
     if((this.preview || EluvioConfiguration.mode !== "production") && !noMedia && metadata.preview_password_digest) {
@@ -546,6 +553,71 @@ class PocketStore {
 
     console.timeEnd("Load Media");
   });
+
+  LoadCustomization(metadata) {
+    if(!metadata?.styling) {
+      return;
+    }
+
+    let css = [];
+    let variables = [];
+    if(metadata.styling?.font === "custom") {
+      if(metadata.styling.custom_font_declaration) {
+        if(metadata.styling.custom_font_definition) {
+          css.push(metadata.styling.custom_font_definition);
+        }
+
+        const customFont = `${metadata.styling.custom_font_declaration}, Montserrat, "Helvetica Neue", helvetica, sans-serif`;
+
+        variables.push(`--font-family: ${customFont};`);
+      }
+    }
+
+    const buttonSettings = metadata?.styling?.button_style || {};
+
+    // Remove invalid color options
+    ["background_color", "background_color_2", "border_color", "text_color"].forEach(key => {
+      if(!buttonSettings[key] || !CSS.supports("color", buttonSettings[key])) {
+        delete buttonSettings[key];
+      }
+    });
+
+    if(buttonSettings.background_color) {
+      variables.push(`--button-background-color--custom: ${buttonSettings.background_color};`);
+      // If border color is not explicitly set, it should default to background color
+      variables.push(`--button-border-color--custom: ${buttonSettings.background_color};`);
+    }
+
+    if(buttonSettings.background_type === "gradient" && buttonSettings.background_color && buttonSettings.background_color_2) {
+      variables.push(
+        `--button-background--custom: linear-gradient(${buttonSettings.background_gradient_angle || 0}deg, ${buttonSettings.background_color}, ${buttonSettings.background_color_2});`);
+    }
+
+    if(buttonSettings.text_color) {
+      variables.push(`--button-text--custom: ${buttonSettings.text_color};`);
+    }
+
+    if(metadata.styling?.button_style?.border_color) {
+      variables.push(`--button-border-color--custom: ${buttonSettings.border_color};`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_width))) {
+      variables.push(`--button-border-width--custom: ${buttonSettings.border_width}px;`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_radius))) {
+      variables.push(`--button-border-radius--custom: ${buttonSettings.border_radius}px;`);
+    }
+
+    if(variables.length > 0) {
+      css.unshift(":root {\n" + variables.join("\n") + "\n}\n");
+    }
+
+    const styleElement = document.createElement("style");
+    styleElement.id = "__custom-css";
+    styleElement.innerHTML = SanitizeHTML(css.join("\n"));
+    document.body.appendChild(styleElement);
+  }
 }
 
 export default PocketStore;

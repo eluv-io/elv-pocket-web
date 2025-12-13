@@ -1,4 +1,9 @@
+:root {
+  --font-family: montserrat, "Helvetica Neue", helvetica, sans-serif;
+}
+
 * {
+  font-synthesis: none;
   -webkit-overflow-scrolling: touch;
 
   ::-webkit-scrollbar {
@@ -26,7 +31,7 @@ html {
 body {
   background-color: black;
   color: var(--text-secondary);
-  font-family: Montserrat, "Helvetica Neue", helvetica, sans-serif;
+  font-family: var(--font-family);
 }
 
 a,

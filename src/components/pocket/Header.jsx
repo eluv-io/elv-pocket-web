@@ -143,6 +143,18 @@ const MobileHeader = observer(({mediaItem}) => {
               <SVG src={ChevronLeftIcon} alt="Eluvio"/>
             </Linkish>
         }
+        <div className={S("logo")}>
+          {
+            logoKey ?
+              <HashedLoaderImage
+                width={200}
+                src={pocketStore.pocket.metadata[logoKey].url}
+                hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
+                className={S("logo__image")}
+              /> :
+              <SVG src={Logo} alt="Eluvio"/>
+          }
+        </div>
         <div className={S("title", "ellipsis")}>
           {mediaItem.title}
         </div>
