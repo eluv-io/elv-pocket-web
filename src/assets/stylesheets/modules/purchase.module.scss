@@ -256,11 +256,10 @@
 
   .vertical-item {
     border-radius: 5px;
-    height: 100%;
+    height: 420px;
     max-height: 420px;
     max-width: 350px;
     min-width: 350px;
-    height: 420px;
     padding: 70px 20px 50px;
     width: 350px;
 
@@ -359,16 +358,17 @@
       background-color: var(--background-tertiary);
       display: grid;
       grid-template-columns: 1fr 1fr;
-      height: 420px;
+      max-height: unset;
+      min-height: 420px;
 
       .vertical-item {
-        max-width: unset;
+        max-width: 350px;
         width: 100%;
       }
     }
 
     .payment {
-      min-width: 400px;
+      min-width: 350px;
     }
   }
 }
@@ -403,6 +403,10 @@
 
   .payment {
     width: 350px;
+
+    .payment__form {
+      min-height: 200px;
+    }
 
     &__option {
       height: 45px;

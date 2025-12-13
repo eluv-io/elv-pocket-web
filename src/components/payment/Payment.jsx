@@ -167,7 +167,7 @@ export const Payment = observer(({
 
   if(!params || !formDetails.type) {
     return (
-      <div className={S("payment", "payment--loader")}>
+      <div className={JoinClassNames(S("payment", "payment--loader"), className)}>
         <Loader />
       </div>
     );
