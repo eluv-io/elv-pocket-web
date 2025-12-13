@@ -57,6 +57,12 @@ const Pocket = observer(() => {
           <div className={S("splash__loader")}>
             <Loader />
           </div>
+          {
+            !pocketStore.preview ? null :
+              <div className={S("splash__preview")}>
+                PREVIEW
+              </div>
+          }
         </div>
       </div>
     );
@@ -84,7 +90,7 @@ const Pocket = observer(() => {
   const showPurchase =
     !permissions.authorized && !(showPreview && rootStore.mobile) ||
     (rootStore.showAdditionalPurchaseOptions && permissions.anyItemsAvailable);
-  const hideSidebar = showPurchase && rootStore.mobile && permissions.permissionItems.length > 2;
+  const hideSidebar = showPurchase && rootStore.mobile && permissions.displayedPermissionItems.length > 2;
 
   return (
     <>

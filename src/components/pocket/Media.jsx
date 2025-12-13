@@ -98,7 +98,7 @@ const EndScreen = observer(({mediaItem}) => {
   }, []);
 
   useEffect(() => {
-    if(disabled || !info.nextItemId) { return; }
+    if(!ended || disabled || !info.nextItemId) { return; }
 
     const transitionAt = Date.now() + 10.5 * 1000;
 

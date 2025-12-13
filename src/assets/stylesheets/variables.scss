@@ -5,6 +5,7 @@
   --background-primary: #151515;
   --background-secondary: #1d1d1d;
   --background-tertiary: #272727;
+  --background-gradient: linear-gradient(225deg, #373737, #0f0f0f);
   --background-content: #000;
   --background-button: #323232;
   --text-primary: #fff;
@@ -23,6 +24,11 @@
   --block-radius: 5px;
   --loader-height: 40px;
   --loader-width: 5px;
+  --button-background-color: #FFF;
+  --button-text: #000;
+  --button-border-color: #FFF;
+  --button-border-width: 0px;
+  --button-border-radius: 5px;
 
   @keyframes fadein {
     0% {

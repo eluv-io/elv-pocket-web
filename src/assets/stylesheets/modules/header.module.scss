@@ -102,13 +102,9 @@
 
 @media screen and (width <= 1000px) {
   .header {
-    gap: 0;
+    gap: 3px;
     height: 50px;
     padding: 12px 10px;
-
-    &--back {
-      padding-inline: 20px;
-    }
   }
 
   .logo {
