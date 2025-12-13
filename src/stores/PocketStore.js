@@ -349,6 +349,7 @@ class PocketStore {
       produceLinkUrls: true,
       // Don't resolve catalog/permission links when previewing, since we will load them separately
       resolveLinks: !this.preview,
+      resolveIncludeSource: true,
       resolveIgnoreErrors: true,
       linkDepthLimit: 1
     });
