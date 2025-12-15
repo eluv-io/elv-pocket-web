@@ -8,11 +8,20 @@
   position: relative;
   width: 100%;
   z-index: 10;
+
+  &--simple {
+    justify-content: center;
+
+    .title {
+      width: max-content;
+    }
+  }
 }
 
 .back,
 .logo {
   height: 100%;
+  min-width: max-content;
   width: auto;
 
   &__image,

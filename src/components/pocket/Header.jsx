@@ -127,7 +127,7 @@ const HeaderMenu = observer(() => {
   );
 });
 
-const MobileHeader = observer(({mediaItem}) => {
+const MobileHeader = observer(({mediaItem, text}) => {
   const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
     pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
@@ -156,7 +156,7 @@ const MobileHeader = observer(({mediaItem}) => {
           }
         </div>
         <div className={S("title", "ellipsis")}>
-          {mediaItem.title}
+          {text || mediaItem.title}
         </div>
       </header>
     );
@@ -175,18 +175,24 @@ const MobileHeader = observer(({mediaItem}) => {
               <SVG src={Logo} alt="Eluvio"/>
           }
         </Linkish>
-        <HeaderMenu />
+        {
+          !text ? null :
+            <div className={S("title", "ellipsis")}>
+              {text || mediaItem.title}
+            </div>
+        }
+        <HeaderMenu/>
       </header>
     );
   }
 });
 
-const DesktopHeader = observer(({simple}) => {
+const DesktopHeader = observer(({simple, text}) => {
   const logoKey = rootStore.mobile && pocketStore.pocket.metadata.header_logo_mobile ? "header_logo_mobile" :
     pocketStore.pocket.metadata.header_logo ? "header_logo" : "";
 
   return (
-    <header key="header" className={S("header")}>
+    <header key="header" className={S("header", simple ? "header--simple" : "")}>
       <Linkish href={pocketStore.pocket.metadata.header_logo_link} className={S("logo")}>
         {
           logoKey ?
@@ -200,17 +206,23 @@ const DesktopHeader = observer(({simple}) => {
         }
       </Linkish>
       {
+        !text ? null :
+          <div className={S("title", "ellipsis")}>
+            {text}
+          </div>
+      }
+      {
         simple ? null :
-          <HeaderMenu />
+          <HeaderMenu/>
       }
     </header>
   );
 });
 
-const Header = observer(({mediaItem, simple}) =>
+const Header = observer(({mediaItem, simple, text}) =>
   rootStore.mobile && !simple ?
-    <MobileHeader mediaItem={mediaItem} /> :
-    <DesktopHeader simple={simple} />
+    <MobileHeader mediaItem={mediaItem} text={text} /> :
+    <DesktopHeader simple={simple} text={text} />
 );
 
 export default Header;
