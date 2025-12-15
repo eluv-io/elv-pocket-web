@@ -14,7 +14,7 @@
     "lint-scss-fix": "npx stylelint \"src/**/*.{css,scss}\" --fix"
   },
   "dependencies": {
-    "@eluvio/elv-client-js": "git+https://github.com/eluv-io/elv-client-js#develop",
+    "@eluvio/elv-client-js": "^4.2.14",
     "@eluvio/elv-player-js": "^2.1.14",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",

@@ -257,10 +257,10 @@
   .vertical-item {
     border-radius: 5px;
     height: 420px;
-    max-height: 420px;
+    max-height: 400px;
     max-width: 350px;
     min-width: 350px;
-    padding: 70px 20px 50px;
+    padding: 50px 20px;
     width: 350px;
 
     &__access-title {
@@ -360,7 +360,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       max-height: unset;
-      min-height: 420px;
+      min-height: 400px;
 
       .vertical-item {
         max-width: 350px;
@@ -392,10 +392,6 @@
     &__actions {
       max-width: 170px;
     }
-  }
-
-  .vertical-item {
-    padding: 50px;
   }
 
   .selected-item {

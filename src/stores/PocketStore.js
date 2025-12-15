@@ -1,5 +1,5 @@
 import {makeAutoObservable, flow} from "mobx";
-import {SHA512} from "@/utils/Utils.js";
+import {LinkTargetHash, SHA512} from "@/utils/Utils.js";
 
 import SanitizeHTML from "sanitize-html";
 
@@ -8,6 +8,7 @@ class PocketStore {
   media = {};
   slugMap = {};
   contentEnded = false;
+  pocketInfo;
   pocket;
   permissionItems = {};
   userItems = [];
@@ -338,19 +339,53 @@ class PocketStore {
     });
   }
 
+  LoadPocketInfo = flow(function * ({pocketSlugOrId}) {
+    if(this.pocketInfo) {
+      return this.pocketInfo;
+    }
+
+    const pocketMap = (yield this.client.ContentObjectMetadata({
+      libraryId: this.rootStore.siteConfiguration.siteLibraryId,
+      objectId: this.rootStore.siteConfiguration.siteId,
+      metadataSubtree: "public/asset_metadata/pocket_properties"
+    }));
+
+    let pocketInfo = {};
+    for(const pocketSlug of Object.keys(pocketMap)) {
+      if(pocketSlug === pocketSlugOrId || pocketMap[pocketSlug]?.property_id === pocketSlugOrId) {
+        pocketInfo = {
+          slug: pocketSlug,
+          id: pocketMap[pocketSlug].property_id,
+          hash: LinkTargetHash(pocketMap[pocketSlug]["/"]),
+        };
+        break;
+      }
+    }
+
+    /*
+    const pocketProperties = (yield this.walletClient.TopLevelInfo()).pocket_properties || [];
+    let pocketInfo = pocketProperties.find(pocket => pocket.slug === pocketSlugOrId || pocket.id === pocketSlugOrId);
+
+     */
+
+    if(!pocketInfo?.hash || this.preview) {
+      pocketInfo = {
+        ...pocketInfo,
+        id: pocketInfo.id || pocketSlugOrId,
+        hash: yield this.client.LatestVersionHash({objectId: pocketInfo?.id || pocketSlugOrId})
+      };
+    }
+
+    pocketInfo.tenantId = yield this.client.ContentObjectTenantId({objectId: pocketInfo.id || pocketSlugOrId});
+
+    this.pocketInfo = pocketInfo;
+  });
+
   LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
     this.requirePassword = false;
 
-    const propertyInfo = ((yield this.walletClient.TopLevelInfo()).pocket_properties || [])
-      .find(info => info.slug === pocketSlugOrId || info.id === pocketSlugOrId);
-
-    let versionHash = propertyInfo?.hash;
-    if(!versionHash || this.preview) {
-      versionHash = yield this.client.LatestVersionHash({objectId: propertyInfo?.id || pocketSlugOrId});
-    }
-
     const metadata = yield this.client.ContentObjectMetadata({
-      versionHash,
+      versionHash: this.pocketInfo.hash,
       metadataSubtree: "/public/asset_metadata/info",
       produceLinkUrls: true,
       // Don't resolve catalog/permission links when previewing, since we will load them separately
@@ -373,9 +408,9 @@ class PocketStore {
     }
 
     this.pocket = {
-      objectId: pocketSlugOrId,
-      versionHash,
-      tenantId: yield this.client.ContentObjectTenantId({versionHash}),
+      objectId: this.pocketInfo.id || pocketSlugOrId,
+      versionHash: this.pocketInfo.hash,
+      tenantId: this.pocketInfo.tenantId,
       metadata
     };
 

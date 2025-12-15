@@ -1,5 +1,6 @@
 import {makeAutoObservable, flow} from "mobx";
 import {ElvWalletClient, Utils} from "@eluvio/elv-client-js/src/index.js";
+import SiteConfiguration from "@eluvio/elv-client-js/src/walletClient/Configuration";
 import PaymentStore from "@/stores/PaymentStore.js";
 import {parse as ParseUUID, v4 as UUID} from "uuid";
 import PocketStore from "@/stores/PocketStore.js";
@@ -8,6 +9,7 @@ console.time("Initial Load");
 
 const urlParams = new URLSearchParams(window.location.search);
 class RootStore {
+  siteConfiguration = SiteConfiguration[EluvioConfiguration.network][EluvioConfiguration.mode];
   isLocal = window.location.hostname.includes("localhost") || urlParams.has("dev");
 
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
@@ -60,7 +62,6 @@ class RootStore {
 
   LogIn = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
     this.loggedIn = false;
-    const tenantId = yield this.walletClient.client.ContentObjectTenantId({objectId: pocketSlugOrId});
 
     console.time("Log in");
     if(
@@ -73,7 +74,7 @@ class RootStore {
       try {
         const {signingToken} = yield this.walletClient.AuthenticateOAuth({
           userIdCode: customUserIdCode || this.userIdCode,
-          tenantId,
+          tenantId: this.pocketStore.pocketInfo.tenantId,
           nonce: this.nonce,
           force
         });
@@ -123,7 +124,9 @@ class RootStore {
     this.walletClient = walletClient;
     this.client = walletClient.client;
 
-    this.LogIn({pocketSlugOrId, customUserIdCode, force});
+    yield this.pocketStore.LoadPocketInfo({pocketSlugOrId});
+
+    this.LogIn({customUserIdCode, force});
     console.timeEnd("Initialize Client");
   });
 
