@@ -50,17 +50,31 @@ const MediaCard = observer(({mediaItem}) => {
         <div className={S("media-card__title")}>
           {mediaItem.title}
         </div>
-          <div className={S("media-card__subtitle")}>
-            {
-              !mediaItem.scheduleInfo.isLiveContent ?
-                mediaItem.subtitle :
-                mediaItem.scheduleInfo.currentlyLive ?
-                  "Live Now" :
-                  mediaItem.scheduleInfo.ended ?
-                    "Ended" :
-                    `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
-            }
-          </div>
+        {
+          isActive && !rootStore.showAdditionalPurchaseOptions && permissions.authorized && permissions.anyItemsAvailable ?
+            // Link to additional purchase options for this content
+            <Linkish
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                rootStore.SetShowAdditionalPurchaseOptions(true);
+              }}
+              className={S("media-card__subtitle", "media-card__subtitle--purchase")}
+            >
+              Additional Purchase Options
+            </Linkish>:
+            <div className={S("media-card__subtitle")}>
+              {
+                !mediaItem.scheduleInfo.isLiveContent ?
+                  mediaItem.subtitle :
+                  mediaItem.scheduleInfo.currentlyLive ?
+                    "Live Now" :
+                    mediaItem.scheduleInfo.ended ?
+                      "Ended" :
+                      `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+              }
+            </div>
+        }
       </div>
     </Linkish>
   );
@@ -245,8 +259,15 @@ const ContentInfo = observer(({mediaItem}) => {
                 {mediaItem.title}
               </div>
             </div>
+            <div className={(S("subtitle"))}>
+              {
+                !mediaItem.scheduleInfo.isLiveContent ?
+                  mediaItem.subtitle :
+                  `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+              }
+            </div>
             {
-              permissions.authorized && permissions.anyItemsAvailable ?
+              !pocketStore.hasSingleItem || !permissions.authorized || !permissions.anyItemsAvailable ? null :
                 // Link to additional purchase options for this content
                 <Linkish
                   onClick={event => {
@@ -257,14 +278,7 @@ const ContentInfo = observer(({mediaItem}) => {
                   className={S("subtitle", "subtitle--purchase")}
                 >
                   Additional Purchase Options
-                </Linkish> :
-                <div className={(S("subtitle"))}>
-                  {
-                    !mediaItem.scheduleInfo.isLiveContent ?
-                      mediaItem.subtitle :
-                      `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
-                  }
-                </div>
+                </Linkish>
             }
           </div>
       }

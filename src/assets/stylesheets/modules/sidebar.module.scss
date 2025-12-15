@@ -225,6 +225,11 @@
     &:empty {
       display: none;
     }
+
+    &--purchase {
+      text-align: left;
+      text-decoration: underline;
+    }
   }
 
   &__image-container  {
