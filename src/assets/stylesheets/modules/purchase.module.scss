@@ -270,11 +270,12 @@
 
     &__title,
     &__price {
-      font-size: 32px;
+      font-size: 28px;
     }
 
     &__subtitle {
       font-size: 18px;
+      padding-inline: 20px;
     }
 
     &__actions {
@@ -429,6 +430,7 @@
 
   .items {
     height: 100%;
+    padding-bottom: 3px;
     width: 100%;
 
     &--vertical {
@@ -467,7 +469,7 @@
 
     &__title,
     &__price {
-      font-size: 18px;
+      font-size: 16px;
     }
 
     &__price {
@@ -532,12 +534,18 @@
     background-color: var(--background-primary);
     border-radius: 0;
     height: 100%;
+    padding-bottom: 15vh;
     padding-top: 10px;
     width: 100%;
 
     .vertical-item {
-      &__title {
-        font-size: 20px;
+      &__title,
+      &__price{
+        font-size: 24px;
+      }
+
+      &__subtitle {
+        font-size: 14px;
       }
     }
   }

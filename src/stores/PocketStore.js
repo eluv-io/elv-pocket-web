@@ -3,8 +3,6 @@ import {SHA512} from "@/utils/Utils.js";
 
 import SanitizeHTML from "sanitize-html";
 
-console.time("Initial Load");
-
 const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
   media = {};
@@ -48,6 +46,14 @@ class PocketStore {
           group.content.map(mediaItemId => this.media[mediaItemId])
       }))
     }));
+  }
+
+  get hasSingleItem() {
+    return (
+      this.sidebarContent.length === 1 &&
+      this.sidebarContent[0].groups.length === 1 &&
+      this.sidebarContent[0].groups[0].content.length === 1
+    );
   }
 
   get splashImage() {

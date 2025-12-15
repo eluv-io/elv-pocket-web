@@ -54,10 +54,18 @@
   z-index: 1;
 }
 
+.close-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 .close {
   align-items: center;
   background-color: var(--background-secondary);
+  border: 0;
   border-radius: 100%;
+  box-shadow: 0 0 5px black;
   display: flex;
   height: 50px;
   justify-content: center;

@@ -39,6 +39,7 @@
 
 .content {
   animation: var(--animation-fadein) 1s ease;
+  height: 100%;
 }
 
 @media screen and (width >= 1001px) {

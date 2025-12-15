@@ -6,7 +6,10 @@ import PocketStore from "@/stores/PocketStore.js";
 
 console.time("Initial Load");
 
+const urlParams = new URLSearchParams(window.location.search);
 class RootStore {
+  isLocal = window.location.hostname.includes("localhost") || urlParams.has("dev");
+
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
 
   client;

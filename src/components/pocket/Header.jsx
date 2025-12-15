@@ -138,7 +138,7 @@ const MobileHeader = observer(({mediaItem}) => {
           !rootStore.backAction ? null :
             <Linkish
               onClick={() => rootStore.GoBack()}
-              className={S("logo", "back")}
+              className={S("back")}
             >
               <SVG src={ChevronLeftIcon} alt="Eluvio"/>
             </Linkish>
@@ -147,7 +147,7 @@ const MobileHeader = observer(({mediaItem}) => {
           {
             logoKey ?
               <HashedLoaderImage
-                width={200}
+                width={400}
                 src={pocketStore.pocket.metadata[logoKey].url}
                 hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
@@ -167,7 +167,7 @@ const MobileHeader = observer(({mediaItem}) => {
           {
             logoKey ?
               <HashedLoaderImage
-                width={200}
+                width={400}
                 src={pocketStore.pocket.metadata[logoKey].url}
                 hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
@@ -191,7 +191,7 @@ const DesktopHeader = observer(({simple}) => {
         {
           logoKey ?
             <HashedLoaderImage
-              width={200}
+              width={400}
               src={pocketStore.pocket.metadata[logoKey].url}
               hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
               className={S("logo__image")}

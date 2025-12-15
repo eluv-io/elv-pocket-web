@@ -10,6 +10,7 @@
   z-index: 10;
 }
 
+.back,
 .logo {
   height: 100%;
   width: auto;
@@ -86,6 +87,7 @@
     }
   }
 
+  .back,
   .logo {
     margin-right: 10px;
   }
@@ -109,6 +111,10 @@
 
   .logo {
     margin-right: 10px;
+  }
+
+  .back {
+    margin-right: 5px;
   }
 
   .button {
