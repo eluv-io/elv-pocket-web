@@ -25,7 +25,10 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        setTimeout(() => pocketStore.LoadMedia(), 3500);
+        setTimeout(async () => {
+          await pocketStore.LoadMedia();
+          rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
+        }, 3500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
       }
@@ -241,7 +244,7 @@ const Purchase = observer(({setShowPreview}) => {
       rootStore.SetBackAction(() => setSelectedItemId(undefined));
     } else if(rootStore.mobile) {
       if(permissions.authorized) {
-        rootStore.SetBackAction(() => rootStore.SetShowAdditionalPurchaseOptions(false));
+        rootStore.SetBackAction(() => rootStore.SetAttribute("showAdditionalPurchaseOptions", false));
       } else {
         rootStore.SetBackAction(() => setShowPreview(true));
       }
@@ -317,7 +320,7 @@ const Purchase = observer(({setShowPreview}) => {
         !rootStore.showAdditionalPurchaseOptions ? null :
           <button
             title="Back to Media"
-            onClick={() => rootStore.SetShowAdditionalPurchaseOptions(false)}
+            onClick={() => rootStore.SetAttribute("showAdditionalPurchaseOptions", false)}
             className={S("close", "opacity-hover")}
           >
             <SVG src={XIcon} />

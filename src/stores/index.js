@@ -19,9 +19,11 @@ class RootStore {
   initialized = false;
   shortURLs = {};
   permissionItems = {};
-  menu;
-  showAdditionalPurchaseOptions = false;
   loggedIn = false;
+
+  showMyItems = false;
+  showPurchaseHistory = false;
+  showAdditionalPurchaseOptions = false;
 
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
   nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
@@ -52,12 +54,8 @@ class RootStore {
     localStorage.setItem("nonce", this.nonce);
   }
 
-  SetMenu(menu) {
-    this.menu = menu;
-  }
-
-  SetShowAdditionalPurchaseOptions(show) {
-    this.showAdditionalPurchaseOptions = show;
+  SetAttribute(attribute, value) {
+    this[attribute] = value;
   }
 
   LogIn = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
