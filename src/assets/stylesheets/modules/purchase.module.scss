@@ -71,6 +71,7 @@
 
 .vertical-item {
   animation: var(--animation-fadein) 0.5s ease;
+  background: var(--background-gradient);
   background-color: var(--background-secondary);
   box-shadow: 0 0 30px rgb(0 0 0 / 60%);
   display: flex;
@@ -104,6 +105,10 @@
     font-weight: 700;
   }
 
+  &__price {
+    margin: 5px 0;
+  }
+
   &__actions {
     align-items: flex-end;
     display: flex;
@@ -111,25 +116,15 @@
   }
 
   &__action {
-    background-color: transparent;
-    border: 1px solid white;
-    border-radius: 4px;
-    color: var(--text-primary);
     font-weight: 700;
     margin-top: 20px;
-    transition: background-color 0.15s ease, color 0.1s ease;
     width: 100%;
-
-    &:hover,
-    &:focus-visible {
-      background-color: white;
-      color: black;
-    }
   }
 }
 
 .horizontal-item {
   animation: var(--animation-fadein) 0.5s ease;
+  background: var(--background-gradient);
   background-color: var(--background-secondary);
   display: flex;
   gap: 30px;
@@ -168,24 +163,14 @@
   }
 
   &__action {
-    background-color: transparent;
-    border: 1px solid white;
-    border-radius: 4px;
-    color: var(--text-primary);
     font-weight: 700;
-    transition: background-color 0.15s ease, color 0.1s ease;
     width: 100%;
-
-    &:hover,
-    &:focus-visible {
-      background-color: white;
-      color: black;
-    }
   }
 }
 
 .selected-item {
   animation: var(--animation-fadein) 0.5s ease;
+  background: var(--background-gradient);
   background-color: var(--background-secondary);
   border-radius: 5px;
   display: flex;
@@ -223,7 +208,6 @@
   &__status,
   &__error {
     align-items: center;
-    background-color: var(--background-tertiary);
     display: flex;
     font-weight: 600;
     inset: 0;
@@ -272,11 +256,11 @@
 
   .vertical-item {
     border-radius: 5px;
-    height: 100%;
-    max-height: 450px;
+    height: 420px;
+    max-height: 400px;
     max-width: 350px;
     min-width: 350px;
-    padding: 70px 20px 50px;
+    padding: 50px 20px;
     width: 350px;
 
     &__access-title {
@@ -284,16 +268,14 @@
       margin-bottom: 5px;
     }
 
-    &__title {
-      font-size: 28px;
-    }
-
+    &__title,
     &__price {
-      font-size: 44px;
+      font-size: 28px;
     }
 
     &__subtitle {
       font-size: 18px;
+      padding-inline: 20px;
     }
 
     &__actions {
@@ -324,12 +306,9 @@
       font-size: 16px;
     }
 
-    &__title {
-      font-size: 24px;
-    }
-
+    &__title,
     &__price {
-      font-size: 40px;
+      font-size: 28px;
     }
 
     &__subtitle {
@@ -380,15 +359,17 @@
       background-color: var(--background-tertiary);
       display: grid;
       grid-template-columns: 1fr 1fr;
+      max-height: unset;
+      min-height: 400px;
 
       .vertical-item {
-        max-width: unset;
+        max-width: 350px;
         width: 100%;
       }
     }
 
     .payment {
-      min-width: 400px;
+      min-width: 350px;
     }
   }
 }
@@ -399,12 +380,9 @@
       font-size: 14px;
     }
 
-    &__title {
-      font-size: 20px;
-    }
-
+    &__title,
     &__price {
-      font-size: 30px;
+      font-size: 24px;
     }
 
     &__subtitle {
@@ -416,16 +394,16 @@
     }
   }
 
-  .vertical-item {
-    padding: 50px;
-  }
-
   .selected-item {
     flex-direction: column;
   }
 
   .payment {
     width: 350px;
+
+    .payment__form {
+      min-height: 200px;
+    }
 
     &__option {
       height: 45px;
@@ -448,6 +426,7 @@
 
   .items {
     height: 100%;
+    padding-bottom: 3px;
     width: 100%;
 
     &--vertical {
@@ -484,12 +463,13 @@
       font-size: 12px;
     }
 
+    &__title,
     &__price {
-      font-size: 24px;
+      font-size: 16px;
     }
 
-    &__title {
-      font-size: 14px;
+    &__price {
+      margin: 0;
     }
 
     &__subtitle {
@@ -524,12 +504,9 @@
       font-size: 14px;
     }
 
-    &__title {
-      font-size: 20px;
-    }
-
+    &__title,
     &__price {
-      font-size: 30px;
+      font-size: 28px;
     }
 
     &__subtitle {
@@ -551,20 +528,26 @@
 
   .selected-item {
     background-color: var(--background-primary);
+    border-radius: 0;
     height: 100%;
+    padding-bottom: 15vh;
     padding-top: 10px;
     width: 100%;
 
     .vertical-item {
-      &__title {
-        font-size: 20px;
+      &__title,
+      &__price{
+        font-size: 24px;
+      }
+
+      &__subtitle {
+        font-size: 14px;
       }
     }
   }
 
   .payment {
     height: 100%;
-    justify-content: flex-start;
     min-height: 300px;
     padding-top: 20px;
     width: 100%;
@@ -627,12 +610,9 @@
       font-size: 12px;
     }
 
-    &__title {
-      font-size: 18px;
-    }
-
+    &__title,
     &__price {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     &__subtitle {
@@ -640,7 +620,7 @@
     }
 
     &__actions {
-      max-width: 100px;
+      max-width: 120px;
     }
 
     &__action {

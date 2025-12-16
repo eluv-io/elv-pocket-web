@@ -84,7 +84,6 @@ const Video = forwardRef(function VideoComponent({
           showLoader: EluvioPlayerParameters.showLoader.OFF,
           muted: EluvioPlayerParameters.muted.OFF,
           controls: EluvioPlayerParameters.controls.AUTO_HIDE,
-          //maxBitrate: 50000,
           ui: EluvioPlayerParameters.ui.WEB,
           appName: "Eluvio Pocket TV",
           autoplay: EluvioPlayerParameters.autoplay.ON,
@@ -93,6 +92,8 @@ const Video = forwardRef(function VideoComponent({
           backgroundColor: "black",
           capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.mobile ? "ON" : "OFF"],
           title: EluvioPlayerParameters.title.FULLSCREEN_ONLY,
+          maxBitrate: rootStore.isLocal ? 500 : undefined,
+          hlsjsOptions: rootStore.isLocal ? {maxBufferLength: 1, maxBufferSize: 1} : undefined,
           errorCallback,
           // For live content, latest hash instead of allowing player to reload
           restartCallback: async () => {

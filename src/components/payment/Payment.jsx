@@ -14,6 +14,7 @@ const S = CreateModuleClassMatcher(PaymentStyles);
 import ApplePayLogo from "@/assets/images/apple-pay.svg";
 import GoogleWalletLogo from "@/assets/images/google-wallet.svg";
 import SVG from "react-inlinesvg";
+import Header from "@/components/pocket/Header.jsx";
 
 const CardPayment = async ({clientSecret, clientReferenceId, permissionItemId, cardElement}) => {
   const { error, paymentIntent } = await paymentStore.stripe.confirmCardPayment(
@@ -137,7 +138,8 @@ export const Payment = observer(({
                 }
               })
             });
-          } else {
+          } else if(rootStore.isLocal) {
+            // Card only on localhost
             setFormDetails({
               type: "card",
               element: elements.create("card", {
@@ -153,6 +155,8 @@ export const Payment = observer(({
                 }
               })
             });
+          } else {
+            setFormDetails({type: "unsupported"});
           }
         });
       });
@@ -167,13 +171,13 @@ export const Payment = observer(({
 
   if(!params || !formDetails.type) {
     return (
-      <div className={S("payment", "payment--loader")}>
+      <div className={JoinClassNames(S("payment", "payment--loader"), className)}>
         <Loader />
       </div>
     );
   }
 
-  if(formDetails.type === "card" && showQR && url) {
+  if(["card", "unsupported"].includes(formDetails.type) && showQR && url) {
     return (
       <div className={JoinClassNames(S("qr-container"), qrClassName)}>
         <div className={S("qr-container__text")}>
@@ -227,25 +231,38 @@ export const Payment = observer(({
               Pay with Card
             </button>
           </div> :
-          <>
-            <div className={S("message")}> Press the payment button to complete the transaction</div>
-            <div className={S("wallet")}>
-              <div ref={setContainer} className={S("wallet__input")}/>
+          formDetails.type === "wallet" ?
+            <>
+              <div className={S("message")}> Press the payment button to complete the transaction</div>
+              <div className={S("wallet")}>
+                <div ref={setContainer} className={S("wallet__input")}/>
+              </div>
+            </> :
+            <div className={S("unsupported")}>
+              <div className={S("unsupported__title")}>
+                Sorry, something went wrong
+              </div>
+              <div className={S("unsupported__message")}>
+                Please use another browser with either Apple Pay or Google Wallet enabled
+              </div>
             </div>
-          </>
+
       }
-      <div className={S("terms")}>
-        {
-          !rootStore.mobileLandscape || !onCancel ? null :
-            <Linkish onClick={onCancel}>
-              BACK
-            </Linkish>
-        }
-        <div>
-          By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.
-        </a>
-        </div>
-      </div>
+      {
+        formDetails?.type === "unsupported" ? null :
+          <div className={S("terms")}>
+            {
+              !rootStore.mobileLandscape || !onCancel ? null :
+                <Linkish onClick={onCancel}>
+                  BACK
+                </Linkish>
+            }
+            <div>
+              By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.
+            </a>
+            </div>
+          </div>
+      }
       {
         !error ? null :
           <div className={S("error")}>{error.toString()}</div>
@@ -279,6 +296,7 @@ const PaymentPage = observer(() => {
   if(success) {
     return (
       <div className={S("payment-page")}>
+        <Header simple text={params.mediaTitle} />
         <div className={S("payment-page__success")}>
           <div className={S("payment-page__success-title")}>
             Your purchase was successful
@@ -293,9 +311,7 @@ const PaymentPage = observer(() => {
 
   return (
     <div className={S("payment-page")}>
-      <div className={S("payment-page__header")}>
-        {params.mediaTitle}
-      </div>
+      <Header simple text={params.mediaTitle} />
       <div className={S("item")}>
         {
           !params.permissionItem.access_title ? null :

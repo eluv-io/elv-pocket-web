@@ -76,7 +76,7 @@ const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
   return (
     <div className={S("payment__actions")}>
       <Payment
-        showQR={!rootStore.mobile}
+        showQR={!rootStore.mobile && !rootStore.isLocal}
         url={paymentStore.purchaseDetails[permissionItemId]?.url}
         params={paymentStore.purchaseDetails[permissionItemId]?.response}
         onCancel={Cancel}
@@ -113,7 +113,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
             <div className={S("vertical-item__actions")}>
               <Linkish
                 onClick={Cancel}
-                className={S("vertical-item__action")}
+                className={S("styled-secondary-button", "opacity-hover", "vertical-item__action")}
               >
                 BACK
               </Linkish>
@@ -185,7 +185,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         <div className={S("vertical-item__actions")}>
           <Linkish
             onClick={Select}
-            className={S("vertical-item__action")}
+            className={S("styled-button", "opacity-hover", "vertical-item__action")}
           >
             { permissionItem.owned ? "SELECTED" : "SELECT" }
           </Linkish>
@@ -219,7 +219,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         </div>
         <Linkish
           onClick={Select}
-          className={S("horizontal-item__action")}
+          className={S("styled-button", "opacity-hover", "horizontal-item__action")}
         >
           { permissionItem.owned ? "SELECTED" : "SELECT" }
         </Linkish>
@@ -254,7 +254,7 @@ const Purchase = observer(({setShowPreview}) => {
     return null;
   }
 
-  const orientation = rootStore.mobile && permissions.permissionItems.length > 2 ? "horizontal" : "vertical";
+  const orientation = rootStore.mobile && permissions.displayedPermissionItems.length > 2 ? "horizontal" : "vertical";
 
   return (
     <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>

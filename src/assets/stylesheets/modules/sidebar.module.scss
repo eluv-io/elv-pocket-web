@@ -67,6 +67,10 @@
   &:empty {
     display: none;
   }
+
+  &--purchase {
+    text-decoration: underline;
+  }
 }
 
 .banners {
@@ -366,6 +370,7 @@
 @media screen and (width <= 1000px) {
   .sidebar {
     background-color: black;
+    gap: 0;
     height: 100%;
     overflow-y: auto;
     padding-bottom: 10px;

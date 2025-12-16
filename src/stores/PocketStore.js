@@ -1,16 +1,19 @@
 import {makeAutoObservable, flow} from "mobx";
-import {SHA512} from "@/utils/Utils.js";
+import {LinkTargetHash, SHA512} from "@/utils/Utils.js";
 
-console.time("Initial Load");
+import SanitizeHTML from "sanitize-html";
 
+const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
   media = {};
   slugMap = {};
   contentEnded = false;
+  pocketInfo;
   pocket;
   permissionItems = {};
   userItems = [];
 
+  preview = urlParams.has("preview") || urlParams.has("previewAll") || sessionStorage.getItem("preview");
   requirePassword = false;
   previewPasswordDigest;
 
@@ -46,8 +49,16 @@ class PocketStore {
     }));
   }
 
+  get hasSingleItem() {
+    return (
+      this.sidebarContent.length === 1 &&
+      this.sidebarContent[0].groups.length === 1 &&
+      this.sidebarContent[0].groups[0].content.length === 1
+    );
+  }
+
   get splashImage() {
-    const backgroundKey = this.mobile && this.pocket?.metadata?.splash_screen_background_mobile ?
+    const backgroundKey = this.mobile && !this.mobileLandscape && this.pocket?.metadata?.splash_screen_background_mobile ?
       "splash_screen_background_mobile" :
       "splash_screen_background";
 
@@ -72,6 +83,10 @@ class PocketStore {
     makeAutoObservable(this);
 
     this.rootStore = rootStore;
+
+    if(this.preview) {
+      sessionStorage.setItem("preview", "true");
+    }
   }
 
   SetContentEnded(ended) {
@@ -167,6 +182,9 @@ class PocketStore {
 
         return i1.priority < i2.priority ? -1 : 1;
       });
+
+    permissions.displayedPermissionItems = permissions.permissionItems
+      .filter(item => !item?.subsumed);
 
     return permissions;
   }
@@ -321,19 +339,66 @@ class PocketStore {
     });
   }
 
+  LoadPocketInfo = flow(function * ({pocketSlugOrId}) {
+    if(this.pocketInfo) {
+      return this.pocketInfo;
+    }
+
+    const pocketMap = (yield this.client.ContentObjectMetadata({
+      libraryId: this.rootStore.siteConfiguration.siteLibraryId,
+      objectId: this.rootStore.siteConfiguration.siteId,
+      metadataSubtree: "public/asset_metadata/pocket_properties"
+    }));
+
+    let pocketInfo = {};
+    for(const pocketSlug of Object.keys(pocketMap)) {
+      if(pocketSlug === pocketSlugOrId || pocketMap[pocketSlug]?.property_id === pocketSlugOrId) {
+        pocketInfo = {
+          slug: pocketSlug,
+          id: pocketMap[pocketSlug].property_id,
+          hash: LinkTargetHash(pocketMap[pocketSlug]["/"]),
+        };
+        break;
+      }
+    }
+
+    /*
+    const pocketProperties = (yield this.walletClient.TopLevelInfo()).pocket_properties || [];
+    let pocketInfo = pocketProperties.find(pocket => pocket.slug === pocketSlugOrId || pocket.id === pocketSlugOrId);
+
+     */
+
+    if(!pocketInfo?.hash || this.preview) {
+      pocketInfo = {
+        ...pocketInfo,
+        id: pocketInfo.id || pocketSlugOrId,
+        hash: yield this.client.LatestVersionHash({objectId: pocketInfo?.id || pocketSlugOrId})
+      };
+    }
+
+    pocketInfo.tenantId = yield this.client.ContentObjectTenantId({objectId: pocketInfo.id || pocketSlugOrId});
+
+    this.pocketInfo = pocketInfo;
+  });
+
   LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
     this.requirePassword = false;
-    const versionHash = yield this.client.LatestVersionHash({objectId: pocketSlugOrId});
 
     const metadata = yield this.client.ContentObjectMetadata({
-      versionHash,
+      versionHash: this.pocketInfo.hash,
       metadataSubtree: "/public/asset_metadata/info",
-      produceLinkUrls: true
+      produceLinkUrls: true,
+      // Don't resolve catalog/permission links when previewing, since we will load them separately
+      resolveLinks: !this.preview,
+      resolveIncludeSource: true,
+      resolveIgnoreErrors: true,
+      linkDepthLimit: 1
     });
 
+    this.LoadCustomization(metadata);
+
     // Check for preview password, except in payment flow
-    // TODO: check if staging/preview mode
-    if(!noMedia && metadata.preview_password_digest) {
+    if((this.preview || EluvioConfiguration.mode !== "production") && !noMedia && metadata.preview_password_digest) {
       const digest = yield SHA512(localStorage.getItem(`preview-password-${pocketSlugOrId}`) || "");
        if(digest !== metadata.preview_password_digest) {
          this.requirePassword = true;
@@ -343,9 +408,9 @@ class PocketStore {
     }
 
     this.pocket = {
-      objectId: pocketSlugOrId,
-      versionHash,
-      tenantId: yield this.client.ContentObjectTenantId({versionHash}),
+      objectId: this.pocketInfo.id || pocketSlugOrId,
+      versionHash: this.pocketInfo.hash,
+      tenantId: this.pocketInfo.tenantId,
       metadata
     };
 
@@ -364,28 +429,36 @@ class PocketStore {
 
     const metadata = {...this.pocket.metadata};
 
+    let mediaCatalogInfo = {...metadata.media_catalog_links};
+    if(this.preview) {
+      mediaCatalogInfo = {};
+      yield Promise.all(
+        (metadata.media_catalogs || []).map(async mediaCatalogId =>
+          mediaCatalogInfo[mediaCatalogId] = await this.client.ContentObjectMetadata({
+            versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
+            metadataSubtree: "/public/asset_metadata/info",
+            select: [ "media", "slug_map" ],
+            produceLinkUrls: true
+          })
+        )
+      );
+    }
+
     let media = {};
     let slugMap = {};
-    yield Promise.all(
-      metadata.media_catalogs.map(async mediaCatalogId => {
-        const info = await this.client.ContentObjectMetadata({
-          versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
-          metadataSubtree: "/public/asset_metadata/info",
-          select: [ "media", "slug_map" ],
-          produceLinkUrls: true
-        });
+    Object.keys(mediaCatalogInfo).forEach(mediaCatalogId => {
+      const info = mediaCatalogInfo[mediaCatalogId];
 
-        media = {
-          ...media,
-          ...(info?.media || {})
-        };
+      media = {
+        ...media,
+        ...(info?.media || {})
+      };
 
-        slugMap = {
-          ...slugMap,
-          ...(info.slug_map || {})
-        };
-      })
-    );
+      slugMap = {
+        ...slugMap,
+        ...(info.slug_map || {})
+      };
+    });
 
     // Determine permission ids and generate schedule info
     let permissionItemIds = [];
@@ -400,25 +473,39 @@ class PocketStore {
       );
     });
 
+    let permissionSetInfo = {...metadata.permission_set_links};
+    if(this.preview) {
+      permissionSetInfo = {};
+      yield Promise.all(
+        (metadata.permission_sets || []).map(async permissionSetId =>
+          permissionSetInfo[permissionSetId] = await this.client.ContentObjectMetadata({
+            versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
+            metadataSubtree: "/public/asset_metadata/info",
+            produceLinkUrls: true
+          })
+        )
+      );
+    }
+
     // Load permission items and determine marketplaces
     let allPermissionItems = {};
     let allMarketplaceIds = [];
     yield Promise.all(
-      metadata.permission_sets.map(async permissionSetId => {
-        const permissionItems = await this.client.ContentObjectMetadata({
-          versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
-          metadataSubtree: "/public/asset_metadata/info/permission_items",
-          select: permissionItemIds,
-          produceLinkUrls: true
-        });
+      Object.keys(permissionSetInfo).map(async permissionSetId => {
+        const permissionItems = permissionSetInfo[permissionSetId].permission_items || {};
 
-        Object.keys(permissionItems || {}).forEach(permissionItemId => {
+        Object.keys(permissionItems).forEach(permissionItemId => {
           allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
           const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
           !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
         });
       })
     );
+
+    while(!this.rootStore.loggedIn) {
+      // Don't start determining permissions until logged in
+      yield new Promise(resolve => setTimeout(resolve, 250));
+    }
 
     let allUserItems = [];
     let allMarketplaces = {};
@@ -508,6 +595,71 @@ class PocketStore {
 
     console.timeEnd("Load Media");
   });
+
+  LoadCustomization(metadata) {
+    if(!metadata?.styling) {
+      return;
+    }
+
+    let css = [];
+    let variables = [];
+    if(metadata.styling?.font === "custom") {
+      if(metadata.styling.custom_font_declaration) {
+        if(metadata.styling.custom_font_definition) {
+          css.push(metadata.styling.custom_font_definition);
+        }
+
+        const customFont = `${metadata.styling.custom_font_declaration}, Montserrat, "Helvetica Neue", helvetica, sans-serif`;
+
+        variables.push(`--font-family: ${customFont};`);
+      }
+    }
+
+    const buttonSettings = metadata?.styling?.button_style || {};
+
+    // Remove invalid color options
+    ["background_color", "background_color_2", "border_color", "text_color"].forEach(key => {
+      if(!buttonSettings[key] || !CSS.supports("color", buttonSettings[key])) {
+        delete buttonSettings[key];
+      }
+    });
+
+    if(buttonSettings.background_color) {
+      variables.push(`--button-background-color--custom: ${buttonSettings.background_color};`);
+      // If border color is not explicitly set, it should default to background color
+      variables.push(`--button-border-color--custom: ${buttonSettings.background_color};`);
+    }
+
+    if(buttonSettings.background_type === "gradient" && buttonSettings.background_color && buttonSettings.background_color_2) {
+      variables.push(
+        `--button-background--custom: linear-gradient(${buttonSettings.background_gradient_angle || 0}deg, ${buttonSettings.background_color}, ${buttonSettings.background_color_2});`);
+    }
+
+    if(buttonSettings.text_color) {
+      variables.push(`--button-text--custom: ${buttonSettings.text_color};`);
+    }
+
+    if(metadata.styling?.button_style?.border_color) {
+      variables.push(`--button-border-color--custom: ${buttonSettings.border_color};`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_width))) {
+      variables.push(`--button-border-width--custom: ${buttonSettings.border_width}px;`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_radius))) {
+      variables.push(`--button-border-radius--custom: ${buttonSettings.border_radius}px;`);
+    }
+
+    if(variables.length > 0) {
+      css.unshift(":root {\n" + variables.join("\n") + "\n}\n");
+    }
+
+    const styleElement = document.createElement("style");
+    styleElement.id = "__custom-css";
+    styleElement.innerHTML = SanitizeHTML(css.join("\n"));
+    document.body.appendChild(styleElement);
+  }
 }
 
 export default PocketStore;

@@ -8,10 +8,20 @@
   position: relative;
   width: 100%;
   z-index: 10;
+
+  &--simple {
+    justify-content: center;
+
+    .title {
+      width: max-content;
+    }
+  }
 }
 
+.back,
 .logo {
   height: 100%;
+  min-width: max-content;
   width: auto;
 
   &__image,
@@ -86,6 +96,7 @@
     }
   }
 
+  .back,
   .logo {
     margin-right: 10px;
   }
@@ -102,17 +113,17 @@
 
 @media screen and (width <= 1000px) {
   .header {
-    gap: 0;
+    gap: 3px;
     height: 50px;
     padding: 12px 10px;
-
-    &--back {
-      padding-inline: 20px;
-    }
   }
 
   .logo {
     margin-right: 10px;
+  }
+
+  .back {
+    margin-right: 5px;
   }
 
   .button {

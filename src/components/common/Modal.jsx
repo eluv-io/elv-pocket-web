@@ -95,12 +95,14 @@ const Modal = observer(({children, align="center", SetMenuControls, onHide, clos
       <div ref={setContainer} className={S("container")}>
         {
           !closable ? null :
-            <button
-              onClick={() => controls.Hide()}
-              className={S("close", "opacity-hover")}
-            >
-              <SVG src={XIcon}/>
-            </button>
+            <div className={S("close-container")}>
+              <button
+                onClick={() => controls.Hide()}
+                className={S("close", "opacity-hover")}
+              >
+                <SVG src={XIcon}/>
+              </button>
+            </div>
         }
         <div
           onClick={event => {

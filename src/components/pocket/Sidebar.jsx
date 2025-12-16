@@ -32,7 +32,7 @@ const MediaCard = observer(({mediaItem}) => {
           src={imageInfo.imageUrl}
           hash={imageInfo.imageHash}
           alt={imageInfo.alt}
-          width={400}
+          width={600}
           className={S("media-card__image")}
         />
         {
@@ -62,7 +62,7 @@ const MediaCard = observer(({mediaItem}) => {
               className={S("media-card__subtitle", "media-card__subtitle--purchase")}
             >
               Additional Purchase Options
-            </Linkish> :
+            </Linkish>:
             <div className={S("media-card__subtitle")}>
               {
                 !mediaItem.scheduleInfo.isLiveContent ?
@@ -123,6 +123,10 @@ const SidebarContent = observer(() => {
         </div>
       </>
     );
+  }
+
+  if(pocketStore.hasSingleItem) {
+    return null;
   }
 
   return (
@@ -229,6 +233,8 @@ export const Banners = observer(({position="below"}) => {
 });
 
 const ContentInfo = observer(({mediaItem}) => {
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
+
   return (
     <div className={S("content-info")}>
       {
@@ -260,6 +266,20 @@ const ContentInfo = observer(({mediaItem}) => {
                   `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
               }
             </div>
+            {
+              !pocketStore.hasSingleItem || !permissions.authorized || !permissions.anyItemsAvailable ? null :
+                // Link to additional purchase options for this content
+                <Linkish
+                  onClick={event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    rootStore.SetShowAdditionalPurchaseOptions(!rootStore.showAdditionalPurchaseOptions);
+                  }}
+                  className={S("subtitle", "subtitle--purchase")}
+                >
+                  Additional Purchase Options
+                </Linkish>
+            }
           </div>
       }
     </div>
@@ -282,13 +302,16 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
         }
         {
           hideTitle ? null :
-            <ContentInfo key={mediaItem.id} mediaItem={mediaItem}/>
+            <ContentInfo
+              key={mediaItem.id}
+              mediaItem={mediaItem}
+            />
         }
         {
-          rootStore.mobile ? null :
+          rootStore.mobile && !pocketStore.hasSingleItem ? null :
             <Banners position="below"/>
         }
-        <SidebarContent/>
+        <SidebarContent />
         <div className={S("logo")}>
           <button
             onClick={
@@ -302,7 +325,7 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
         </div>
       </div>
       {
-        !rootStore.mobile || rootStore.mobileLandscape ? null :
+        !rootStore.mobile || rootStore.mobileLandscape || pocketStore.hasSingleItem ? null :
           <Banners position="below" />
       }
     </>
