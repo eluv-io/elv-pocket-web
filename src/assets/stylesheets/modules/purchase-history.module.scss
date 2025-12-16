@@ -46,12 +46,13 @@
   }
 
   &__badge {
-    background-color: #B8862D;
+    background-color: var(--button-background-color--custom, var(--button-background-color));
     border-radius: 2px;
-    color: white;
+    color: var(--button-text--custom, var(--button-text));
     font-size: 14px;
+    font-weight: 600;
     margin-top: 5px;
-    padding: 1px 5px;
+    padding: 1px 8px;
     width: max-content;
   }
 }
@@ -78,7 +79,7 @@
   flex-grow: 1;
   font-size: 12px;
   justify-content: flex-end;
-  
+
   a {
     text-decoration: underline;
   }

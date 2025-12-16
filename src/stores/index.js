@@ -18,7 +18,6 @@ class RootStore {
   walletClient;
   initialized = false;
   shortURLs = {};
-  permissionItems = {};
   loggedIn = false;
 
   showMyItems = false;

@@ -528,6 +528,7 @@ class PocketStore {
       const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
       const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku);
       allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
+      allPermissionItems[permissionItemId].address = marketplaceItem.nftTemplateMetadata?.address;
       allPermissionItems[permissionItemId].owned = !!marketplace.ownedItems
         .find(({contractAddress}) =>
           this.client.utils.EqualAddress(
@@ -535,6 +536,14 @@ class PocketStore {
             marketplaceItem.nftTemplateMetadata.address
           )
         );
+
+      if(allPermissionItems[permissionItemId].address) {
+        allUserItems.forEach((item, index) => {
+          if(!item.permissionItemId && this.client.utils.EqualAddress(item.contractAddress, allPermissionItems[permissionItemId].address)) {
+            allUserItems[index].permissionItemId = permissionItemId;
+          }
+        });
+      }
     });
 
     Object.keys(allPermissionItems).forEach(permissionItemId => {

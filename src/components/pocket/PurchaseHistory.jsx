@@ -108,19 +108,29 @@ const PurchaseHistory = observer(() => {
             <div className={S("block", "no-items")}>
               {"You haven't purchased any items yet"}
             </div> :
-            pocketStore.userItems.map(item =>
-              <div key={item.id} className={S("block", "item")}>
-                <div className={S("item__name")}>
-                  { item.name }
+            pocketStore.userItems.map(item => {
+              const permissionItem = pocketStore.permissionItems[item.permissionItemId];
+
+              return (
+                <div key={item.tokenId} className={S("block", "item")}>
+                  <div className={S("item__name")}>
+                    {item.name}
+                  </div>
+                  {
+                    !permissionItem?.access_title && !item.metadata.edition_name ? null :
+                      <div
+                        style={{
+                          backgroundColor: permissionItem.access_title_background_color,
+                          color: permissionItem.access_title_text_color
+                        }}
+                        className={S("item__badge")}
+                      >
+                        { permissionItem?.access_title || item.metadata.edition_name }
+                      </div>
+                  }
                 </div>
-                {
-                  !item.metadata.edition_name ? null :
-                    <div className={S("item__badge")}>
-                      { item.metadata.edition_name }
-                    </div>
-                }
-              </div>
-            )
+              );
+            })
         }
         <div className={S("block", "missing")}>
           <div className={S("missing__text")}>
