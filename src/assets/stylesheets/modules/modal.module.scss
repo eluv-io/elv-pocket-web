@@ -42,7 +42,6 @@
   overflow: hidden auto;
   place-items: center center;
   position: absolute;
-  scrollbar-gutter: stable;
   width: 100vw;
   z-index: 1;
 }
@@ -101,5 +100,11 @@
   .close-container {
     bottom: 15vh;
     width: 100%;
+  }
+
+  .modal--unclosable {
+    .container {
+      padding-bottom: 0;
+    }
   }
 }

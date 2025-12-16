@@ -3,7 +3,7 @@ import PurchaseHistoryStyles from "@/assets/stylesheets/modules/purchase-history
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {pocketStore, rootStore} from "@/stores/index.js";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
 import {useParams} from "wouter";
 import SVG from "react-inlinesvg";
@@ -12,6 +12,87 @@ import XIcon from "@/assets/icons/x.svg";
 import ReceiptExampleImage from "@/assets/images/receipt-example.jpg";
 
 const S = CreateModuleClassMatcher(PurchaseHistoryStyles);
+
+export const ConcurrencyLockForm = observer(() => {
+  const {pocketSlugOrId} = useParams();
+  const [menuControls, setMenuControls] = useState(undefined);
+  const [input, setInput] = useState("");
+  const [isInvalid, setIsInvalid] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if(!menuControls) { return; }
+
+    menuControls.Show();
+  }, [menuControls]);
+
+  const Submit = async () => {
+    if(input.length !== 12) { return; }
+
+    setSubmitting(true);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await rootStore.Initialize({pocketSlugOrId, customUserIdCode: input, force: true});
+
+    menuControls.Hide();
+  };
+
+  return (
+    <Modal align="center" closable={false} SetMenuControls={setMenuControls}>
+      <div className={S("recovery", "recovery--concurrency-block")}>
+        <div className={S("recovery__title-container")}>
+          <div className={S("recovery__title")}>
+            Too Many Devices
+          </div>
+          <div className={S("recovery__subtitle")}>
+            Your account has been accessed on too many devices. Please enter your PocketTV ID to proceed.
+          </div>
+        </div>
+        <div className={S("recovery__form")}>
+          <input
+            value={input}
+            onChange={event => setInput(event.target.value)}
+            onKeyDown={event => {
+              if(event.key === "Enter") {
+                Submit();
+              }
+            }}
+            onFocus={() => setIsInvalid(false)}
+            onBlur={event => setIsInvalid(![0, 12].includes(event.target.value.length))}
+            placeholder="Enter Your Pocket TV ID"
+            className={S("input", "recovery__input", isInvalid ? "recovery__input--invalid" : "")}
+          />
+          <button
+            disabled={input.length !== 12 || submitting}
+            title={input.length !== 12 ? "Please enter a valid Pocket TV ID" : ""}
+            onClick={() => Submit()}
+            className={S("opacity-hover", "button", "recovery__submit")}
+          >
+            {
+              submitting ?
+                "CHECKING..." :
+                "SUBMIT"
+            }
+          </button>
+        </div>
+        <div className={S("recovery__info")}>
+          <div className={S("recovery__image-container")}>
+            <img src={ReceiptExampleImage} alt="Purchase Receipt Example" className={S("recovery__image")} />
+          </div>
+          <div className={S("recovery__info-text")}>
+            <div className={S("recovery__info-title")}>
+              Where is my PocketTV ID?
+            </div>
+            <div className={S("recovery__info-description")}>
+              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your PocketTV ID is located on your receipt above the name of the item you purchased.
+            </div>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+});
 
 const RecoveryForm = observer(({menuControls, setMenuControls}) => {
   const {pocketSlugOrId} = useParams();

@@ -11,6 +11,7 @@ import UrlJoin from "url-join";
 import Purchase from "@/components/pocket/Purchase.jsx";
 import Page from "@/components/pocket/Page.jsx";
 import PreviewPasswordForm from "@/components/common/PreviewPasswordForm.jsx";
+import {ConcurrencyLockForm} from "@/components/pocket/PurchaseHistory.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -33,6 +34,10 @@ const Pocket = observer(() => {
 
   if(pocketStore.requirePassword) {
     return <PreviewPasswordForm />;
+  }
+
+  if(rootStore.tooManyLogins) {
+    return <ConcurrencyLockForm />;
   }
 
   if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {

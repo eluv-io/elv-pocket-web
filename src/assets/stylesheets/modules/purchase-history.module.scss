@@ -196,6 +196,11 @@
     text-align: center;
     width: 100vw;
 
+    &--concurrency-block {
+      background-color: var(--background-primary);
+      min-height: 100vh;
+    }
+
     &__title-container,
     &__info,
     &__form {
