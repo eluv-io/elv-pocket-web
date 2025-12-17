@@ -21,6 +21,15 @@ const Pocket = observer(() => {
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
+    if(params.has("uid")) {
+      // Scrub UID from url immediately
+      const url = new URL(window.location.href);
+      url.searchParams.delete("uid");
+      window.history.replaceState({}, document.title, url.toString());
+    }
+  }, []);
+
+  useEffect(() => {
     rootStore.Initialize({pocketSlugOrId, customUserIdCode: params.get("uid")})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
