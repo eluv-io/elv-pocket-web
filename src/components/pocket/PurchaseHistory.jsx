@@ -43,10 +43,10 @@ export const ConcurrencyLockForm = observer(() => {
       <div className={S("recovery", "recovery--concurrency-block")}>
         <div className={S("recovery__title-container")}>
           <div className={S("recovery__title")}>
-            Too Many Devices
+            Too Many Active Devices
           </div>
           <div className={S("recovery__subtitle")}>
-            Your account has been accessed on too many devices. Please enter your PocketTV ID to proceed.
+            Your account has reached its device limit. Enter your {pocketStore.appName} ID to continue watching.
           </div>
         </div>
         <div className={S("recovery__form")}>
@@ -60,19 +60,19 @@ export const ConcurrencyLockForm = observer(() => {
             }}
             onFocus={() => setIsInvalid(false)}
             onBlur={event => setIsInvalid(![0, 12].includes(event.target.value.length))}
-            placeholder="Enter Your Pocket TV ID"
+            placeholder={`Enter Your ${pocketStore.appName} ID`}
             className={S("input", "recovery__input", isInvalid ? "recovery__input--invalid" : "")}
           />
           <button
             disabled={input.length !== 12 || submitting}
-            title={input.length !== 12 ? "Please enter a valid Pocket TV ID" : ""}
+            title={input.length !== 12 ? `Please enter a valid ${pocketStore.appName} ID` : ""}
             onClick={() => Submit()}
             className={S("opacity-hover", "button", "recovery__submit")}
           >
             {
               submitting ?
                 "CHECKING..." :
-                "SUBMIT"
+                "CONTINUE"
             }
           </button>
         </div>
@@ -82,10 +82,10 @@ export const ConcurrencyLockForm = observer(() => {
           </div>
           <div className={S("recovery__info-text")}>
             <div className={S("recovery__info-title")}>
-              Where is my PocketTV ID?
+              Where is my {pocketStore.appName} ID?
             </div>
             <div className={S("recovery__info-description")}>
-              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your PocketTV ID is located on your receipt above the name of the item you purchased.
+              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt above the name of the item you purchased.
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
             Recover Purchases
           </div>
           <div className={S("recovery__subtitle")}>
-            Missing something? Add the PocketTV ID from your purchase receipt to recover it
+            Missing something? Add the {pocketStore.appName} ID from your purchase receipt to recover it
           </div>
         </div>
         <div className={S("recovery__form")}>
@@ -134,19 +134,19 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
             }}
             onFocus={() => setIsInvalid(false)}
             onBlur={event => setIsInvalid(![0, 12].includes(event.target.value.length))}
-            placeholder="Enter Your Pocket TV ID"
+            placeholder={`Enter Your ${pocketStore.appName} ID`}
             className={S("input", "recovery__input", isInvalid ? "recovery__input--invalid" : "")}
           />
           <button
             disabled={input.length !== 12 || submitting}
-            title={input.length !== 12 ? "Please enter a valid Pocket TV ID" : ""}
+            title={input.length !== 12 ? `Please enter a valid ${pocketStore.appName} ID` : ""}
             onClick={() => Submit()}
             className={S("opacity-hover", "button", "recovery__submit")}
           >
             {
               submitting ?
                 "CHECKING..." :
-                "SUBMIT"
+                "CONTINUE"
             }
           </button>
         </div>
@@ -156,10 +156,10 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
           </div>
           <div className={S("recovery__info-text")}>
             <div className={S("recovery__info-title")}>
-              Where is my PocketTV ID?
+              Where is my {pocketStore.appName} ID?
             </div>
             <div className={S("recovery__info-description")}>
-              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your PocketTV ID is located on your receipt above the name of the item you purchased.
+              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt above the name of the item you purchased.
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@ const PurchaseHistory = observer(() => {
         <div className={S("block", "missing")}>
           <div className={S("missing__text")}>
             <div>Missing something?</div>
-            <div>Enter the PocketTV ID from your purchase receipt to recover it</div>
+            <div>Enter the {pocketStore.appName} ID from your purchase receipt to recover it</div>
           </div>
           <div className={S("missing__actions")}>
             <button

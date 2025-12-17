@@ -79,6 +79,10 @@ class PocketStore {
       .length > 0;
   }
 
+  get appName() {
+    return this.pocket?.metadata?.app_name || "Pocket TV";
+  }
+
   constructor(rootStore) {
     makeAutoObservable(this);
 
@@ -100,7 +104,7 @@ class PocketStore {
   }
 
   MediaItemInfo(mediaItemId) {
-    let endScreenSettings = this.pocket.metadata.post_content_screen || {};
+    let bumpers = this.pocket.metadata.bumpers || [];
     let sequential = false;
 
     for(let tabIndex = 0; tabIndex < this.sidebarContent.length; tabIndex++) {
@@ -111,7 +115,13 @@ class PocketStore {
 
         if(itemIndex >= 0) {
           sequential = tab.sequential || group.sequential;
-          endScreenSettings = tab.post_content_screen?.enabled ? tab.post_content_screen : endScreenSettings;
+          bumpers = tab.override_bumpers ? tab.bumpers || [] : bumpers;
+
+          const isFree = this.MediaItemPermissions({mediaItemSlugOrId: mediaItemId})?.public;
+
+          if(!isFree) {
+            bumpers = bumpers.filter(bumper => !bumper.free_only);
+          }
 
           let nextItemId;
           if(sequential) {
@@ -129,7 +139,8 @@ class PocketStore {
             itemIndex,
             sequential,
             nextItemId,
-            endScreenSettings
+            bumpers,
+            isFree
           };
         }
       }

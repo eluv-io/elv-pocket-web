@@ -10,7 +10,7 @@
 
 .countdown-page,
 .video,
-.end-screen {
+.bumper {
   height: 100%;
   max-height: min(100%, calc(100 * var(--vh)));
   width: 100%;
@@ -55,13 +55,14 @@
   }
 }
 
-.end-screen {
+.bumper {
   align-items: center;
   background-color: black;
   display: flex;
   inset: 0;
   justify-content: center;
   position: absolute;
+  width: 100%;
   z-index: 10;
 
   &__cover {

@@ -15,12 +15,13 @@ import {ConcurrencyLockForm} from "@/components/pocket/PurchaseHistory.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
+const params = new URLSearchParams(window.location.search);
 const Pocket = observer(() => {
   const [showPreview, setShowPreview] = useState(false);
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
-    rootStore.Initialize({pocketSlugOrId})
+    rootStore.Initialize({pocketSlugOrId, customUserIdCode: params.get("uid")})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       );

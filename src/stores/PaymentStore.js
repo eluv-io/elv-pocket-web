@@ -32,8 +32,17 @@ class PaymentStore {
     }
   });
 
+  async RecoveryUrl() {
+    const recoveryUrl = new URL(window.location.origin);
+    recoveryUrl.pathname = this.rootStore.pocketStore.pocket.metadata.slug || this.rootStore.pocketStore.pocket.objectId;
+    recoveryUrl.searchParams.set("uid", this.rootStore.userIdCode);
+
+    return await this.rootStore.CreateShortURL(recoveryUrl.toString());
+  }
+
   InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId, mediaTitle}) {
     if(!this.purchaseDetails[permissionItemId]) {
+      const pocket = this.rootStore.pocketStore.pocket.metadata;
       const permissionItem = this.rootStore.pocketStore.permissionItems[permissionItemId];
       const confirmationId = this.ConfirmationId();
       const response = yield this.client.utils.ResponseToJson(
@@ -46,6 +55,8 @@ class PaymentStore {
             currency: this.currency,
             success_url: window.location.href,
             cancel_url: window.location.href,
+            recovery_url: yield this.RecoveryUrl(),
+            receipt_text: `${pocket.receipt_name || pocket.app_name || "PocketTV"} [${this.rootStore.userIdCode}]`,
             name: this.rootStore.userIdCode,
             client_reference_id: confirmationId
           }
