@@ -175,9 +175,12 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
           <div className={S("vertical-item__title")}>
             {permissionItem.title}
           </div>
-          <div className={S("vertical-item__price")}>
-            {FormatPriceString(permissionItem.marketplaceItem.price)}
-          </div>
+          {
+            permissionItem.type === "external" ? null :
+              <div className={S("vertical-item__price")}>
+                {FormatPriceString(permissionItem.marketplaceItem.price)}
+              </div>
+          }
           {
             !permissionItem.subtitle ? null :
               <div className={S("vertical-item__subtitle")}>
@@ -187,7 +190,8 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         </div>
         <div className={S("vertical-item__actions")}>
           <Linkish
-            onClick={Select}
+            onClick={permissionItem.type === "owned_item" ? Select : undefined}
+            href={permissionItem.type === "external" ? permissionItem.link : undefined}
             className={S("styled-button", "opacity-hover", "vertical-item__action")}
           >
             { permissionItem.owned ? "SELECTED" : "SELECT" }

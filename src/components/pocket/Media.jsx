@@ -196,6 +196,7 @@ const Bumper = observer(({bumper, setFinished}) => {
           /> :
           <Video
             videoLink={bumper.video}
+            videoLinkInfo={bumper.video_info}
             posterImage={bumper[backgroundKey]?.url || pocketStore.splashImage.url}
             endCallback={setFinished}
             className={S("bumper__video")}
@@ -296,6 +297,7 @@ const Media = observer(({setShowPreview}) => {
           <Video
             isLive={mediaItem.scheduleInfo.currentlyLive}
             videoLink={mediaItem.media_link}
+            videoLinkInfo={mediaItem.media_link_info}
             callback={setPlayer}
             posterImage={
               mediaItem.poster_image?.url ||

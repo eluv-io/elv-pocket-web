@@ -183,11 +183,11 @@ class PocketStore {
       })
       .filter(permission => permission)
       .sort((i1, i2) => {
-        if(typeof i1.priority === "undefined" && typeof i2.priority === "undefined") {
+        if(!i1.priority && typeof !i2.priority) {
           return 0;
-        } else if(typeof i2.priority === "undefined") {
+        } else if(!i2.priority) {
           return -1;
-        } else if(typeof i1.priority === "undefined") {
+        } else if(!i1.priority) {
           return 1;
         }
 
@@ -508,7 +508,10 @@ class PocketStore {
         Object.keys(permissionItems).forEach(permissionItemId => {
           allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
           const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
-          !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
+
+          if(marketplaceId) {
+            !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
+          }
         });
       })
     );
@@ -536,6 +539,9 @@ class PocketStore {
 
     Object.keys(allPermissionItems).forEach(permissionItemId => {
       const permissionItem = allPermissionItems[permissionItemId];
+
+      if(permissionItem.type !== "owned_item") { return; }
+
       const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
       const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku);
       allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
