@@ -82,14 +82,14 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
 const EndScreen = observer(({mediaItem}) => {
   const {pocketSlugOrId} = useParams();
   const info = pocketStore.MediaItemInfo(mediaItem.id);
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(5);
   const [redirect, setRedirect] = useState(false);
   const disabled = !info.nextItemId;
 
   useEffect(() => {
     if(disabled || !info.nextItemId) { return; }
 
-    const transitionAt = Date.now() + 10.5 * 1000;
+    const transitionAt = Date.now() + 5.5 * 1000;
 
     const interval = setInterval(() => {
       const countdown = Math.floor((transitionAt - Date.now()) / 1000);
@@ -98,7 +98,7 @@ const EndScreen = observer(({mediaItem}) => {
         setRedirect(true);
       }
 
-      setCountdown(Math.max(1, countdown));
+      setCountdown(Math.max(0, countdown));
     }, 100);
 
     return () => clearInterval(interval);
@@ -126,7 +126,7 @@ const EndScreen = observer(({mediaItem}) => {
         <div className={S("bumper__cover")} />
         <div className={S("next")}>
           <div className={S("next__timer")}>
-            Up Next in {countdown}
+            Up Next in {countdown + 1}
           </div>
           <div className={S("next__card")}>
             <HashedLoaderImage
