@@ -177,7 +177,7 @@ export const Payment = observer(({
     );
   }
 
-  if(["card", "unsupported"].includes(formDetails.type) && showQR && url) {
+  if(showQR && url) {
     return (
       <div className={JoinClassNames(S("qr-container"), qrClassName)}>
         <div className={S("qr-container__text")}>

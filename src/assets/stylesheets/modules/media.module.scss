@@ -107,6 +107,14 @@
     z-index: 10;
   }
 
+  &__controls-background {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    position: absolute;
+    width: 100%;
+  }
+
   &__button-container {
     align-items: center;
     cursor: initial;

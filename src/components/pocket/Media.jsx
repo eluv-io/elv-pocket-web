@@ -168,7 +168,7 @@ const EndScreen = observer(({mediaItem}) => {
   }
 });
 
-const Bumper = observer(({bumper, setFinished}) => {
+const Bumper = observer(({mediaItem, bumper, setFinished}) => {
   const [player, setPlayer] = useState(undefined);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [hasAudio, setHasAudio] = useState(false);
@@ -236,7 +236,6 @@ const Bumper = observer(({bumper, setFinished}) => {
       <Video
         videoLink={bumper.video}
         videoLinkInfo={bumper.video_info}
-        posterImage={bumper[backgroundKey]?.url}
         callback={setPlayer}
         endCallback={setFinished}
         className={S("bumper__video")}
@@ -250,17 +249,26 @@ const Bumper = observer(({bumper, setFinished}) => {
       <div className={S("bumper__controls")}>
         {
           !autoplayBlocked ? null :
-            <div
-              onClick={event => {
-                event.stopPropagation();
-                event.preventDefault();
-              }}
-              className={S("bumper__button-container")}
-            >
-              <button onClick={() => player.controls.Play()} className={S("bumper__play-button")}>
-                <SVG src={PlayIcon} />
-              </button>
-            </div>
+            <>
+              <HashedLoaderImage
+                src={mediaItem.poster_image?.url || mediaItem.thumbnail_image_landscape?.url}
+                hash={mediaItem.poster_image_hash || mediaItem.thumbnail_image_landscape_hash}
+                alt={mediaItem.title}
+                onClick={() => player.controls.Play()}
+                className={S("bumper__controls-background")}
+              />
+              <div
+                onClick={event => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                }}
+                className={S("bumper__button-container")}
+              >
+                <button onClick={() => player.controls.Play()} className={S("bumper__play-button")}>
+                  <SVG src={PlayIcon} />
+                </button>
+              </div>
+            </>
         }
         {
           !hasAudio ? null :
@@ -300,6 +308,7 @@ const Bumpers = observer(({mediaItem, position="before", setFinished}) => {
   return (
     <Bumper
       key={bumpers[bumperIndex]?.id || bumperIndex}
+      mediaItem={mediaItem}
       bumper={bumpers[bumperIndex]}
       setFinished={() => {
         if(bumpers[bumperIndex + 1]) {
