@@ -14,6 +14,19 @@ import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
+const PermissionItemPrice = observer(({permissionItem, className}) =>
+  permissionItem.type === "external" && !permissionItem?.price?.USD ? null :
+    <div className={className}>
+      {
+        FormatPriceString(
+          permissionItem.type === "external" ?
+            permissionItem?.price :
+            permissionItem?.marketplaceItem?.price
+        )
+      }
+    </div>
+);
+
 const MintingStatus = observer(({permissionItemId, confirmationId}) => {
   const [status, setStatus] = useState(null);
 
@@ -104,9 +117,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
             <div className={S("vertical-item__title")}>
               {permissionItem.title}
             </div>
-            <div className={S("vertical-item__price")}>
-              {FormatPriceString(permissionItem.marketplaceItem.price)}
-            </div>
+            <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")} />
             {
               !permissionItem.subtitle ? null :
                 <div className={S("vertical-item__subtitle")}>
@@ -136,9 +147,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
               <div className={S("vertical-item__title")}>
                 {permissionItem.title}
               </div>
-              <div className={S("vertical-item__price")}>
-                {FormatPriceString(permissionItem.marketplaceItem.price)}
-              </div>
+              <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")} />
               {
                 !permissionItem.subtitle ? null :
                   <div className={S("vertical-item__subtitle")}>
@@ -175,12 +184,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
           <div className={S("vertical-item__title")}>
             {permissionItem.title}
           </div>
-          {
-            permissionItem.type === "external" ? null :
-              <div className={S("vertical-item__price")}>
-                {FormatPriceString(permissionItem.marketplaceItem.price)}
-              </div>
-          }
+          <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")}/>
           {
             !permissionItem.subtitle ? null :
               <div className={S("vertical-item__subtitle")}>
@@ -221,9 +225,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         }
       </div>
       <div className={S("horizontal-item__actions")}>
-        <div className={S("horizontal-item__price")}>
-          {FormatPriceString(permissionItem.marketplaceItem.price)}
-        </div>
+        <PermissionItemPrice permissionItem={permissionItem} className={S("horizontal-item__price")} />
         <Linkish
           onClick={Select}
           className={S("styled-button", "opacity-hover", "horizontal-item__action")}

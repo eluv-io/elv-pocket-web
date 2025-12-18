@@ -23,8 +23,11 @@
   justify-content: space-between;
 
   &__close {
+    align-items: center;
     color: var(--text-tertiary);
+    display: flex;
     height: 30px;
+    justify-content: center;
     padding: 7px;
     position: absolute;
     right: 11px;
@@ -103,6 +106,7 @@
   .header {
     border-width: 1px;
     box-shadow: 0 0 3px black;
+    font-size: 22px;
     position: sticky;
     top: 0;
 
@@ -140,7 +144,7 @@
   }
 
   &__subtitle {
-    font-size: 18px;
+    font-size: 16px;
     margin-top: 5px;
   }
 
@@ -153,7 +157,7 @@
   }
 
   &__input {
-    border: 1px solid transparent;
+    border: 1px solid var(--background-tertiary);
     width: 100%;
 
     &--invalid {
@@ -192,9 +196,14 @@
     display: flex;
     flex-direction: column;
     max-width: 100vw;
-    padding: 30px;
+    padding: 30px 0;
     text-align: center;
     width: 100vw;
+
+    &__title-container,
+    &__info {
+      padding-inline: 30px;
+    }
 
     &--concurrency-block {
       background-color: var(--background-primary);
@@ -208,6 +217,12 @@
       max-width: 500px;
     }
 
+    &__form {
+      background-color: var(--background-primary);
+      box-shadow: 0 0 10px black;
+      padding: 20px 30px;
+    }
+
     &__subtitle {
       font-size: 14px;
     }
@@ -216,7 +231,7 @@
       text-align: center;
 
       &::placeholder {
-        font-size: 14px;
+        font-size: 11px;
       }
     }
 

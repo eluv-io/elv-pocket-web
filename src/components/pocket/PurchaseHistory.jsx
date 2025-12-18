@@ -120,7 +120,7 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
             Recover Purchases
           </div>
           <div className={S("recovery__subtitle")}>
-            Missing something? Add the {pocketStore.appName} ID from your purchase receipt to recover it
+            Missing something? Add the {pocketStore.appName} ID from your purchase receipt to recover it.
           </div>
         </div>
         <div className={S("recovery__form")}>
@@ -185,10 +185,7 @@ const PurchaseHistory = observer(() => {
           </button>
         </div>
         {
-          pocketStore.userItems.length === 0 ?
-            <div className={S("block", "no-items")}>
-              {"You haven't purchased any items yet"}
-            </div> :
+          pocketStore.userItems.length === 0 ? null :
             pocketStore.userItems.map(item => {
               const permissionItem = pocketStore.permissionItems[item.permissionItemId];
 
@@ -216,7 +213,7 @@ const PurchaseHistory = observer(() => {
         <div className={S("block", "missing")}>
           <div className={S("missing__text")}>
             <div>Missing something?</div>
-            <div>Enter the {pocketStore.appName} ID from your purchase receipt to recover it</div>
+            <div>Enter the {pocketStore.appName} ID from your purchase receipt to recover it.</div>
           </div>
           <div className={S("missing__actions")}>
             <button

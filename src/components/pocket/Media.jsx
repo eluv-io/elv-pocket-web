@@ -10,9 +10,11 @@ import Countdown from "@/components/pocket/Countdown.jsx";
 import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import SVG from "react-inlinesvg";
+import UrlJoin from "url-join";
 
 import PlayIcon from "@/assets/icons/play.svg";
-import UrlJoin from "url-join";
+import VolumeOnIcon from "@/assets/icons/volume-high.svg";
+import VolumeOffIcon from "@/assets/icons/volume-off.svg";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -167,6 +169,10 @@ const EndScreen = observer(({mediaItem}) => {
 });
 
 const Bumper = observer(({bumper, setFinished}) => {
+  const [player, setPlayer] = useState(undefined);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [hasAudio, setHasAudio] = useState(false);
+  const [muted, setMuted] = useState(false);
   const backgroundKey = rootStore.mobile && bumper.background_mobile ?
     "background_mobile" :
     "background";
@@ -176,38 +182,101 @@ const Bumper = observer(({bumper, setFinished}) => {
       return;
     }
 
-    let timeout = setTimeout(() => setFinished(), (bumper.duration || 8) * 1000);
+    let timeout = setTimeout(() => setFinished(), (bumper.duration || 5) * 1000);
 
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    if(!player) { return; }
+    window.pl = player;
+
+    player.video.play()
+      .catch(() => setAutoplayBlocked(true));
+
+    player.controls.RegisterVideoEventListener(
+      "play",
+      () => {
+        setAutoplayBlocked(false);
+        setHasAudio(
+          player.video.mozHasAudio ||
+          !!player.video.webkitAudioDecodedByteCount ||
+          !!player.video.audioTracks && player.video.audioTracks.length
+        );
+      }
+    );
+
+    player.controls.RegisterVideoEventListener(
+      "volumechange",
+      () => setMuted(player.controls.IsMuted())
+    );
+  }, [player]);
+
+  if(!bumper.video) {
+    return (
+      <Linkish
+        href={bumper.link}
+        className={S("bumper")}
+      >
+        <HashedLoaderImage
+          src={bumper[backgroundKey]?.url || pocketStore.splashImage.url}
+          hash={bumper[`${backgroundKey}_hash`] || pocketStore.splashImage.hash}
+          alt={bumper.background_alt}
+          className={S("bumper__background")}
+        />
+      </Linkish>
+    );
+  }
 
   return (
     <Linkish
       href={bumper.link}
       className={S("bumper")}
     >
-      {
-        !bumper.video ?
-          <HashedLoaderImage
-            src={bumper[backgroundKey]?.url || pocketStore.splashImage.url}
-            hash={bumper[`${backgroundKey}_hash`] || pocketStore.splashImage.hash}
-            alt={bumper.background_alt}
-            className={S("bumper__background")}
-          /> :
-          <Video
-            videoLink={bumper.video}
-            videoLinkInfo={bumper.video_info}
-            posterImage={bumper[backgroundKey]?.url || pocketStore.splashImage.url}
-            endCallback={setFinished}
-            className={S("bumper__video")}
-            autoAspectRatio={false}
-            playerOptions={{
-              controls: EluvioPlayerParameters.controls.OFF,
-              autoplay: EluvioPlayerParameters.autoplay.ON,
-              muted: EluvioPlayerParameters.muted.OFF_IF_POSSIBLE
-            }}
-          />
-      }
+      <Video
+        videoLink={bumper.video}
+        videoLinkInfo={bumper.video_info}
+        posterImage={bumper[backgroundKey]?.url}
+        callback={setPlayer}
+        endCallback={setFinished}
+        className={S("bumper__video")}
+        autoAspectRatio={false}
+        playerOptions={{
+          controls: EluvioPlayerParameters.controls.OFF,
+          autoplay: EluvioPlayerParameters.autoplay.OFF,
+          muted: EluvioPlayerParameters.muted.OFF
+        }}
+      />
+      <div className={S("bumper__controls")}>
+        {
+          !autoplayBlocked ? null :
+            <div
+              onClick={event => {
+                event.stopPropagation();
+                event.preventDefault();
+              }}
+              className={S("bumper__button-container")}
+            >
+              <button onClick={() => player.controls.Play()} className={S("bumper__play-button")}>
+                <SVG src={PlayIcon} />
+              </button>
+            </div>
+        }
+        {
+          !hasAudio ? null :
+            <div
+              onClick={event => {
+                event.stopPropagation();
+                event.preventDefault();
+              }}
+              className={S("bumper__button-container", "bumper__button-container--volume")}
+            >
+              <button onClick={() => muted ? player.controls.Unmute() : player.controls.Mute()} className={S("bumper__volume-button")}>
+                <SVG src={muted ? VolumeOffIcon : VolumeOnIcon} />
+              </button>
+            </div>
+        }
+      </div>
     </Linkish>
   );
 });

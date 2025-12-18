@@ -94,6 +94,77 @@
       object-fit: contain;
     }
   }
+
+  &__controls {
+    align-items: center;
+    animation: var(--animation-fadein) 1s ease;
+    display: flex;
+    height: 100%;
+    inset: 0;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+    z-index: 10;
+  }
+
+  &__button-container {
+    align-items: center;
+    cursor: initial;
+    display: flex;
+    height: max-content;
+    justify-content: center;
+    padding: 20px;
+    width: max-content;
+
+    &--volume {
+      bottom: 0;
+      position: absolute;
+      right: 0;
+    }
+  }
+
+  &__play-button {
+    background-color: white;
+    border-radius: 100%;
+    color: black;
+    filter: drop-shadow(0 0 10px black);
+    height: 60px;
+    padding: 15px;
+    width: 60px;
+    z-index: 1;
+
+    svg {
+      color: black;
+      fill: black;
+      height: 100%;
+      margin-left: 3px;
+      stroke: black;
+      width: 100%;
+    }
+  }
+
+  &__volume-button {
+    border-radius: 100%;
+    color: black;
+    height: 45px;
+    padding: 10px;
+    width: 45px;
+    z-index: 1;
+
+    svg {
+      color: white;
+      filter: drop-shadow(0 0 10px black);
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  @media screen and (width <= 1000px) {
+    &__volume-button {
+      height: 35px;
+      width: 35px;
+    }
+  }
 }
 
 .next {
