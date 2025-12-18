@@ -11,6 +11,7 @@ import {useEffect, useState} from "react";
 
 import XIcon from "@/assets/icons/x.svg";
 import BagIcon from "@/assets/icons/bag.svg";
+import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
@@ -57,7 +58,7 @@ const MediaCard = observer(({mediaItem}) => {
               onClick={event => {
                 event.preventDefault();
                 event.stopPropagation();
-                rootStore.SetShowAdditionalPurchaseOptions(true);
+                rootStore.SetAttribute("showAdditionalPurchaseOptions", true);
               }}
               className={S("media-card__subtitle", "media-card__subtitle--purchase")}
             >
@@ -94,14 +95,14 @@ const SidebarContent = observer(() => {
     return null;
   }
 
-  if(rootStore.menu === "my-items") {
+  if(rootStore.showMyItems) {
     return (
       <>
         <div className={S("media")}>
           <div className={S("media-section")}>
             <div className={S("media-section__title", "media-section__title--large")}>
               <span>My Items</span>
-              <Linkish onClick={() => rootStore.SetMenu()} className={S("media-section__close")}>
+              <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("media-section__close")}>
               <SVG src={XIcon} />
             </Linkish>
             </div>
@@ -119,7 +120,7 @@ const SidebarContent = observer(() => {
           </div>
         </div>
         <div className={S("history-link")}>
-          Missing something? Check your <Linkish onClick={() => rootStore.SetMenu("purchase-history")}>Purchase History</Linkish>.
+          Missing something? Check your <Linkish onClick={() => rootStore.SetAttribute("showPurchaseHistory", true)}>Purchase History</Linkish>.
         </div>
       </>
     );
@@ -190,7 +191,7 @@ export const Banners = observer(({position="below"}) => {
       (position === "above" ? banner.mobile_position === "above" : !banner.mobile_position)
     );
 
-  if(banners.length === 0 || rootStore.menu === "my-items"){
+  if(banners.length === 0 || rootStore.showMyItems){
     return null;
   }
 
@@ -291,12 +292,18 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
     return null;
   }
 
+  if(rootStore.showPurchaseHistory) {
+    return (
+      <PurchaseHistory />
+    );
+  }
+
   return (
     <>
       <div className={S("sidebar")}>
         {
-          rootStore.menu !== "my-items" ? null :
-            <Linkish onClick={() => rootStore.SetMenu()} className={S("sidebar__close")}>
+          !rootStore.showMyItems ? null :
+            <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("sidebar__close")}>
               <SVG src={XIcon} />
             </Linkish>
         }

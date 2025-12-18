@@ -10,22 +10,6 @@ import Payment from "@/components/payment/Payment.jsx";
 
 const S = CreateModuleClassMatcher();
 
-const ClearKey = () => {
-  useEffect(() => rootStore.ResetAccount(), []);
-
-  return (
-    <div className="page-container home-page">
-      <div className={S("logo")}>
-        <SVG src={EIcon} alt="Eluvio"/>
-        <span>POCKET TV</span>
-      </div>
-      <div style={{marginTop: 50, fontSize: 24, fontWeight: "bold"}}>
-        Account Reset
-      </div>
-    </div>
-  );
-};
-
 const Base = () => {
   return (
     <div className="page-container home-page">
@@ -54,9 +38,6 @@ const App = () => {
 
   return (
     <Switch>
-      <Route path="/clear">
-        <ClearKey />
-      </Route>
       <Route path="/:pocketSlugOrId/pay/:paymentParams">
         <Payment />
       </Route>

@@ -90,7 +90,7 @@ const Modal = observer(({children, align="center", SetMenuControls, onHide, clos
     <dialog
       ref={setDialog}
       onClick={controls.Hide}
-      className={S("modal", `modal--align-${align}`, open ? "modal--visible" : "modal--hidden")}
+      className={S("modal", `modal--align-${align}`, !closable ? "modal--unclosable" : "", open ? "modal--visible" : "modal--hidden")}
     >
       <div ref={setContainer} className={S("container")}>
         {

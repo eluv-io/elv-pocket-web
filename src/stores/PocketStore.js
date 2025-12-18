@@ -79,6 +79,10 @@ class PocketStore {
       .length > 0;
   }
 
+  get appName() {
+    return this.pocket?.metadata?.app_name || "Pocket TV";
+  }
+
   constructor(rootStore) {
     makeAutoObservable(this);
 
@@ -100,7 +104,7 @@ class PocketStore {
   }
 
   MediaItemInfo(mediaItemId) {
-    let endScreenSettings = this.pocket.metadata.post_content_screen || {};
+    let bumpers = this.pocket.metadata.bumpers || [];
     let sequential = false;
 
     for(let tabIndex = 0; tabIndex < this.sidebarContent.length; tabIndex++) {
@@ -111,7 +115,13 @@ class PocketStore {
 
         if(itemIndex >= 0) {
           sequential = tab.sequential || group.sequential;
-          endScreenSettings = tab.post_content_screen?.enabled ? tab.post_content_screen : endScreenSettings;
+          bumpers = tab.override_bumpers ? tab.bumpers || [] : bumpers;
+
+          const isFree = this.MediaItemPermissions({mediaItemSlugOrId: mediaItemId})?.public;
+
+          if(!isFree) {
+            bumpers = bumpers.filter(bumper => !bumper.free_only);
+          }
 
           let nextItemId;
           if(sequential) {
@@ -129,7 +139,8 @@ class PocketStore {
             itemIndex,
             sequential,
             nextItemId,
-            endScreenSettings
+            bumpers,
+            isFree
           };
         }
       }
@@ -172,11 +183,11 @@ class PocketStore {
       })
       .filter(permission => permission)
       .sort((i1, i2) => {
-        if(typeof i1.priority === "undefined" && typeof i2.priority === "undefined") {
+        if(!i1.priority && typeof !i2.priority) {
           return 0;
-        } else if(typeof i2.priority === "undefined") {
+        } else if(!i2.priority) {
           return -1;
-        } else if(typeof i1.priority === "undefined") {
+        } else if(!i1.priority) {
           return 1;
         }
 
@@ -497,7 +508,10 @@ class PocketStore {
         Object.keys(permissionItems).forEach(permissionItemId => {
           allPermissionItems[permissionItemId] = permissionItems[permissionItemId];
           const marketplaceId = permissionItems[permissionItemId].marketplace?.marketplace_id;
-          !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
+
+          if(marketplaceId) {
+            !allMarketplaceIds.includes(marketplaceId) && allMarketplaceIds.push(marketplaceId);
+          }
         });
       })
     );
@@ -525,9 +539,13 @@ class PocketStore {
 
     Object.keys(allPermissionItems).forEach(permissionItemId => {
       const permissionItem = allPermissionItems[permissionItemId];
+
+      if(permissionItem.type !== "owned_item") { return; }
+
       const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
       const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku);
       allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
+      allPermissionItems[permissionItemId].address = marketplaceItem.nftTemplateMetadata?.address;
       allPermissionItems[permissionItemId].owned = !!marketplace.ownedItems
         .find(({contractAddress}) =>
           this.client.utils.EqualAddress(
@@ -535,6 +553,14 @@ class PocketStore {
             marketplaceItem.nftTemplateMetadata.address
           )
         );
+
+      if(allPermissionItems[permissionItemId].address) {
+        allUserItems.forEach((item, index) => {
+          if(!item.permissionItemId && this.client.utils.EqualAddress(item.contractAddress, allPermissionItems[permissionItemId].address)) {
+            allUserItems[index].permissionItemId = permissionItemId;
+          }
+        });
+      }
     });
 
     Object.keys(allPermissionItems).forEach(permissionItemId => {

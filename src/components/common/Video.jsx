@@ -8,6 +8,7 @@ const S = CreateModuleClassMatcher();
 const Video = forwardRef(function VideoComponent({
   videoHash,
   videoLink,
+  videoLinkInfo,
   contentInfo={},
   playerOptions={},
   playoutParameters={},
@@ -60,6 +61,15 @@ const Video = forwardRef(function VideoComponent({
         setPlayer(undefined);
       } catch(error) {
         console.error(error);
+      }
+    }
+
+    if(videoLinkInfo) {
+      if(videoLinkInfo.type === "composition") {
+        playoutParameters.channel = videoLinkInfo.composition_key;
+      } else if(!isLive){
+        playoutParameters.clipStart = videoLinkInfo.clip_start_time;
+        playoutParameters.clipEnd = videoLinkInfo.clip_end_time;
       }
     }
 

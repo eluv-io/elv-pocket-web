@@ -1,4 +1,4 @@
-import {makeAutoObservable, flow} from "mobx";
+import {makeAutoObservable, flow, runInAction} from "mobx";
 import {ElvWalletClient, Utils} from "@eluvio/elv-client-js/src/index.js";
 import SiteConfiguration from "@eluvio/elv-client-js/src/walletClient/Configuration";
 import PaymentStore from "@/stores/PaymentStore.js";
@@ -11,6 +11,7 @@ const urlParams = new URLSearchParams(window.location.search);
 class RootStore {
   siteConfiguration = SiteConfiguration[EluvioConfiguration.network][EluvioConfiguration.mode];
   isLocal = window.location.hostname.includes("localhost") || urlParams.has("dev");
+  tooManyLogins = false;
 
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
 
@@ -18,10 +19,11 @@ class RootStore {
   walletClient;
   initialized = false;
   shortURLs = {};
-  permissionItems = {};
-  menu;
-  showAdditionalPurchaseOptions = false;
   loggedIn = false;
+
+  showMyItems = false;
+  showPurchaseHistory = false;
+  showAdditionalPurchaseOptions = false;
 
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
   nonce = localStorage.getItem("nonce") || Utils.B58(ParseUUID(UUID()));
@@ -52,15 +54,11 @@ class RootStore {
     localStorage.setItem("nonce", this.nonce);
   }
 
-  SetMenu(menu) {
-    this.menu = menu;
+  SetAttribute(attribute, value) {
+    this[attribute] = value;
   }
 
-  SetShowAdditionalPurchaseOptions(show) {
-    this.showAdditionalPurchaseOptions = show;
-  }
-
-  LogIn = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+  LogIn = flow(function * ({customUserIdCode, force=false}) {
     this.loggedIn = false;
 
     console.time("Log in");
@@ -76,20 +74,20 @@ class RootStore {
           userIdCode: customUserIdCode || this.userIdCode,
           tenantId: this.pocketStore.pocketInfo.tenantId,
           nonce: this.nonce,
+          extraData: {
+            origin: "Pocket TV Web"
+          },
           force
         });
 
         localStorage.setItem(`token-${EluvioConfiguration.network}`, signingToken);
         localStorage.setItem(`token-expires-${EluvioConfiguration.network}`, (Date.now() + 24 * 60 * 60 * 1000).toString());
 
+        this.tooManyLogins = false;
         this.loggedIn = true;
       } catch(error) {
         console.error(error);
-        if(confirm("Too many logins - force?")) {
-          return this.InitializeClient({pocketSlugOrId, customUserIdCode, force: true});
-        } else {
-          throw error;
-        }
+        this.tooManyLogins = true;
       }
     }
     console.timeEnd("Log in");
@@ -100,7 +98,7 @@ class RootStore {
     // Periodically check to ensure the token has not been revoked
     const CheckTokenStatus = async () => {
       if(!(await this.walletClient.TokenStatus())) {
-        alert("Too many logins! Stop sharing!");
+        runInAction(() => this.tooManyLogins = true);
       }
     };
 
@@ -136,7 +134,7 @@ class RootStore {
     this.loading = true;
     this.initialized = false;
 
-    yield this.InitializeClient({pocketSlugOrId, customUserIdCode});
+    yield this.InitializeClient({pocketSlugOrId, customUserIdCode, force});
 
     yield this.pocketStore.LoadPocket({pocketSlugOrId, noMedia});
 

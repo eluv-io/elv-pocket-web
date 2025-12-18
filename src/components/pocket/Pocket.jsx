@@ -9,27 +9,28 @@ import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
 import UrlJoin from "url-join";
 import Purchase from "@/components/pocket/Purchase.jsx";
-import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
 import Page from "@/components/pocket/Page.jsx";
 import PreviewPasswordForm from "@/components/common/PreviewPasswordForm.jsx";
+import {ConcurrencyLockForm} from "@/components/pocket/PurchaseHistory.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
-const Menu = observer(() => {
-  switch(rootStore.menu) {
-    case "purchase-history":
-      return <PurchaseHistory />;
-  }
-
-  return null;
-});
-
+const params = new URLSearchParams(window.location.search);
 const Pocket = observer(() => {
   const [showPreview, setShowPreview] = useState(false);
   const {pocketSlugOrId, mediaItemSlugOrId} = useParams();
 
   useEffect(() => {
-    rootStore.Initialize({pocketSlugOrId})
+    if(params.has("uid")) {
+      // Scrub UID from url immediately
+      const url = new URL(window.location.href);
+      url.searchParams.delete("uid");
+      window.history.replaceState({}, document.title, url.toString());
+    }
+  }, []);
+
+  useEffect(() => {
+    rootStore.Initialize({pocketSlugOrId, customUserIdCode: params.get("uid")})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       );
@@ -38,11 +39,15 @@ const Pocket = observer(() => {
   useEffect(() => {
     setShowPreview(false);
     pocketStore.SetContentEnded(false);
-    rootStore.SetShowAdditionalPurchaseOptions(false);
+    rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
   }, [mediaItemSlugOrId]);
 
   if(pocketStore.requirePassword) {
     return <PreviewPasswordForm />;
+  }
+
+  if(rootStore.tooManyLogins) {
+    return <ConcurrencyLockForm />;
   }
 
   if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {
@@ -106,7 +111,6 @@ const Pocket = observer(() => {
              <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
         }
       </Page>
-      <Menu />
     </>
   );
 });

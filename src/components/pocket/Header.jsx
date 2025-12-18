@@ -21,7 +21,7 @@ const MobileMenu = observer(({menuControls}) => {
     <div className={S("menu")}>
       <Linkish
         onClick={() => {
-          rootStore.SetMenu("my-items");
+          rootStore.SetAttribute("showMyItems", true);
           menuControls.Hide();
         }}
         className={S("menu__link", "opacity-hover")}
@@ -31,7 +31,7 @@ const MobileMenu = observer(({menuControls}) => {
       </Linkish>
       <Linkish
         onClick={() => {
-          rootStore.SetMenu("purchase-history");
+          rootStore.SetAttribute("showPurchaseHistory", true);
           menuControls.Hide();
         }}
         className={S("menu__link", "opacity-hover")}
@@ -96,7 +96,7 @@ const HeaderMenu = observer(() => {
               <Linkish
                 autoFocus={true}
                 onClick={() => {
-                  rootStore.SetMenu("my-items");
+                  rootStore.SetAttribute("showMyItems", true);
                   setShowMenu(false);
                 }}
                 className={S("header-menu__option")}
@@ -106,7 +106,7 @@ const HeaderMenu = observer(() => {
               </Linkish>
               <Linkish
                 onClick={() => {
-                  rootStore.SetMenu("purchase-history");
+                  rootStore.SetAttribute("showPurchaseHistory", true);
                   setShowMenu(false);
                 }}
                 className={S("header-menu__option")}

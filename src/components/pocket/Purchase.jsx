@@ -14,6 +14,19 @@ import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
+const PermissionItemPrice = observer(({permissionItem, className}) =>
+  permissionItem.type === "external" && !permissionItem?.price?.USD ? null :
+    <div className={className}>
+      {
+        FormatPriceString(
+          permissionItem.type === "external" ?
+            permissionItem?.price :
+            permissionItem?.marketplaceItem?.price
+        )
+      }
+    </div>
+);
+
 const MintingStatus = observer(({permissionItemId, confirmationId}) => {
   const [status, setStatus] = useState(null);
 
@@ -25,7 +38,10 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
-        setTimeout(() => pocketStore.LoadMedia(), 3500);
+        setTimeout(async () => {
+          await pocketStore.LoadMedia();
+          rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
+        }, 3500);
       } else if(status?.status === "failed") {
         clearInterval(statusInterval);
       }
@@ -101,9 +117,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
             <div className={S("vertical-item__title")}>
               {permissionItem.title}
             </div>
-            <div className={S("vertical-item__price")}>
-              {FormatPriceString(permissionItem.marketplaceItem.price)}
-            </div>
+            <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")} />
             {
               !permissionItem.subtitle ? null :
                 <div className={S("vertical-item__subtitle")}>
@@ -133,9 +147,7 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
               <div className={S("vertical-item__title")}>
                 {permissionItem.title}
               </div>
-              <div className={S("vertical-item__price")}>
-                {FormatPriceString(permissionItem.marketplaceItem.price)}
-              </div>
+              <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")} />
               {
                 !permissionItem.subtitle ? null :
                   <div className={S("vertical-item__subtitle")}>
@@ -172,9 +184,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
           <div className={S("vertical-item__title")}>
             {permissionItem.title}
           </div>
-          <div className={S("vertical-item__price")}>
-            {FormatPriceString(permissionItem.marketplaceItem.price)}
-          </div>
+          <PermissionItemPrice permissionItem={permissionItem} className={S("vertical-item__price")}/>
           {
             !permissionItem.subtitle ? null :
               <div className={S("vertical-item__subtitle")}>
@@ -184,7 +194,8 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         </div>
         <div className={S("vertical-item__actions")}>
           <Linkish
-            onClick={Select}
+            onClick={permissionItem.type === "owned_item" ? Select : undefined}
+            href={permissionItem.type === "external" ? permissionItem.link : undefined}
             className={S("styled-button", "opacity-hover", "vertical-item__action")}
           >
             { permissionItem.owned ? "SELECTED" : "SELECT" }
@@ -214,9 +225,7 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         }
       </div>
       <div className={S("horizontal-item__actions")}>
-        <div className={S("horizontal-item__price")}>
-          {FormatPriceString(permissionItem.marketplaceItem.price)}
-        </div>
+        <PermissionItemPrice permissionItem={permissionItem} className={S("horizontal-item__price")} />
         <Linkish
           onClick={Select}
           className={S("styled-button", "opacity-hover", "horizontal-item__action")}
@@ -241,7 +250,7 @@ const Purchase = observer(({setShowPreview}) => {
       rootStore.SetBackAction(() => setSelectedItemId(undefined));
     } else if(rootStore.mobile) {
       if(permissions.authorized) {
-        rootStore.SetBackAction(() => rootStore.SetShowAdditionalPurchaseOptions(false));
+        rootStore.SetBackAction(() => rootStore.SetAttribute("showAdditionalPurchaseOptions", false));
       } else {
         rootStore.SetBackAction(() => setShowPreview(true));
       }
@@ -317,7 +326,7 @@ const Purchase = observer(({setShowPreview}) => {
         !rootStore.showAdditionalPurchaseOptions ? null :
           <button
             title="Back to Media"
-            onClick={() => rootStore.SetShowAdditionalPurchaseOptions(false)}
+            onClick={() => rootStore.SetAttribute("showAdditionalPurchaseOptions", false)}
             className={S("close", "opacity-hover")}
           >
             <SVG src={XIcon} />
