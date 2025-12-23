@@ -292,31 +292,17 @@
   }
 }
 
-.logo {
+.links {
   align-items: flex-end;
+  display: flex;
   flex-grow: 1;
+  font-size: 14px;
+  gap: 50px;
   justify-content: center;
-  margin-top: 50px;
+  margin-top: 70px;
   padding-bottom: 10px;
   position: relative;
-  user-select: none;
   width: 100%;
-
-  svg {
-    height: 35px;
-  }
-
-  span {
-    font-size: 14px;
-  }
-}
-
-.reset-button {
-  color: var(--text-tertiary-alternate);
-  font-size: 10px;
-  font-weight: 500;
-  position: absolute;
-  text-decoration: underline;
 }
 
 @media screen and (width >= 1001px) {

@@ -288,6 +288,8 @@ const ContentInfo = observer(({mediaItem}) => {
 });
 
 const Sidebar = observer(({mediaItem, hideTitle}) => {
+  const {pocketSlugOrId} = useParams();
+
   if(!mediaItem || rootStore.mobileLandscape) {
     return null;
   }
@@ -319,20 +321,20 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
             <Banners position="below"/>
         }
         <SidebarContent />
-        <div className={S("logo")}>
-          <button
-            onClick={
-              () => confirm("Are you sure you want to reset your account?") ?
-                rootStore.ResetAccount() : undefined
-            }
-            className={S("reset-button")}
-          >
-            RESET ACCOUNT
-          </button>
+        <div className={S("links")}>
+          <Linkish href={pocketStore.pocket.metadata.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>
+            Get Support
+          </Linkish>
+          {
+            (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
+              <Linkish href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
+                FAQ
+              </Linkish>
+          }
         </div>
-      </div>
-      {
-        !rootStore.mobile || rootStore.mobileLandscape || pocketStore.hasSingleItem ? null :
+    </div>
+  {
+    !rootStore.mobile || rootStore.mobileLandscape || pocketStore.hasSingleItem ? null :
           <Banners position="below" />
       }
     </>

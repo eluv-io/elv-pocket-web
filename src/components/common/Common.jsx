@@ -9,6 +9,7 @@ import {rootStore} from "@/stores/index.js";
 import Money from "js-money";
 import Currencies from "js-money/lib/currency";
 import SVG from "react-inlinesvg";
+import SanitizeHTML from "sanitize-html";
 
 const S = CreateModuleClassMatcher(CommonStyles);
 
@@ -282,3 +283,13 @@ export const CopyableField = observer(({value, children, buttonProps={}, showOnH
     </div>
   );
 });
+
+export const RichText = ({richText, ...props}) => {
+  return (
+    <div
+      {...props}
+      className={[S("rich-text"), props.className || ""].join(" ")}
+      dangerouslySetInnerHTML={{__html: SanitizeHTML(richText)}}
+    />
+  );
+};
