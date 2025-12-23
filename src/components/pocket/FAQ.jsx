@@ -60,7 +60,7 @@ const FAQPage = observer(() => {
       );
   }, [pocketSlugOrId]);
 
-  if(!pocketStore.pocket) { return null; }
+  if(!rootStore.initialized || !pocketStore.pocket) { return null; }
 
   let faq = pocketStore.pocket.metadata?.faq || {};
 
