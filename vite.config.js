@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "url";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import react from "@vitejs/plugin-react-swc";
 import mkcert from "vite-plugin-mkcert";
+import {analyzer} from "vite-bundle-analyzer";
 
 export default defineConfig(() => {
   let plugins = [
@@ -19,8 +20,12 @@ export default defineConfig(() => {
         },
       ]
     }),
-    mkcert()
+    mkcert(),
   ];
+
+  if(process.env.ANALYZE_BUNDLE) {
+    plugins.push(analyzer());
+  }
 
   return {
     devServer: {

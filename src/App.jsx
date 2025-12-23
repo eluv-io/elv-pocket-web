@@ -7,8 +7,21 @@ import SVG from "react-inlinesvg";
 
 import EIcon from "@/assets/icons/E_Logo_DarkMode_Transparent.svg";
 import Payment from "@/components/payment/Payment.jsx";
+import FAQPage from "@/components/pocket/FAQ.jsx";
 
 const S = CreateModuleClassMatcher();
+
+const ClearAccount = () => {
+  useEffect(() => rootStore.ResetAccount(), []);
+
+  return (
+    <div className="page-container home-page">
+      <div style={{marginTop: 50, fontSize: 24, fontWeight: "bold"}}>
+        Account Reset
+      </div>
+    </div>
+  );
+};
 
 const Base = () => {
   return (
@@ -38,6 +51,15 @@ const App = () => {
 
   return (
     <Switch>
+      <Route path="/clear">
+        <ClearAccount />
+      </Route>
+      <Route path="/:pocketSlugOrId/clear">
+        <ClearAccount />
+      </Route>
+      <Route path="/:pocketSlugOrId/faq">
+        <FAQPage />
+      </Route>
       <Route path="/:pocketSlugOrId/pay/:paymentParams">
         <Payment />
       </Route>

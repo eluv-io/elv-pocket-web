@@ -174,8 +174,8 @@ class RootStore {
 
     setTimeout(() => {
       const url = new URL(window.location.href);
-      if(url.pathname.includes("clear")) {
-        url.pathname = "/";
+      if(url.pathname.includes("/clear")) {
+        url.pathname = url.pathname.replace("/clear", "");
       }
 
       setTimeout(() => window.location.href = url.toString(), 2000);

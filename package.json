@@ -6,6 +6,7 @@
   "scripts": {
     "serve": "rm -rf node_modules/.vite; vite",
     "build": "rm -rf dist/* ; vite build",
+    "build-analyze": "ANALYZE_BUNDLE=true npm run build",
     "bump-version": "npm --git-tag-version --no-commit-hooks version patch",
     "lint": "npm-run-all -s -c lint-js-fix lint-scss-fix",
     "lint-js": "eslint ./src --ext js,jsx --report-unused-disable-directives",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@eluvio/elv-client-js": "^4.2.14",
     "@eluvio/elv-player-js": "^2.1.14",
+    "@mantine/core": "^8.3.10",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.1",
@@ -48,6 +50,7 @@
     "stylelint-config-standard-scss": "^14.0.0",
     "stylelint-order": "^6.0.3",
     "vite": "^7.1.2",
+    "vite-bundle-analyzer": "^1.3.2",
     "vite-plugin-mkcert": "^1.17.8",
     "vite-plugin-static-copy": "^3.1.1"
   }
