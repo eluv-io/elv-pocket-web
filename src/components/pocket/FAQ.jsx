@@ -146,21 +146,23 @@ const FAQPage = observer(() => {
                             <div className={S("question__label")}>{question}</div>
                           </Accordion.Control>
                           <Accordion.Panel>
-                            {
-                              !video || openedItem !== index.toString() ? null :
-                                <Video
-                                  videoLink={video}
-                                  playerOptions={{
-                                    autoplay: false
-                                  }}
-                                  className={S("video")}
-                                />
-                            }
-                            {
-                              openedItem !== index.toString() ? null :
-                                <QuestionImages images={insideImages} />
-                            }
-                            <RichText richText={answer} className={S("answer")}/>
+                            <div className={S("answer")}>
+                              {
+                                !video || openedItem !== index.toString() ? null :
+                                  <Video
+                                    videoLink={video}
+                                    playerOptions={{
+                                      autoplay: false
+                                    }}
+                                    className={S("video")}
+                                  />
+                              }
+                              {
+                                openedItem !== index.toString() ? null :
+                                  <QuestionImages images={insideImages} />
+                              }
+                              <RichText richText={answer} className={S("")}/>
+                            </div>
                           </Accordion.Panel>
                         </Accordion.Item>
                         <QuestionImages center images={afterImages} />

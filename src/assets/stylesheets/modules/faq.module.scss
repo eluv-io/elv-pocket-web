@@ -1,4 +1,5 @@
 .faq-page {
+  height: calc(100vh - 60px);
   max-height: calc(100vh - 60px);
   overflow-y: auto;
   padding-bottom: 70px;
@@ -60,10 +61,6 @@
   max-width: 700px;
   width: 100%;
 
-  * {
-    max-width: 100%;
-  }
-
   h1,
   h2,
   h3,
@@ -115,15 +112,19 @@
 }
 
 @media screen and (width <= 1000px) {
-  .faq_page {
+  .faq-page {
+    height: calc(100vh - 50px);
     max-height: calc(100vh - 50px);
   }
 
   .question {
     margin-inline: 0;
+    padding-inline: 15px;
 
     &__label {
       font-size: 18px;
+      padding-right: 10px;
+      text-align: left;
     }
   }
 }
