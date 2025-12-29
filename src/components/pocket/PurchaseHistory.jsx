@@ -85,7 +85,7 @@ export const ConcurrencyLockForm = observer(() => {
               Where is my {pocketStore.appName} ID?
             </div>
             <div className={S("recovery__info-description")}>
-              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt above the name of the item you purchased.
+              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt next to the name of the item you purchased.
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
               Where is my {pocketStore.appName} ID?
             </div>
             <div className={S("recovery__info-description")}>
-              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt above the name of the item you purchased.
+              Look for your emailed receipt, sent to you at the time of your purchase. The receipt’s sender will be Eluvio, Inc. Your {pocketStore.appName} ID is located on your receipt next to the name of the item you purchased.
             </div>
           </div>
         </div>
