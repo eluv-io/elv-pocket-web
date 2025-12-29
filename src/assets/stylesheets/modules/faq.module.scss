@@ -18,15 +18,16 @@
 }
 
 .title {
+  color: var(--text-primary);
   font-size: 32px;
   font-weight: 600;
   margin: 30px 0 10px;
-  padding-inline: 3px;
+  padding-inline: 7vw;
 }
 
 .description {
   margin: 10px 0;
-  padding-inline: 3px;
+  padding-inline: 7vw;
 }
 
 .questions {
@@ -115,6 +116,19 @@
   .faq-page {
     height: calc(100vh - 50px);
     max-height: calc(100vh - 50px);
+  }
+
+  .title,
+  .description {
+    padding-inline: 15px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .description {
+    font-size: 14px;
   }
 
   .question {

@@ -274,7 +274,7 @@ const ContentInfo = observer(({mediaItem}) => {
                   onClick={event => {
                     event.preventDefault();
                     event.stopPropagation();
-                    rootStore.SetShowAdditionalPurchaseOptions(!rootStore.showAdditionalPurchaseOptions);
+                    rootStore.SetAttribute("showAdditionalPurchaseOptions", true);
                   }}
                   className={S("subtitle", "subtitle--purchase")}
                 >
