@@ -27,6 +27,7 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
     "countdown_background_mobile" :
     "countdown_background_desktop";
 
+  console.log(mediaItem)
   return (
     <div className={S("countdown-page")}>
       <HashedLoaderImage
@@ -44,9 +45,9 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
       <div className={S("countdown-page__cover")}/>
       <div className={S("countdown-page__content")}>
         {
-          mediaItem.icons?.length === 0 ? null :
+          !mediaItem.icons || mediaItem.icons?.length === 0 ? null :
             <div className={S("countdown-page__icons")}>
-              {mediaItem.icons.map(({icon, icon_hash, alt_text}, index) =>
+              {mediaItem.icons?.map(({icon, icon_hash, alt_text}, index) =>
                 <HashedLoaderImage
                   key={`icon-${index}`}
                   src={icon.url}
