@@ -705,7 +705,7 @@ class PocketStore {
 
             window.dataLayer = window.dataLayer || [];
 
-            // eslint-disable-next-line no-inner-declarations
+             
           function gtag() {
             window.dataLayer.push(arguments);
           }

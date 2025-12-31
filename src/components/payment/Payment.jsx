@@ -198,6 +198,12 @@ export const Payment = observer(({
   return (
     <div className={JoinClassNames(S("payment"), className)}>
       {
+        !params?.paymentMessage ? null :
+          <div className={S("payment__message")}>
+            {params.paymentMessage}
+          </div>
+      }
+      {
         formDetails.type === "card" ?
           <div className={S("card")}>
             <div ref={setContainer} className={S("card__input")}/>
@@ -258,7 +264,7 @@ export const Payment = observer(({
                 </Linkish>
             }
             <div>
-              By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Terms of Service.
+              By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Eluvio Terms of Service
             </a>
             </div>
           </div>

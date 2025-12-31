@@ -71,6 +71,7 @@ class PaymentStore {
       delete response.buy_url;
       response.address = this.client.CurrentAccountAddress();
       response.mediaTitle = mediaTitle;
+      response.paymentMessage = pocket.payment_message;
       response.permissionItem = {
         id: permissionItemId,
         title: permissionItem.title,

@@ -87,6 +87,12 @@
     min-height: 100px;
   }
 
+  &__message {
+    color: var(--text-tertiary-alternate);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
   .message {
     color: var(--text-tertiary-alternate);
     margin-bottom: 5px;
