@@ -222,7 +222,7 @@ class PocketStore {
       const ended = !!endTime && now > endTime;
       const displayStartDate = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "numeric"}).replace(/0(\d)/g, "$1");
       const displayStartDateLong = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "short"}).replace(/0(\d)/g, "$1");
-      const displayStartTime = startTime?.toLocaleTimeString?.(this.preferredLocale, {hour: "numeric"}).replace(/^0(\d)/, "$1");
+      const displayStartTime = startTime?.toLocaleTimeString?.(this.preferredLocale, {hour: "numeric", minute: "numeric"}).replace(/^0(\d)/, "$1").replace(":00", "");
 
       return {
         startTime,

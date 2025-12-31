@@ -27,7 +27,6 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
     "countdown_background_mobile" :
     "countdown_background_desktop";
 
-  console.log(mediaItem)
   return (
     <div className={S("countdown-page")}>
       <HashedLoaderImage
