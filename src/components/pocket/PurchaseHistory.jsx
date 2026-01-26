@@ -213,20 +213,23 @@ const PurchaseHistory = observer(() => {
               );
             })
         }
-        <div className={S("block", "missing")}>
-          <div className={S("missing__text")}>
-            <div>Missing something?</div>
-            <div>Enter the {pocketStore.appName} ID from your purchase receipt to recover it.</div>
-          </div>
-          <div className={S("missing__actions")}>
-            <button
-              onClick={() => recoveryMenuControls?.Show()}
-              className={S("opacity-hover", "button", "missing__action")}
-            >
-              RECOVER
-            </button>
-          </div>
-        </div>
+        {
+          rootStore.useOryLogin ? null :
+            <div className={S("block", "missing")}>
+              <div className={S("missing__text")}>
+                <div>Missing something?</div>
+                <div>Enter the {pocketStore.appName} ID from your purchase receipt to recover it.</div>
+              </div>
+              <div className={S("missing__actions")}>
+                <button
+                  onClick={() => recoveryMenuControls?.Show()}
+                  className={S("opacity-hover", "button", "missing__action")}
+                >
+                  RECOVER
+                </button>
+              </div>
+            </div>
+        }
         <div className={S("block", "support")}>
           <div>
             Trouble accessing content?
