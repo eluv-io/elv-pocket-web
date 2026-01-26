@@ -2,7 +2,7 @@ import HeaderStyles from "@/assets/stylesheets/modules/header.module.scss";
 
 import {observer} from "mobx-react-lite";
 import SVG from "react-inlinesvg";
-import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
+import {Button, HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {rootStore, pocketStore} from "@/stores/index.js";
 import {useEffect, useState} from "react";
@@ -39,6 +39,15 @@ const MobileMenu = observer(({menuControls}) => {
         <SVG src={PurchaseHistoryIcon} />
         Purchase History
       </Linkish>
+      {
+        !rootStore.useOryLogin ? null :
+          <Button
+            onClick={async () => await rootStore.SignOut()}
+            className={S("styled-button", "header-menu__option", "header-menu__option--sign-out")}
+          >
+            <span>Sign Out</span>
+          </Button>
+      }
     </div>
   );
 });
@@ -114,6 +123,15 @@ const HeaderMenu = observer(() => {
                 <SVG src={PurchaseHistoryIcon} />
                 <span>Purchase History</span>
               </Linkish>
+              {
+                !rootStore.useOryLogin ? null :
+                  <Button
+                    onClick={async () => await rootStore.SignOut()}
+                    className={S("styled-button", "header-menu__option", "header-menu__option--sign-out")}
+                  >
+                    <span>Sign Out</span>
+                  </Button>
+              }
             </div>
         }
       </div>
@@ -181,7 +199,7 @@ const MobileHeader = observer(({mediaItem, text}) => {
               {text || mediaItem.title}
             </div>
         }
-        <HeaderMenu/>
+        <HeaderMenu />
       </header>
     );
   }

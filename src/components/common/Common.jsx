@@ -23,6 +23,8 @@ export const HashedLoaderImage = observer(({
   lazy=true,
   loaderClassName="",
   noAnimation,
+  // Useful for initializing image with proper aspect ratio without showing hash
+  hideHashedImage,
   ...props
 }) => {
   const [error, setError] = useState(null);
@@ -59,7 +61,7 @@ export const HashedLoaderImage = observer(({
             className={JoinClassNames(S("loader-image__hash"), loaderClassName, props.className)}
             style={{
               aspectRatio: loaderAspectRatio,
-              background: `center / cover url(${thumbHashToDataURL(hash)})`
+              background: hideHashedImage ? "none" : `center / cover url(${thumbHashToDataURL(hash)})`
             }}
           />
       }
@@ -115,6 +117,43 @@ export const Linkish = forwardRef(function Linkish({
     return <div ref={ref} {...props} />;
   }
 });
+
+export const Button = ({children, className="", onClick, isLoading, variant="primary", ...props}) => {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <button
+      {...props}
+      className={
+        JoinClassNames(
+          S(
+            "button",
+            `button--${variant}`,
+            "button--loader",
+            loading || isLoading ? "button--loading" : "",
+            "opacity-hover"
+          ),
+          className
+        )
+      }
+      onClick={async event => {
+        if(loading) { return; }
+
+        try {
+          setLoading(true);
+          await onClick(event);
+        } finally {
+          setLoading(false);
+        }
+      }}
+    >
+      { loading || isLoading ? <Loader className={S("button__loader")} /> : null }
+      <div className={S("button__content")}>
+        { children }
+      </div>
+    </button>
+  );
+};
 
 export const MediaItemImageUrl = ({mediaItem, aspectRatio, width}) => {
   if(!mediaItem) { return {}; }
@@ -291,5 +330,22 @@ export const RichText = ({richText, ...props}) => {
       className={[S("rich-text"), props.className || ""].join(" ")}
       dangerouslySetInnerHTML={{__html: SanitizeHTML(richText)}}
     />
+  );
+};
+
+export const LocalizeString = (text="", variables={}, options={stringOnly: false}) => {
+  let result = text
+    .split(/{(\w+)}/)
+    .filter(s => s)
+    .map(token => typeof variables[token] !== "undefined" ? variables[token] : token);
+
+  if(options.stringOnly) {
+    return result.join("");
+  }
+
+  return (
+    <>
+      {result}
+    </>
   );
 };

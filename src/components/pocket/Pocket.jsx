@@ -12,6 +12,7 @@ import Purchase from "@/components/pocket/Purchase.jsx";
 import Page from "@/components/pocket/Page.jsx";
 import PreviewPasswordForm from "@/components/common/PreviewPasswordForm.jsx";
 import {ConcurrencyLockForm} from "@/components/pocket/PurchaseHistory.jsx";
+import Login from "@/components/login/Login.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -30,11 +31,13 @@ const Pocket = observer(() => {
   }, []);
 
   useEffect(() => {
+    if(pocketStore.requirePassword) { return; }
+
     rootStore.Initialize({pocketSlugOrId, customUserIdCode: params.get("uid")})
       .then(pocket =>
         pocket && SetHTMLMetaTags(pocket.metadata.meta_tags)
       );
-  }, [pocketSlugOrId]);
+  }, [pocketSlugOrId, pocketStore.requirePassword]);
 
   useEffect(() => {
     setShowPreview(false);
@@ -50,7 +53,7 @@ const Pocket = observer(() => {
     return <ConcurrencyLockForm />;
   }
 
-  if(!rootStore.initialized || !pocketStore?.pocket?.mediaLoaded) {
+  if(!rootStore.initialized || !rootStore.signedIn || !pocketStore?.pocket?.mediaLoaded) {
     return (
       <div className="page-container">
         <div className={S("splash")}>
@@ -59,9 +62,12 @@ const Pocket = observer(() => {
             hash={pocketStore.splashImage.hash}
             className={S("splash__image")}
           />
-          <div className={S("splash__loader")}>
-            <Loader />
-          </div>
+          {
+            rootStore.initialized && rootStore.useOryLogin ? null :
+              <div className={S("splash__loader")}>
+                <Loader />
+              </div>
+          }
           {
             !pocketStore.preview ? null :
               <div className={S("splash__preview")}>
@@ -69,6 +75,10 @@ const Pocket = observer(() => {
               </div>
           }
         </div>
+        {
+          !rootStore.initialized || !rootStore.useOryLogin ? null :
+            <Login />
+        }
       </div>
     );
   }

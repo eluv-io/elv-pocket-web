@@ -53,6 +53,14 @@
     &:focus-visible {
       color: var(--text-primary);
     }
+
+    &--sign-out {
+      height: 45px;
+      margin: 10px auto;
+      max-width: 90%;
+      min-height: 45px;
+      padding: 0!important;
+    }
   }
 
   &__button {
@@ -137,6 +145,16 @@
 
   .title {
     font-size: 13px;
+  }
+
+  .header-menu__option {
+    &--sign-out {
+      font-size: 18px;
+      height: 40px;
+      margin: 0;
+      max-width: unset;
+      width: 100%;
+    }
   }
 }
 

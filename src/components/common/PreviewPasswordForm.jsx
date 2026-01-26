@@ -2,7 +2,7 @@ import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
 
 import {observer} from "mobx-react-lite";
 import Modal from "@/components/common/Modal.jsx";
-import {CreateModuleClassMatcher, SHA512} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {useEffect, useState} from "react";
 import {pocketStore} from "@/stores/index.js";
 import {useParams} from "wouter";
@@ -26,10 +26,7 @@ const PreviewPasswordForm = observer(() => {
   }, [password]);
 
   const Submit = async () => {
-    if((await SHA512(password)) === pocketStore.previewPasswordDigest) {
-      localStorage.setItem(`preview-password-${pocketSlugOrId}`, password);
-      pocketStore.LoadPocket({pocketSlugOrId});
-    } else {
+    if(!(await pocketStore.SetPassword({pocketSlugOrId, password}))) {
       setValid(false);
     }
   };
