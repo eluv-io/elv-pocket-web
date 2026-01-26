@@ -403,7 +403,7 @@ class PocketStore {
     this.pocketInfo = pocketInfo;
   });
 
-  LoadPocket = flow(function * ({pocketSlugOrId}) {
+  LoadPocket = flow(function * ({pocketSlugOrId, isPaymentFlow}) {
     this.requirePassword = false;
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -420,7 +420,7 @@ class PocketStore {
     this.LoadCustomization(metadata);
 
     // Check for preview password, except in payment flow
-    if((this.preview || EluvioConfiguration.mode !== "production") && metadata.preview_password_digest) {
+    if(!isPaymentFlow && (this.preview || EluvioConfiguration.mode !== "production" || metadata.require_preview_password_production) && metadata.preview_password_digest) {
       const digest = yield SHA512(localStorage.getItem(`preview-password-${pocketSlugOrId}`) || "");
        if(digest !== metadata.preview_password_digest) {
          this.requirePassword = true;
@@ -637,6 +637,12 @@ class PocketStore {
         const customFont = `${metadata.styling.custom_font_declaration}, Montserrat, "Helvetica Neue", helvetica, sans-serif`;
 
         variables.push(`--font-family: ${customFont};`);
+
+        if(metadata.styling.custom_title_font_declaration) {
+          const customTitleFont = `${metadata.styling.custom_title_font_declaration}, ${customFont}`;
+
+          variables.push(`--font-family-title: ${customTitleFont};`);
+        }
       }
     }
 
@@ -661,7 +667,7 @@ class PocketStore {
     document.body.appendChild(styleElement);
   }
 
-  LoadButtonCustomization(buttonSettings, prefix) {
+  LoadButtonCustomization(buttonSettings={}, prefix) {
     let variables = [];
     // Remove invalid color options
     ["background_color", "background_color_2", "border_color", "text_color"].forEach(key => {

@@ -106,6 +106,7 @@ const HeaderMenu = observer(() => {
                 autoFocus={true}
                 onClick={() => {
                   rootStore.SetAttribute("showMyItems", true);
+                  rootStore.SetAttribute("showPurchaseHistory", false);
                   setShowMenu(false);
                 }}
                 className={S("header-menu__option")}

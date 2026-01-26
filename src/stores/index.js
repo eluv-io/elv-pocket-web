@@ -85,7 +85,7 @@ class RootStore {
     console.timeEnd("Initialize Client");
   });
 
-  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, force=false}) {
+  Initialize = flow(function * ({pocketSlugOrId, customUserIdCode, isPaymentFlow, force=false}) {
     if(this.loading && !force) { return; }
 
     this.loading = true;
@@ -94,7 +94,7 @@ class RootStore {
     yield this.InitializeClient();
 
     yield this.pocketStore.LoadPocketInfo({pocketSlugOrId});
-    yield this.pocketStore.LoadPocket({pocketSlugOrId});
+    yield this.pocketStore.LoadPocket({pocketSlugOrId, isPaymentFlow});
 
     this.useOryLogin = this.pocketStore.pocket.metadata?.login?.settings?.use_oauth_login || false;
 

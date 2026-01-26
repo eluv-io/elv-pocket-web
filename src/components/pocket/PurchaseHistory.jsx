@@ -188,6 +188,9 @@ const PurchaseHistory = observer(() => {
           pocketStore.userItems.length === 0 ? null :
             pocketStore.userItems.map(item => {
               const permissionItem = pocketStore.permissionItems[item.permissionItemId];
+              if(!permissionItem) {
+                return null;
+              }
 
               return (
                 <div key={item.tokenId} className={S("block", "item")}>
