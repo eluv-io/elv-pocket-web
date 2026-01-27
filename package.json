@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@eluvio/elv-client-js": "^4.2.14",
-    "@eluvio/elv-player-js": "^2.1.14",
+    "@eluvio/elv-player-js": "^2.1.15",
     "@mantine/core": "^8.3.10",
     "js-money": "^0.6.3",
     "mobx": "^6.13.7",

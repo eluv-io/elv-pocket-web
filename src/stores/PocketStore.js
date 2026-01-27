@@ -154,7 +154,7 @@ class PocketStore {
       mediaItem = this.MediaItem(mediaItemSlugOrId);
     }
 
-    if(!mediaItem) { return; }
+    if(!mediaItem) { return {}; }
 
     let permissions = {
       public: mediaItem.public,
@@ -705,7 +705,7 @@ class PocketStore {
 
             window.dataLayer = window.dataLayer || [];
 
-             
+
           function gtag() {
             window.dataLayer.push(arguments);
           }
