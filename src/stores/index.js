@@ -229,7 +229,7 @@ class RootStore {
     );
   });
 
-  AuthenticateOry = flow(function * ({nonce, installId, origin, userData, sendWelcomeEmail, sendVerificationEmail, force=false}={}) {
+  AuthenticateOry = flow(function * ({nonce, installId, origin, userData, sendWelcomeEmail, welcomeEmailPath, sendVerificationEmail, force=false}={}) {
     if(this.authenticating) { return; }
 
     try {
@@ -260,7 +260,7 @@ class RootStore {
       //clientSigningToken = tokens.signingToken;
 
       if(sendWelcomeEmail) {
-        const previouslySignedIn = yield this.walletClient.ProfileMetadata({
+        let previouslySignedIn = yield this.walletClient.ProfileMetadata({
           type: "app",
           mode: "private",
           appId: this.appId,
@@ -268,7 +268,7 @@ class RootStore {
         });
 
         if(!previouslySignedIn) {
-           this.SendLoginEmail({email, type: "send_welcome_email"});
+           this.SendLoginEmail({email, path: welcomeEmailPath, type: "send_welcome_email"});
 
           yield this.walletClient.SetProfileMetadata({
             type: "app",
@@ -330,9 +330,9 @@ class RootStore {
     return JSON.parse(this.client.utils.FromB58ToStr(this._loginAuthInfo));
   }
 
-  SendLoginEmail = flow(function * ({email, type, code, pocketSlugOrId}) {
+  SendLoginEmail = flow(function * ({email, type, code, path, pocketSlugOrId}) {
     const tenantId = this.pocketStore.pocketInfo.tenantId;
-    let path = window.location.pathname;
+    path = path || window.location.pathname;
 
     let callbackUrl = new URL(window.location.origin);
     callbackUrl.pathname = path;
@@ -362,7 +362,7 @@ class RootStore {
           },
           headers: type === "reset_password" ?
             {} :
-            { Authorization: `Bearer ${this.authToken}` }
+            { Authorization: `Bearer ${this.walletClient.AuthToken()}` }
         })
       );
     } catch(error) {

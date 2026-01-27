@@ -18,6 +18,7 @@ import Modal from "@/components/common/Modal.jsx";
 import AppleLogo from "@/assets/images/apple-logo.png";
 import GoogleLogo from "@/assets/images/google-logo.png";
 import PoweredByLogo from "@/assets/images/powered-by-eluvio.png";
+import UrlJoin from "url-join";
 
 const S = CreateModuleClassMatcher(LoginStyles);
 
@@ -203,11 +204,12 @@ const OryLogin = observer(({
   installId,
   origin,
   requiredOptionsMissing,
-  isThirdPartyCallback,
-  isThirdPartyConflict,
-  loading,
-  next
+  loading
 }) => {
+  const next = searchParams.get("next");
+  const isThirdPartyCallback = window.location.pathname.startsWith("/oidc") && !searchParams.has("flow");
+  const isThirdPartyConflict = window.location.pathname.startsWith("/oidc") && searchParams.has("flow");
+
   const {pocketSlugOrId} = useParams();
   const [flowType, setFlowType] = useState(
     searchParams.has("flow") && !isThirdPartyConflict ? "initializeFlow" :
@@ -259,10 +261,11 @@ const OryLogin = observer(({
           origin,
           nonce,
           installId,
-          sendWelcomeEmail: true
+          sendWelcomeEmail: true,
+          welcomeEmailPath: next
         })
           .catch(error => {
-            rootStore.Log(error, true);
+            console.error(error);
 
             if(error.login_limited) {
               setFlows({...flows, login_limited: {}});
@@ -278,7 +281,7 @@ const OryLogin = observer(({
         break;
       case "login":
         const returnUrl = new URL(location.href);
-        returnUrl.pathname = "/oidc";
+        returnUrl.pathname = UrlJoin("/oidc", pocketSlugOrId);
 
         if(!location.pathname.endsWith("login")) {
           returnUrl.searchParams.set("next", location.pathname);

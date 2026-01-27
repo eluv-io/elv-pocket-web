@@ -63,6 +63,9 @@ const App = () => {
       <Route path="/:pocketSlugOrId/pay/:paymentParams">
         <Payment />
       </Route>
+      <Route path="/oidc/:pocketSlugOrId">
+        <Pocket />
+      </Route>
       <Route path="/:pocketSlugOrId/:mediaItemSlugOrId?">
         <Pocket />
       </Route>

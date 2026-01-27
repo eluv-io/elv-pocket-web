@@ -53,7 +53,9 @@ const Pocket = observer(() => {
     return <ConcurrencyLockForm />;
   }
 
-  if(!rootStore.initialized || !rootStore.signedIn || !pocketStore?.pocket?.mediaLoaded) {
+  const isThirdPartyCallback = window.location.pathname.startsWith("/oidc");
+
+  if(!rootStore.initialized || !rootStore.signedIn || !pocketStore?.pocket?.mediaLoaded || isThirdPartyCallback) {
     return (
       <div className="page-container">
         <div className={S("splash")}>
