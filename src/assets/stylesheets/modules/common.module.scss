@@ -292,3 +292,72 @@
     }
   }
 }
+
+.button {
+  align-items: center;
+  border-radius: var(--button-border-radius);
+  cursor: pointer;
+  display: flex;
+  font-size: 18px;
+  font-weight: 600;
+  gap: 15px;
+  justify-content: center;
+  min-height: 50px;
+  padding-inline: 20px;
+  position: relative;
+  transition: background-color 0.15s ease, border 0.15s ease, color 0.1s ease, opacity 0.15s ease;
+  user-select: none;
+
+  &__icon {
+    height: 25px;
+    object-fit: contain;
+    width: 25px;
+  }
+
+  &:hover,
+  &:focus-visible,
+  .button--active {
+    opacity: 0.9;
+  }
+
+  &--disabled,
+  &:disabled {
+    opacity: 0.5!important;
+  }
+
+  &--primary {
+    background-color: var(--button-background-color);
+    border: var(--button-border-width) solid var(--button-border-color);
+    color: var(--button-text);
+
+    * {
+      color: var(--button-text);
+    }
+  }
+
+  &__content {
+    align-items: center;
+    display: flex;
+  }
+
+  &--loading {
+    .button__content {
+      opacity: 0;
+    }
+  }
+
+  &__loader {
+    // height: 30px;
+    position: absolute;
+
+    :global(.spinner) {
+      --spinner-width: 4px;
+      --spinner-color: --property-button-text;
+    }
+  }
+
+
+  &__loading-content {
+    opacity: 0;
+  }
+}

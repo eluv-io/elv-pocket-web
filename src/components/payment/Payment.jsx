@@ -285,7 +285,7 @@ const PaymentPage = observer(() => {
   useEffect(() => {
     rootStore.Initialize({
       pocketSlugOrId,
-      noMedia: true
+      isPaymentFlow: true
     });
   }, []);
 

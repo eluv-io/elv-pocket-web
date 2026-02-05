@@ -2,12 +2,14 @@ import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "url";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import react from "@vitejs/plugin-react-swc";
-import mkcert from "vite-plugin-mkcert";
+//import mkcert from "vite-plugin-mkcert";
 import {analyzer} from "vite-bundle-analyzer";
+import ViteYaml from "@modyfi/vite-plugin-yaml";
 
 export default defineConfig(() => {
   let plugins = [
     react(),
+    ViteYaml(),
     viteStaticCopy({
       targets: [
         {
@@ -20,7 +22,7 @@ export default defineConfig(() => {
         },
       ]
     }),
-    mkcert(),
+    //mkcert(),
   ];
 
   if(process.env.ANALYZE_BUNDLE) {

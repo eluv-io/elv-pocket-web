@@ -168,10 +168,12 @@
   width: 100%;
 
   &__title {
+    font-family: var(--font-family-title);
     font-size: 20px;
   }
 
   &__price {
+    font-family: var(--font-family-title);
     font-size: 24px;
   }
 

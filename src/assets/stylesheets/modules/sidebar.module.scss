@@ -51,6 +51,7 @@
 
 .title {
   color: var(--text-primary);
+  font-family: var(--font-family-title);
   font-weight: 700;
 }
 
@@ -212,6 +213,7 @@
 
   &__title {
     color: var(--text-primary);
+    font-family: var(--font-family-title);
     font-weight: 600;
     padding-right: 5px;
   }

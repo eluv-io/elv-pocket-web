@@ -92,6 +92,10 @@ class PaymentStore {
         url.hostname = "192.168.0.28";
       }
 
+      if(this.rootStore.pocketStore.preview) {
+        url.searchParams.set("preview", "");
+      }
+
       this.purchaseDetails[permissionItemId] = {
         response,
         url: yield this.rootStore.CreateShortURL(url)

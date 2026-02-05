@@ -3,6 +3,7 @@
   animation: var(--animation-fadein) 1s ease;
   background-color: black;
   display: flex;
+  font-family: var(--font-family-title);
   height: 60px;
   overflow: visible;
   position: relative;
@@ -52,6 +53,14 @@
     &:hover,
     &:focus-visible {
       color: var(--text-primary);
+    }
+
+    &--sign-out {
+      height: 45px;
+      margin: 10px auto;
+      max-width: 90%;
+      min-height: 45px;
+      padding: 0!important;
     }
   }
 
@@ -137,6 +146,16 @@
 
   .title {
     font-size: 13px;
+  }
+
+  .header-menu__option {
+    &--sign-out {
+      font-size: 18px;
+      height: 40px;
+      margin: 0;
+      max-width: unset;
+      width: 100%;
+    }
   }
 }
 
