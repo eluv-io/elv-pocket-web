@@ -6,10 +6,19 @@ import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import SVG from "react-inlinesvg";
 
 import XIcon from "@/assets/icons/x.svg";
+import {HashedLoaderImage} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(ModalStyles);
 
-const Modal = observer(({children, align="center", SetMenuControls, onHide, closable=true}) => {
+const Modal = observer(({
+  children,
+  align="center",
+  SetMenuControls,
+  onHide,
+  closable=true,
+  backgroundUrl,
+  backgroundHash
+}) => {
   const [dialog, setDialog] = useState(undefined);
   const [container, setContainer] = useState(undefined);
   const [controls, setControls] = useState({});
@@ -92,6 +101,17 @@ const Modal = observer(({children, align="center", SetMenuControls, onHide, clos
       onClick={controls.Hide}
       className={S("modal", `modal--align-${align}`, !closable ? "modal--unclosable" : "", open ? "modal--visible" : "modal--hidden")}
     >
+      {
+        !backgroundUrl ? null :
+          <>
+            <HashedLoaderImage
+              src={backgroundUrl}
+              hash={backgroundHash}
+              className={S("background")}
+            />
+            <div className={S("background-cover")} />
+          </>
+      }
       <div ref={setContainer} className={S("container")}>
         {
           !closable ? null :

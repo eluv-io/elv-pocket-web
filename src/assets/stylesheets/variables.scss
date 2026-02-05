@@ -1,7 +1,10 @@
 :root {
+  --font-family: montserrat, "Helvetica Neue", helvetica, sans-serif;
+  --font-family-title: var(--font-family);
   --color-highlight: #BD6DFF;
   --rgb-color-highlight: 188, 118, 236;
   --color-highlight-secondary: #7787ec;
+  --color-highlight-tertiary: #a2bfef;
   --background-dark: #0c0c0c;
   --background-primary: #151515;
   --background-secondary: #1d1d1d;
@@ -18,6 +21,7 @@
   --text-disabled: #4b494e;
   --text-highlight: var(--color-highlight);
   --text-highlight-secondary: var(--color-highlight-secondary);
+  --text-highlight-tertiary: var(--color-highlight-tertiary);
   --text-error: #ce6666;
   --color-border: #2C2C2C;
   --animation-fadein: fadein;
@@ -31,6 +35,17 @@
   --button-border-color: #FFF;
   --button-border-width: 0px;
   --button-border-radius: 5px;
+  --login-button-primary-background-color: #FFF;
+  --login-button-primary-text: #000;
+  --login-button-primary-border-color: #FFF;
+  --login-button-primary-border-width: 0px;
+  --login-button-primary-border-radius: 5px;
+  --login-button-secondary-background-color: #FFF;
+  --login-button-secondary-text: #000;
+  --login-button-secondary-border-color: #FFF;
+  --login-button-secondary-border-width: 0px;
+  --login-button-secondary-border-radius: 5px;
+  --login-link-color: var(--text-highlight-tertiary);
 
   @keyframes fadein {
     0% {

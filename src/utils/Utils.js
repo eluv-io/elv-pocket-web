@@ -99,3 +99,8 @@ export const SHA512 = async (str) => {
   const buf = await crypto.subtle.digest("SHA-512", new TextEncoder("utf-8").encode(str));
   return Array.prototype.map.call(new Uint8Array(buf), x=>(("00"+x.toString(16)).slice(-2))).join("");
 };
+
+export const ValidEmail = email => {
+  return /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    .test(email);
+};

@@ -2,6 +2,7 @@ import {makeAutoObservable, flow} from "mobx";
 import {LinkTargetHash, SHA512} from "@/utils/Utils.js";
 
 import SanitizeHTML from "sanitize-html";
+import {pocketStore} from "@/stores/index.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
@@ -92,6 +93,16 @@ class PocketStore {
       sessionStorage.setItem("preview", "true");
     }
   }
+
+  SetPassword = flow(function * ({pocketSlugOrId, password}) {
+    if((yield SHA512(password)) !== pocketStore.previewPasswordDigest) {
+      return false;
+    }
+
+    localStorage.setItem(`preview-password-${pocketSlugOrId}`, password);
+    this.requirePassword = false;
+    return true;
+  });
 
   SetContentEnded(ended) {
     this.contentEnded = ended;
@@ -392,7 +403,7 @@ class PocketStore {
     this.pocketInfo = pocketInfo;
   });
 
-  LoadPocket = flow(function * ({pocketSlugOrId, noMedia}) {
+  LoadPocket = flow(function * ({pocketSlugOrId, isPaymentFlow}) {
     this.requirePassword = false;
 
     const metadata = yield this.client.ContentObjectMetadata({
@@ -409,7 +420,7 @@ class PocketStore {
     this.LoadCustomization(metadata);
 
     // Check for preview password, except in payment flow
-    if((this.preview || EluvioConfiguration.mode !== "production") && !noMedia && metadata.preview_password_digest) {
+    if(!isPaymentFlow && (this.preview || EluvioConfiguration.mode !== "production" || metadata.require_preview_password_production) && metadata.preview_password_digest) {
       const digest = yield SHA512(localStorage.getItem(`preview-password-${pocketSlugOrId}`) || "");
        if(digest !== metadata.preview_password_digest) {
          this.requirePassword = true;
@@ -426,15 +437,6 @@ class PocketStore {
     };
 
     this.LoadAnalytics();
-
-    if(noMedia) {
-      return;
-    }
-
-    yield Promise.all([
-      new Promise(resolve => setTimeout(resolve, 3000)),
-      this.LoadMedia()
-    ]);
   });
 
   LoadMedia = flow(function * () {
@@ -517,11 +519,6 @@ class PocketStore {
         });
       })
     );
-
-    while(!this.rootStore.loggedIn) {
-      // Don't start determining permissions until logged in
-      yield new Promise(resolve => setTimeout(resolve, 250));
-    }
 
     let allUserItems = [];
     let allMarketplaces = {};
@@ -640,43 +637,24 @@ class PocketStore {
         const customFont = `${metadata.styling.custom_font_declaration}, Montserrat, "Helvetica Neue", helvetica, sans-serif`;
 
         variables.push(`--font-family: ${customFont};`);
+
+        if(metadata.styling.custom_title_font_declaration) {
+          const customTitleFont = `${metadata.styling.custom_title_font_declaration}, ${customFont}`;
+
+          variables.push(`--font-family-title: ${customTitleFont};`);
+        }
       }
     }
 
-    const buttonSettings = metadata?.styling?.button_style || {};
+    variables = [
+      ...variables,
+      ...this.LoadButtonCustomization(metadata?.styling?.button_style, "--button"),
+      ...this.LoadButtonCustomization(metadata?.login?.styling?.sign_in_button, "--login-button-primary"),
+      ...this.LoadButtonCustomization(metadata?.login?.styling?.sign_up_button, "--login-button-secondary")
+    ];
 
-    // Remove invalid color options
-    ["background_color", "background_color_2", "border_color", "text_color"].forEach(key => {
-      if(!buttonSettings[key] || !CSS.supports("color", buttonSettings[key])) {
-        delete buttonSettings[key];
-      }
-    });
-
-    if(buttonSettings.background_color) {
-      variables.push(`--button-background-color--custom: ${buttonSettings.background_color};`);
-      // If border color is not explicitly set, it should default to background color
-      variables.push(`--button-border-color--custom: ${buttonSettings.background_color};`);
-    }
-
-    if(buttonSettings.background_type === "gradient" && buttonSettings.background_color && buttonSettings.background_color_2) {
-      variables.push(
-        `--button-background--custom: linear-gradient(${buttonSettings.background_gradient_angle || 0}deg, ${buttonSettings.background_color}, ${buttonSettings.background_color_2});`);
-    }
-
-    if(buttonSettings.text_color) {
-      variables.push(`--button-text--custom: ${buttonSettings.text_color};`);
-    }
-
-    if(metadata.styling?.button_style?.border_color) {
-      variables.push(`--button-border-color--custom: ${buttonSettings.border_color};`);
-    }
-
-    if(!isNaN(parseInt(buttonSettings.border_width))) {
-      variables.push(`--button-border-width--custom: ${buttonSettings.border_width}px;`);
-    }
-
-    if(!isNaN(parseInt(buttonSettings.border_radius))) {
-      variables.push(`--button-border-radius--custom: ${buttonSettings.border_radius}px;`);
+    if(CSS.supports("color", metadata.login?.styling?.link_color)) {
+      variables.push(`--login-link-color--custom: ${metadata.login.styling.link_color};`);
     }
 
     if(variables.length > 0) {
@@ -687,6 +665,46 @@ class PocketStore {
     styleElement.id = "__custom-css";
     styleElement.innerHTML = SanitizeHTML(css.join("\n"));
     document.body.appendChild(styleElement);
+  }
+
+  LoadButtonCustomization(buttonSettings={}, prefix) {
+    let variables = [];
+    // Remove invalid color options
+    ["background_color", "background_color_2", "border_color", "text_color"].forEach(key => {
+      if(!buttonSettings[key] || !CSS.supports("color", buttonSettings[key])) {
+        delete buttonSettings[key];
+      }
+    });
+
+    if(buttonSettings.background_color) {
+      variables.push(`${prefix}-background-color--custom: ${buttonSettings.background_color};`);
+      // If border color is not explicitly set, it should default to background color
+      variables.push(`${prefix}-border-color--custom: ${buttonSettings.background_color};`);
+    }
+
+    if(buttonSettings.background_type === "gradient" && buttonSettings.background_color && buttonSettings.background_color_2) {
+      variables.push(
+        `${prefix}-background--custom: linear-gradient(${buttonSettings.background_gradient_angle || 0}deg, ${buttonSettings.background_color}, ${buttonSettings.background_color_2});`
+      );
+    }
+
+    if(buttonSettings.text_color) {
+      variables.push(`${prefix}-text--custom: ${buttonSettings.text_color};`);
+    }
+
+    if(buttonSettings.border_color) {
+      variables.push(`${prefix}-border-color--custom: ${buttonSettings.border_color};`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_width))) {
+      variables.push(`${prefix}-border-width--custom: ${buttonSettings.border_width}px;`);
+    }
+
+    if(!isNaN(parseInt(buttonSettings.border_radius))) {
+      variables.push(`${prefix}-border-radius--custom: ${buttonSettings.border_radius}px;`);
+    }
+
+    return variables;
   }
 
   LoadAnalytics() {
