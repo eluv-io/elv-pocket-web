@@ -2,7 +2,7 @@ import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {Redirect, useParams} from "wouter";
-import {rootStore, pocketStore} from "@/stores/index.js";
+import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
@@ -15,6 +15,7 @@ import UrlJoin from "url-join";
 import PlayIcon from "@/assets/icons/play.svg";
 import VolumeOnIcon from "@/assets/icons/volume-high.svg";
 import VolumeOffIcon from "@/assets/icons/volume-off.svg";
+import {MultiviewSelectionModal} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -321,10 +322,7 @@ const Bumpers = observer(({mediaItem, position="before", setFinished}) => {
   );
 });
 
-const Media = observer(({setShowPreview}) => {
-  const {mediaItemSlugOrId} = useParams();
-
-  const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
+const MediaContent = observer(({mediaItem, additionalView}) => {
   const scheduleInfo = mediaItem && pocketStore.MediaItemScheduleInfo(mediaItem);
   const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
   const [preRollFinished, setPreRollFinished] = useState(false);
@@ -333,7 +331,7 @@ const Media = observer(({setShowPreview}) => {
 
   useEffect(() => {
     setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
-  }, [mediaItemSlugOrId, scheduleInfo]);
+  }, [mediaItem?.id, additionalView, scheduleInfo]);
 
   useEffect(() => {
     if(!player) { return; }
@@ -343,35 +341,20 @@ const Media = observer(({setShowPreview}) => {
     }
   }, [player, preRollFinished]);
 
-  if(!mediaItemSlugOrId) {
+  if(!mediaItem) {
     return null;
   }
 
-  const permissions = pocketStore.MediaItemPermissions({mediaItemSlugOrId});
-
-  if(!permissions.authorized) {
-    return (
-      <div key={mediaItem} onClick={() => setShowPreview(false)} className={S("media")}>
-        <div role="button" tabIndex={0} className={S("video-preview")}>
-          <HashedLoaderImage
-            noAnimation
-            src={mediaItem.poster_image?.url || pocketStore.splashImage.url}
-            hash={mediaItem.poster_image_hash || pocketStore.splashImage.hash}
-            className={S("video-preview__poster")}
-          />
-          <div className={S("video-preview__play-button")}>
-            <SVG src={PlayIcon} />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
   return (
     <div key={mediaItem} className={S("media")}>
       {
         !started ?
-          <MediaCountdown mediaItem={mediaItem} setStarted={setStarted} /> :
+          <MediaCountdown
+            mediaItem={mediaItem}
+            setStarted={setStarted}
+          /> :
           <Video
             isLive={mediaItem.scheduleInfo.currentlyLive}
             videoLink={mediaItem.media_link}
@@ -416,8 +399,64 @@ const Media = observer(({setShowPreview}) => {
                 mediaItem={mediaItem}
               />
       }
+
+      <MultiviewSelectionModal mediaItem={mediaItem}/>
     </div>
   );
+});
+
+const Media = observer(({setShowPreview}) => {
+  const {mediaItemSlugOrId} = useParams();
+  const primaryMediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
+  let mediaItem = primaryMediaItem;
+
+  useEffect(() => {
+    mediaDisplayStore.Reset();
+
+    const viewIndex = new URLSearchParams(window.location.search).get("v");
+    const view = primaryMediaItem?.additional_views?.[parseInt(viewIndex)];
+
+    if(view) {
+      mediaDisplayStore.SetDisplayedContent([{
+        ...view,
+        type: "additional-view",
+        id: `${primaryMediaItem.id}-${viewIndex}`,
+        mediaItemId: primaryMediaItem.id,
+        index: parseInt(viewIndex),
+        label: `${primaryMediaItem.title} - ${view.label}`
+      }]);
+    } else {
+      mediaDisplayStore.SetDisplayedContent([{type: "media-item", id: primaryMediaItem.id}]);
+    }
+
+    return () => mediaDisplayStore.Reset();
+  }, [primaryMediaItem]);
+
+  if(!mediaItem) {
+    return null;
+  }
+
+  const permissions = pocketStore.MediaItemPermissions({mediaItem: primaryMediaItem});
+
+  if(!permissions.authorized) {
+    return (
+      <div key={mediaItem} onClick={() => setShowPreview(false)} className={S("media")}>
+        <div role="button" tabIndex={0} className={S("video-preview")}>
+          <HashedLoaderImage
+            noAnimation
+            src={mediaItem.poster_image?.url || pocketStore.splashImage.url}
+            hash={mediaItem.poster_image_hash || pocketStore.splashImage.hash}
+            className={S("video-preview__poster")}
+          />
+          <div className={S("video-preview__play-button")}>
+            <SVG src={PlayIcon} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <MediaContent mediaItem={mediaItem} />;
 });
 
 export default Media;

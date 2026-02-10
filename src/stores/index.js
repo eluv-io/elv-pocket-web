@@ -8,6 +8,7 @@ import {parseDomain} from "parse-domain";
 import UrlJoin from "url-join";
 
 import LocalizationEN from "@/assets/localizations/en.yml";
+import MediaDisplayStore from "@/stores/MediaDisplayStore.js";
 
 console.time("Initial Load");
 
@@ -60,6 +61,7 @@ class RootStore {
 
     this.paymentStore = new PaymentStore(this);
     this.pocketStore = new PocketStore(this);
+    this.mediaDisplayStore = new MediaDisplayStore(this);
 
     localStorage.setItem("user-id-code", this.userIdCode);
     localStorage.setItem("nonce", this.nonce);
@@ -427,5 +429,6 @@ class RootStore {
 export const rootStore = new RootStore();
 export const paymentStore = rootStore.paymentStore;
 export const pocketStore = rootStore.pocketStore;
+export const mediaDisplayStore = rootStore.mediaDisplayStore;
 
 window.rootStore = rootStore;

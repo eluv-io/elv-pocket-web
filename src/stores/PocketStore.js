@@ -43,18 +43,48 @@ class PocketStore {
       ...tab,
       groups: tab.groups.map(group => ({
         ...group,
-        content: group.type === "automatic" ?
-          this.FilteredMedia({select: group.select}) :
-          group.content.map(mediaItemId => this.media[mediaItemId])
+        content: (
+          group.type === "automatic" ?
+            this.FilteredMedia({select: group.select}) :
+            group.content.map(mediaItemId => this.media[mediaItemId])
+        )
+          .map(mediaItem => {
+            const permissions = this.MediaItemPermissions({mediaItem});
+            return {
+              ...mediaItem,
+              resolvedPermissions: permissions,
+              isMultiviewable: (
+                permissions.authorized &&
+                (!mediaItem.scheduleInfo.isLiveContent || mediaItem.scheduleInfo.currentlyLive)
+              )
+            };
+          })
       }))
     }));
+  }
+
+  get showMultiview() {
+    let multiviewableItemCount = 0;
+
+    this.sidebarContent.forEach(tab =>
+      tab?.groups?.forEach(group =>
+        group?.content?.forEach(mediaItem => {
+          if(mediaItem?.isMultiviewable) {
+            multiviewableItemCount += 1;
+          }
+        })
+      )
+    );
+
+    return multiviewableItemCount > 1;
   }
 
   get hasSingleItem() {
     return (
       this.sidebarContent.length === 1 &&
       this.sidebarContent[0].groups.length === 1 &&
-      this.sidebarContent[0].groups[0].content.length === 1
+      this.sidebarContent[0].groups[0].content.length === 1 &&
+      (this.sidebarContent[0].groups[0].content[0]?.additional_views || []).length === 0
     );
   }
 
