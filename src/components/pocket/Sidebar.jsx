@@ -273,7 +273,10 @@ const SidebarContent = observer(({primaryMediaItem}) => {
         tab.groups.map(({title, content}) =>
           content.length === 0 ? null :
             <div key={title} className={S("media-section")}>
-              <div className={S("media-section__title")}>{title}</div>
+              {
+                !title ? null :
+                  <div className={S("media-section__title")}>{title}</div>
+              }
               <div className={S("media-section__media")}>
                 {
                   content.map((item, index) =>

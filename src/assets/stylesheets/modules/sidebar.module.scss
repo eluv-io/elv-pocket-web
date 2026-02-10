@@ -1,5 +1,5 @@
 .sidebar {
-  --sidebar-inline-padding: 15px;
+  --sidebar-inline-padding: 20px;
 
   display: flex;
   flex-direction: column;
@@ -95,7 +95,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  padding: 15px var(--sidebar-inline-padding) 0;
+  padding: 20px var(--sidebar-inline-padding) 0;
   position: relative;
 }
 
@@ -217,7 +217,7 @@
 .media {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 5px;
 }
 
 .media-section {
@@ -229,7 +229,7 @@
     display: flex;
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-top: 5px;
     padding-inline: var(--sidebar-inline-padding);
     position: relative;
 
@@ -290,7 +290,7 @@
   gap: 5px;
   height: max-content;
   min-height: 50px;
-  padding: var(--sidebar-inline-padding);
+  padding: 15px var(--sidebar-inline-padding);
   text-align: left;
   transition: background-color 0.1s ease, opacity 0.1s ease, color 0.25s ease;
   user-select: none;

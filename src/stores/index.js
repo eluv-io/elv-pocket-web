@@ -98,6 +98,11 @@ class RootStore {
     yield this.pocketStore.LoadPocketInfo({pocketSlugOrId});
     yield this.pocketStore.LoadPocket({pocketSlugOrId, isPaymentFlow});
 
+    if(this.pocketStore.requirePassword) {
+      this.loading = false;
+      return;
+    }
+
     this.useOryLogin = this.pocketStore.pocket.metadata?.login?.settings?.use_oauth_login || false;
 
     // TODO: ory login flag
