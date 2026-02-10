@@ -44,18 +44,21 @@ const Item = observer(({
   const {pocketSlugOrId} = useParams();
   const [hovering, setHovering] = useState(false);
 
+  const isMediaItem = contentItem.type === "media-item";
   const isActive = !!(displayedContent || []).find(item => item.type === contentItem.type && item.id === contentItem.id);
   const isPrimary =
     (displayedContent || []).findIndex(item => item.type === contentItem.type && item.id === contentItem.id) === 0 ||
     (displayedContent.length === 0 && primaryMediaId === contentItem.id);
 
-  const mediaItem = contentItem.type === "media-item" ?
+
+
+  const mediaItem = isMediaItem ?
     pocketStore.MediaItem(contentItem.id) :
     pocketStore.MediaItem(contentItem.mediaItemId);
 
   const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
-  const imageInfo = contentItem.type === "media-item" ?
+  const imageInfo = isMediaItem ?
     MediaItemImageUrl({mediaItem}) :
     {imageUrl: contentItem.image?.url, imageHash: contentItem.image_hash};
 
@@ -118,7 +121,7 @@ const Item = observer(({
                 <div className={S("live-badge")}>Live</div>
             }
             {
-              permissions.authorized || permissions.permissionItems.length === 0 ? null :
+              !isMediaItem || permissions.authorized || permissions.permissionItems?.length === 0 ? null :
                 <div className={S("purchase-badge")}>
                   <SVG src={BagIcon} />
                 </div>
@@ -129,13 +132,13 @@ const Item = observer(({
         onClick={onClick}
         to={linkPath}
         disabled={disabled}
-        className={S("item__text")}
+        className={S("item__text", imageInfo?.imageUrl ? "item__text--with-image" : "")}
       >
         <div title={title} className={S("item__title")}>
           {title}
         </div>
         {
-          contentItem.type === "media-item" && isActive && permissions.authorized && permissions.anyItemsAvailable ?
+          isPrimary && isMediaItem && permissions.authorized && permissions.anyItemsAvailable ?
             // Link to additional purchase options for this content
             <Linkish
               onClick={event => {
@@ -156,9 +159,13 @@ const Item = observer(({
               }
               {
                 !scheduleInfo?.isLiveContent ? null :
-                  <div className={S("item__date")}>
-                    {scheduleInfo.displayStartDateLong} at {scheduleInfo.displayStartTime}
-                  </div>
+                  scheduleInfo.currentlyLive ?
+                    <div className={S("item__date")}>
+                      Live Now
+                    </div> :
+                    <div className={S("item__date")}>
+                      {scheduleInfo.displayStartDateLong} at {scheduleInfo.displayStartTime}
+                    </div>
               }
             </>
         }
@@ -287,6 +294,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                             <Item
                               title={view.label}
                               key={`item-${item.id}-${index}`}
+                              scheduleInfo={item.scheduleInfo}
                               contentItem={{
                                 ...view,
                                 type: "additional-view",
@@ -465,7 +473,7 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
                       title="Multiview Mode"
                       className={S("multiview-switch__button", mediaDisplayStore.multiviewMode === "multiview" ? "multiview-switch__button--active" : "")}
                     >
-                      <SVG src={EyeIcon}/>
+                      <SVG src={MultiviewIcon} />
                     </button>
                   </div>
               }

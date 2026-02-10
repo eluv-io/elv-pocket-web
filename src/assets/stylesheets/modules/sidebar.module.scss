@@ -107,8 +107,9 @@
   display: flex;
   height: 25px;
   justify-content: center;
-  margin-right: 5px;
   padding: 5px;
+  position: absolute;
+  right: 5px;
   width: 25px;
 
   svg {
@@ -121,6 +122,7 @@
   align-items: center;
   display: flex;
   gap: 10px;
+  position: relative;
 }
 
 .title {
@@ -308,12 +310,9 @@
   }
 
   &--primary {
-    background-color: #262626;
-  }
-
-  &--live {
-    .item__text {
-      padding: 0;
+    // background-color: #262626;
+    .item__title {
+      text-decoration: underline;
     }
   }
 
@@ -330,25 +329,10 @@
     aspect-ratio: 16/9;
     border-radius: 5px;
     margin-right: 10px;
+    min-width: 150px;
     overflow: hidden;
     position: relative;
-    width: 140px;
-
-    &--square {
-      aspect-ratio: 1;
-      width: 100px;
-    }
-
-    &--portrait {
-      aspect-ratio: 2/3;
-      width: 100px;
-    }
-
-    .item__order-badge {
-      bottom: 3px;
-      position: absolute;
-      right: 0;
-    }
+    width: 150px;
   }
 
   &__image {
@@ -364,14 +348,20 @@
   }
 
   &__text {
-    align-items: center;
+    align-content: start;
     display: grid;
+
+    // flex-direction: column;
     flex: 1 1 0;
     height: max-content;
     max-width: 100%;
     min-height: 40px;
     padding-right: 5px;
     text-align: left;
+
+    &--with-image {
+      min-height: 70px;
+    }
   }
 
   &__headers {
@@ -388,6 +378,9 @@
   &__subtitle {
     color: var(--text-tertiary);
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     &--purchase {
       text-decoration: underline;
@@ -396,13 +389,6 @@
         color: var(--text-secondary);
       }
     }
-  }
-
-  &__title,
-  &__subtitle {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   &__date {
@@ -591,7 +577,9 @@
     }
 
     &__image-container {
-      width: 100px;
+      max-width: 120px;
+      min-width: 120px;
+      width: 120px;
     }
 
     &__title {
