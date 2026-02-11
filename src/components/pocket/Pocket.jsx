@@ -3,7 +3,7 @@ import PocketStyles from "@/assets/stylesheets/modules/pocket.module.scss";
 import {observer} from "mobx-react-lite";
 import {Redirect, useParams} from "wouter";
 import {useEffect, useState} from "react";
-import {rootStore, pocketStore} from "@/stores/index.js";
+import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, SetHTMLMetaTags} from "@/utils/Utils.js";
 import {HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import Media from "@/components/pocket/Media.jsx";
@@ -114,6 +114,7 @@ const Pocket = observer(() => {
       <Page
         mediaItem={mediaItem}
         permissions={permissions}
+        multiviewing={rootStore.mobile && mediaDisplayStore.multiviewing}
         hideSidebar={hideSidebar}
         hideSidebarTitle={showPurchase && rootStore.mobile}
       >

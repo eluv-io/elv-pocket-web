@@ -50,8 +50,6 @@ const Item = observer(({
     (displayedContent || []).findIndex(item => item.type === contentItem.type && item.id === contentItem.id) === 0 ||
     (displayedContent.length === 0 && primaryMediaId === contentItem.id);
 
-
-
   const mediaItem = isMediaItem ?
     pocketStore.MediaItem(contentItem.id) :
     pocketStore.MediaItem(contentItem.mediaItemId);
@@ -195,6 +193,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
   const [tabIndex, setTabIndex] = useState(parseInt(sessionStorage.getItem("sidebar-tab-index") || 0));
   const [containerRef, setContainerRef] = useState(null);
   const tab = pocketStore.sidebarContent[tabIndex];
+  const permissions = pocketStore.MediaItemPermissions({mediaItem: primaryMediaItem});
 
   useEffect(() => {
     // Preserve selected tab
@@ -289,7 +288,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                         key={`item-${item.id}`}
                         contentItem={{type: "media-item", id: item.id}}
                         primaryMediaId={primaryMediaItem.id}
-                        noActions={rootStore.mobile || !item.resolvedPermissions?.authorized || !item.isMultiviewable}
+                        noActions={!permissions.authorized || rootStore.mobile || !item.resolvedPermissions?.authorized || !item.isMultiviewable}
                       />
                       {
                         rootStore.mobile || (item?.additional_views || [])?.length === 0 || !item.isMultiviewable ? null :
@@ -307,6 +306,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                                 label: `${item.title} - ${view.label}`
                               }}
                               primaryMediaId={primaryMediaItem.id}
+                              noActions={!permissions.authorized}
                             />
                           )
                       }
@@ -504,21 +504,26 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
           rootStore.mobile && !pocketStore.hasSingleItem ? null :
             <Banners position="below"/>
         }
-        <SidebarContent primaryMediaItem={mediaItem} />
-        <div className={S("links")}>
-          <Linkish href={pocketStore.pocket.metadata.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>
-            Get Support
-          </Linkish>
-          {
-            (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
-              <Linkish href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
-                FAQ
-              </Linkish>
-          }
-        </div>
+        {
+          rootStore.mobile && mediaDisplayStore.multiviewing ? null :
+            <>
+              <SidebarContent primaryMediaItem={mediaItem} />
+              <div className={S("links")}>
+                <Linkish href={pocketStore.pocket.metadata?.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>
+                  Get Support
+                </Linkish>
+                {
+                  (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
+                    <Linkish href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
+                      FAQ
+                    </Linkish>
+                }
+              </div>
+            </>
+        }
     </div>
-  {
-    !rootStore.mobile || rootStore.mobileLandscape || pocketStore.hasSingleItem ? null :
+      {
+        !rootStore.mobile || rootStore.mobileLandscape || pocketStore.hasSingleItem || (rootStore.mobile && mediaDisplayStore.multiviewing) ? null :
           <Banners position="below" />
       }
     </>
@@ -554,6 +559,8 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
   useEffect(() => {
     if(!menuControls) { return; }
 
+    window.menuControls = menuControls;
+
     mediaDisplayStore.showMultiviewSelectionModal ?
       menuControls.Show() :
       menuControls.Hide();
@@ -563,11 +570,10 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
     return null;
   }
 
-  // TODO - Return additional purchase options
   return (
     <Modal
       SetMenuControls={setMenuControls}
-      closable={false}
+      hideCloseButton
       onHide={() => mediaDisplayStore.SetShowMultiviewSelectionModal(false)}
     >
       <div className={S("multiview-selection-modal")}>
@@ -635,7 +641,6 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                                 {
                                   (item.additional_views || []).map((view, index) =>
                                     <Item
-                                      noBorder={index === 0}
                                       toggleOnClick
                                       title={view.label}
                                       key={`item-${item.id}-${index}`}

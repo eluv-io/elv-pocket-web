@@ -3,7 +3,7 @@ import MediaStyles from "@/assets/stylesheets/modules/media.module.scss";
 import {observer} from "mobx-react-lite";
 import {Redirect, useParams} from "wouter";
 import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import Video from "@/components/common/Video.jsx";
 import {useEffect, useState} from "react";
 import Countdown from "@/components/pocket/Countdown.jsx";
@@ -322,8 +322,10 @@ const Bumpers = observer(({mediaItem, position="before", setFinished}) => {
   );
 });
 
-const MediaContent = observer(({mediaItem, additionalView}) => {
-  const scheduleInfo = mediaItem && pocketStore.MediaItemScheduleInfo(mediaItem);
+// Single media item - may have bumpers, autoplay etc.
+const MediaContent = observer(({mediaInfo, className="", ...videoProps}) => {
+  const primaryMediaItem = pocketStore.MediaItem(mediaInfo.mediaItemId || mediaInfo.id);
+  const scheduleInfo = primaryMediaItem && pocketStore.MediaItemScheduleInfo(primaryMediaItem);
   const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
   const [preRollFinished, setPreRollFinished] = useState(false);
   const [postRollFinished, setPostRollFinished] = useState(false);
@@ -331,7 +333,7 @@ const MediaContent = observer(({mediaItem, additionalView}) => {
 
   useEffect(() => {
     setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
-  }, [mediaItem?.id, additionalView, scheduleInfo]);
+  }, [mediaInfo.id, scheduleInfo]);
 
   useEffect(() => {
     if(!player) { return; }
@@ -341,46 +343,42 @@ const MediaContent = observer(({mediaItem, additionalView}) => {
     }
   }, [player, preRollFinished]);
 
-  if(!mediaItem) {
+  if(!primaryMediaItem) {
     return null;
   }
 
-  const permissions = pocketStore.MediaItemPermissions({mediaItem});
+  const permissions = pocketStore.MediaItemPermissions({mediaItem: primaryMediaItem});
 
   return (
-    <div key={mediaItem} className={S("media")}>
+    <div className={JoinClassNames(S("media"), className)}>
       {
         !started ?
           <MediaCountdown
-            mediaItem={mediaItem}
+            mediaItem={primaryMediaItem}
             setStarted={setStarted}
           /> :
           <Video
-            isLive={mediaItem.scheduleInfo.currentlyLive}
-            videoLink={mediaItem.media_link}
-            videoLinkInfo={mediaItem.media_link_info}
+            {...videoProps}
+            isLive={scheduleInfo.currentlyLive}
+            videoLink={mediaInfo.mediaItem.media_link}
+            videoLinkInfo={mediaInfo.mediaItem.media_link_info}
             callback={setPlayer}
-            posterImage={
-              mediaItem.poster_image?.url ||
-              pocketStore.splashImage.url
-            }
             endCallback={() => pocketStore.SetContentEnded(true)}
             className={S("video")}
             playerOptions={{
               autoplay: false
             }}
             contentInfo={{
-              title: mediaItem.title,
-              subtitle: mediaItem.subtitle,
-              description: mediaItem.description,
-              liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaItem?.enable_dvr ? "ON" : "OFF"]
+              title: mediaInfo.display.title,
+              subtitle: mediaInfo.display.subtitle,
+              liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaInfo.mediaItem?.enable_dvr ? "ON" : "OFF"]
             }}
           />
       }
       {
         !preRollFinished ?
           <Bumpers
-            mediaItem={mediaItem}
+            mediaItem={primaryMediaItem}
             position="before"
             setFinished={() => {
               player?.controls.Play();
@@ -391,16 +389,117 @@ const MediaContent = observer(({mediaItem, additionalView}) => {
           !pocketStore.contentEnded ? null :
             !postRollFinished ?
               <Bumpers
-                mediaItem={mediaItem}
+                mediaItem={primaryMediaItem}
                 position="after"
                 setFinished={() => setPostRollFinished(true)}
               /> :
               <EndScreen
-                mediaItem={mediaItem}
+                mediaItem={primaryMediaItem}
               />
       }
+    </div>
+  );
+});
 
-      <MultiviewSelectionModal mediaItem={mediaItem}/>
+const MultiviewContent = observer(({mediaInfo}) => {
+  if(mediaInfo.length === 0) {
+    return (
+      <div className={S("media-container", "media-container--empty")}>
+        Select Media
+      </div>
+    );
+  }
+
+  return (
+    <div className={S("media-container", "media-container--multiview")}>
+      <div className={S("multiview-media-grid", `multiview-media-grid--${mediaInfo.length}`)}>
+        {
+          mediaInfo.map((item, index) =>
+            <Video
+              key={`media-${item.id}`}
+              videoLink={item.mediaItem.media_link}
+              videoLinkInfo={item.mediaItem.media_link_info}
+              contentInfo={{
+                title: item.display.title,
+                liveDVR: EluvioPlayerParameters.liveDVR[item.mediaItem.enable_dvr ? "ON" : "OFF"]
+              }}
+              showTitle
+              mute
+              onClose={() => mediaDisplayStore.SetDisplayedContent(
+                mediaDisplayStore.displayedContent.filter(otherItem => otherItem.id !== item.id)
+              )}
+              className={S("media", "media--multiview")}
+              containerProps={{
+                style: { gridArea: `video-${index + 1}` }
+              }}
+            />
+          )
+        }
+      </div>
+    </div>
+  );
+});
+
+const PIPContent = observer(({mediaInfo}) => {
+  const [menuActive, setMenuActive] = useState(false);
+
+  if(mediaInfo.length === 0) {
+    return (
+      <div className={S("media-container", "media-container--empty")}>
+        Select Media
+      </div>
+    );
+  }
+
+  const primaryMedia = mediaInfo[0];
+  const secondaryMedia = mediaInfo[1];
+
+  const primaryVideo = (
+    <Video
+      key={`media-${primaryMedia.id}`}
+      videoLink={primaryMedia.mediaItem.media_link}
+      videoLinkInfo={primaryMedia.mediaItem.media_link_info}
+      contentInfo={{
+        title: primaryMedia.display.title,
+        liveDVR: EluvioPlayerParameters.liveDVR[primaryMedia.mediaItem.enable_dvr ? "ON" : "OFF"]
+      }}
+      showTitle={!!secondaryMedia}
+      settingsUpdateCallback={player => setMenuActive(player.controls.IsMenuVisible())}
+      className={S("media")}
+    />
+  );
+
+  const secondaryVideo = (
+    <Video
+      key={`media-${secondaryMedia.id}`}
+      videoLink={secondaryMedia.mediaItem.media_link}
+      videoLinkInfo={secondaryMedia.mediaItem.media_link_info}
+      contentInfo={{
+        title: secondaryMedia.display.title,
+        liveDVR: EluvioPlayerParameters.liveDVR[secondaryMedia.mediaItem.enable_dvr ? "ON" : "OFF"]
+      }}
+      showTitle
+      hideControls
+      mute
+      settingsUpdateCallback={player => setMenuActive(player.controls.IsMenuVisible())}
+      onClick={() => mediaDisplayStore.SetDisplayedContent([
+        mediaDisplayStore.displayedContent[1],
+        mediaDisplayStore.displayedContent[0]
+      ])}
+      className={
+        S(
+          "media",
+          "media--pip",
+          menuActive ? "media--pip--under-menu" : ""
+        )
+      }
+    />
+  );
+
+  return (
+    <div className={S("media-container", "media-container--pip")}>
+      { primaryVideo }
+      { secondaryVideo }
     </div>
   );
 });
@@ -456,7 +555,49 @@ const Media = observer(({setShowPreview}) => {
     );
   }
 
-  return <MediaContent mediaItem={mediaItem} />;
+  const mediaInfo = mediaDisplayStore.displayedContent
+    .map(item => {
+      if(item.type === "additional-view") {
+        return {
+          id: item.id,
+          index: item.index,
+          type: "additional-view",
+          mediaItemId: item.mediaItemId,
+          mediaItem: {
+            media_link: item.media_link,
+            media_link_info: item.media_link_info,
+          },
+          display: {
+            title: item.label
+          }
+        };
+      } else {
+        const mediaItem = pocketStore.MediaItem(item.id);
+
+        if(!mediaItem) {
+          return;
+        }
+
+        const display = mediaItem.override_settings_when_viewed ? mediaItem.viewed_settings : mediaItem;
+
+        return { id: item.id, type: "media-item", mediaItem, display };
+      }
+    })
+    .filter(item => item)
+    .slice(0, mediaDisplayStore.streamLimit);
+
+  return (
+    <>
+      {
+        mediaDisplayStore.displayedContent.length === 1 ?
+          <MediaContent key={mediaInfo[0]?.id} mediaInfo={mediaInfo[0]} /> :
+          mediaDisplayStore.multiviewMode === "pip" ?
+            <PIPContent mediaInfo={mediaInfo} /> :
+            <MultiviewContent mediaInfo={mediaInfo} />
+      }
+      <MultiviewSelectionModal mediaItem={mediaItem} />
+    </>
+  );
 });
 
 export default Media;

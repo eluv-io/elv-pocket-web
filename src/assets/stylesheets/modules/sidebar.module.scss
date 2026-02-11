@@ -309,18 +309,6 @@
     border-top: 0;
   }
 
-  &--primary {
-    // background-color: #262626;
-    .item__title {
-      text-decoration: underline;
-    }
-  }
-
-  &--hover {
-    background-color: #333;
-    transition: background-color 0.25s ease;
-  }
-
   &:last-child {
     border-bottom: 1px solid #2C2C2C;
   }
@@ -482,6 +470,13 @@
     bottom: 0;
     right: 0;
   }
+
+  .item {
+    &--hover {
+      background-color: #333;
+      transition: background-color 0.25s ease;
+    }
+  }
 }
 
 @media screen and (width <= 1000px) {
@@ -492,7 +487,6 @@
     gap: 0;
     height: 100%;
     overflow-y: auto;
-    padding-bottom: 10px;
 
     &__close {
       display: none;
@@ -598,10 +592,6 @@
 
     &__actions {
       padding-right: 5px;
-    }
-
-    &--active {
-      background-color: #262626;
     }
   }
 

@@ -1,6 +1,9 @@
+import {rootStore} from "@/stores/index.js";
 import {forwardRef, useEffect, useState} from "react";
-import {rootStore} from "@/stores";
-import {InitializeEluvioPlayer, EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
+import {EluvioPlayerParameters, InitializeEluvioPlayer} from "@eluvio/elv-player-js/lib/index";
+
+import XIcon from "@/assets/icons/x.svg";
+import SVG from "react-inlinesvg";
 import {CreateModuleClassMatcher, LinkTargetHash} from "@/utils/Utils.js";
 
 const S = CreateModuleClassMatcher();
@@ -17,17 +20,23 @@ const Video = forwardRef(function VideoComponent({
   callback,
   readyCallback,
   errorCallback,
-  endCallback,
   settingsUpdateCallback,
+  hideControls,
+  showTitle,
+  mute,
+  noReactiveMute=false,
   autoAspectRatio=true,
+  onClick,
+  onClose,
   className="",
   containerProps
 }, ref) {
+  const [contentHash, setContentHash] = useState(undefined);
   const [videoDimensions, setVideoDimensions] = useState(undefined);
   const [player, setPlayer] = useState(undefined);
   const [reloadKey, setReloadKey] = useState(0);
-  const [contentHash, setContentHash] = useState(undefined);
   const [targetRef, setTargetRef] = useState(undefined);
+  const contentId = contentHash && rootStore.client.utils.DecodeVersionHash(contentHash).objectId;
 
   useEffect(() => {
     let versionHash = videoHash;
@@ -40,19 +49,6 @@ const Video = forwardRef(function VideoComponent({
   }, [videoLink, videoHash, reloadKey]);
 
   useEffect(() => {
-    return () => {
-      if(!player) { return; }
-
-      try {
-        player.Destroy();
-        delete window.players?.[contentHash];
-      } catch(error) {
-        console.error(error);
-      }
-    };
-  }, [player, contentHash]);
-
-  useEffect(() => {
     if(!targetRef || !contentHash) { return; }
 
     if(player) {
@@ -60,7 +56,8 @@ const Video = forwardRef(function VideoComponent({
         player.Destroy();
         setPlayer(undefined);
       } catch(error) {
-        console.error(error);
+        // eslint-disable-next-line no-console
+        console.log(error);
       }
     }
 
@@ -88,22 +85,20 @@ const Video = forwardRef(function VideoComponent({
           playoutParameters: {
             ...playoutParameters,
             versionHash: contentHash
-          },
+          }
         },
         playerOptions: {
-          showLoader: EluvioPlayerParameters.showLoader.OFF,
-          muted: EluvioPlayerParameters.muted.OFF,
-          controls: EluvioPlayerParameters.controls.AUTO_HIDE,
+          muted: EluvioPlayerParameters.muted[mute ? "ON" : "OFF"],
+          controls: EluvioPlayerParameters.controls[hideControls === "off_with_volume_toggle" ? "OFF_WITH_VOLUME_TOGGLE" : (hideControls ? "OFF" : "AUTO_HIDE")],
+          title: EluvioPlayerParameters.title[showTitle ? "ON" : "FULLSCREEN_ONLY"],
+          maxBitrate: rootStore.isLocal ? 50000 : undefined,
           ui: EluvioPlayerParameters.ui.WEB,
-          appName: "Eluvio Pocket TV",
+          appName: rootStore.appId,
+          backgroundColor: "transparent",
           autoplay: EluvioPlayerParameters.autoplay.ON,
           watermark: EluvioPlayerParameters.watermark.OFF,
           verifyContent: EluvioPlayerParameters.verifyContent.ON,
-          backgroundColor: "black",
-          capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.mobile ? "ON" : "OFF"],
-          title: EluvioPlayerParameters.title.FULLSCREEN_ONLY,
-          maxBitrate: rootStore.isLocal ? 500 : undefined,
-          hlsjsOptions: rootStore.isLocal ? {maxBufferLength: 1, maxBufferSize: 1} : undefined,
+          capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.pageDimensions.width <= 720 ? "ON" : "OFF"],
           errorCallback,
           // For live content, latest hash instead of allowing player to reload
           restartCallback: async () => {
@@ -120,9 +115,11 @@ const Video = forwardRef(function VideoComponent({
         }
       }
     ).then(player => {
+      player.id = `${contentHash}-${Math.random()}`;
+
       window.players = {
         ...(window.players || {}),
-        [contentHash]: player,
+        [contentId]: player
       };
 
       setPlayer(player);
@@ -132,10 +129,6 @@ const Video = forwardRef(function VideoComponent({
         readyCallback && readyCallback(player);
       });
 
-      if(endCallback) {
-        player.controls.RegisterVideoEventListener("ended", () => endCallback());
-      }
-
       if(settingsUpdateCallback) {
         player.controls.RegisterSettingsListener(() => settingsUpdateCallback(player));
       }
@@ -144,14 +137,47 @@ const Video = forwardRef(function VideoComponent({
         callback(player);
       }
     });
+  }, [targetRef, contentId]);
 
-  }, [targetRef, contentHash]);
+  useEffect(() => {
+    if(!player) { return; }
+
+    player.playerOptions.controls = EluvioPlayerParameters.controls[hideControls ? "OFF" : "AUTO_HIDE"];
+    player.playerOptions.title = EluvioPlayerParameters.title[showTitle ? "ON" : "FULLSCREEN_ONLY"];
+  }, [hideControls, showTitle]);
+
+  useEffect(() => {
+    if(!player || noReactiveMute) { return; }
+
+    if(mute) {
+      player.__wasMuted = player.controls.IsMuted();
+      player.controls.Mute();
+    } else if(!player.__wasMuted) {
+      player.controls.Unmute();
+    }
+  }, [mute]);
+
+  useEffect(() => {
+    return () => {
+      if(!player) { return; }
+
+      try {
+        player.Destroy();
+      } catch(error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      }
+
+      delete window.players[contentId];
+    };
+  }, [player]);
 
   return (
     <div
       {...(containerProps || {})}
       ref={ref}
       className={[S("video"), className].join(" ")}
+      onClick={onClick}
       style={
         !autoAspectRatio ? containerProps?.style || {} :
           {
@@ -161,6 +187,12 @@ const Video = forwardRef(function VideoComponent({
       }
     >
       <div ref={setTargetRef} />
+      {
+        !onClose ? null :
+          <button onClick={() => onClose()} className={S("video__close")}>
+            <SVG src={XIcon} />
+          </button>
+      }
     </div>
   );
 });

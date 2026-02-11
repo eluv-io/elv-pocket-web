@@ -5,7 +5,7 @@ class MediaDisplayStore {
   sidebarContent = {};
   mediaTags = {};
 
-  multiviewMode = "pip";
+  selectedMultiviewMode = "pip";
   showSidebar = true;
   showTagSidebar = false;
   showMultiviewSelectionModal = false;
@@ -23,8 +23,16 @@ class MediaDisplayStore {
   }
 
   get streamLimit() {
-    return this.rootStore.pageDimensions.width > 1400 ? 16 :
-      this.rootStore.pageDimensions.width > 850 ? 9 : 8;
+    return this.rootStore.pageDimensions.width > 1400 ? 16 : 8;
+  }
+
+  get multiviewMode() {
+    return this.rootStore.pageDimensions.width > 1000 ?
+      this.selectedMultiviewMode : "multiview";
+  }
+
+  get multiviewing() {
+    return this.displayedContent.length > 1;
   }
 
   constructor(rootStore) {
@@ -44,7 +52,7 @@ class MediaDisplayStore {
   }
 
   SetMultiviewMode(mode) {
-    this.multiviewMode = mode;
+    this.selectedMultiviewMode = mode;
   }
 
   SetDisplayedContent(displayedContent) {

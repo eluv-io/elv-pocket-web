@@ -8,7 +8,15 @@ import Sidebar, {Banners} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
-const Page = observer(({children, mediaItem, permissions, hideSidebar, hideSidebarTitle, className=""}) => {
+const Page = observer(({
+  children,
+  mediaItem,
+  permissions,
+  multiviewing,
+  hideSidebar,
+  hideSidebarTitle,
+  className=""
+}) => {
   return (
     <div className={JoinClassNames("page-container", className)}>
       {
@@ -25,7 +33,8 @@ const Page = observer(({children, mediaItem, permissions, hideSidebar, hideSideb
             "content",
             pocketStore.hasTopBanners ? "content--with-top-banners" : "",
             permissions.authorized ? "content--authorized " : "content--unauthorized",
-            hideSidebar ? "content--no-sidebar" : ""
+            hideSidebar ? "content--no-sidebar" : "",
+            multiviewing ? "content--multiviewing" : ""
           )
         }
       >
