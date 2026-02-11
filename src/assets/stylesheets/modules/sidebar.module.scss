@@ -309,6 +309,12 @@
     border-top: 0;
   }
 
+  &--active {
+    .item__title {
+      text-decoration: underline;
+    }
+  }
+
   &:last-child {
     border-bottom: 1px solid #2C2C2C;
   }

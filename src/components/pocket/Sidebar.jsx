@@ -93,8 +93,8 @@ const Item = observer(({
           disabled ? "item--disabled" : "",
           noBorder ? "item--no-border" : "",
           (hovering && !disabled) ? "item--hover" : "",
-          isPrimary ? "item--primary" : "",
-          isActive && !isPrimary ? "item--active" : "",
+          //isPrimary ? "item--primary" : "",
+          isActive ? "item--active" : "",
           contentItem.type === "additional-view" ? "item--additional-view" : "",
         )
       }
@@ -291,7 +291,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                         noActions={!permissions.authorized || rootStore.mobile || !item.resolvedPermissions?.authorized || !item.isMultiviewable}
                       />
                       {
-                        rootStore.mobile || (item?.additional_views || [])?.length === 0 || !item.isMultiviewable ? null :
+                        (item?.additional_views || [])?.length === 0 || !item.isMultiviewable ? null :
                           (item.additional_views || []).map((view, index) =>
                             <Item
                               title={view.label}
@@ -306,7 +306,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                                 label: `${item.title} - ${view.label}`
                               }}
                               primaryMediaId={primaryMediaItem.id}
-                              noActions={!permissions.authorized}
+                              noActions={!permissions.authorized || rootStore.mobile}
                             />
                           )
                       }
@@ -648,6 +648,7 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                                         ...view,
                                         type: "additional-view",
                                         id: `${item.id}-${index}`,
+                                        mediaItemId: item.id,
                                         index,
                                         label: `${item.title} - ${view.label}`
                                       }}
