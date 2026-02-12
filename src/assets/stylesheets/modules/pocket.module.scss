@@ -76,6 +76,11 @@
       height: 100%;
       max-height: calc(100 * var(--vh) - 50px);
     }
+
+    &--multiviewing {
+      grid-template-rows: 1fr max-content;
+      overflow-y: auto;
+    }
   }
 
   .logo {

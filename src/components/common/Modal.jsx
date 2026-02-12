@@ -16,6 +16,7 @@ const Modal = observer(({
   SetMenuControls,
   onHide,
   closable=true,
+  hideCloseButton,
   backgroundUrl,
   backgroundHash
 }) => {
@@ -99,7 +100,7 @@ const Modal = observer(({
     <dialog
       ref={setDialog}
       onClick={controls.Hide}
-      className={S("modal", `modal--align-${align}`, !closable ? "modal--unclosable" : "", open ? "modal--visible" : "modal--hidden")}
+      className={S("modal", `modal--align-${align}`, !closable || hideCloseButton ? "modal--unclosable" : "", open ? "modal--visible" : "modal--hidden")}
     >
       {
         !backgroundUrl ? null :
@@ -114,7 +115,7 @@ const Modal = observer(({
       }
       <div ref={setContainer} className={S("container")}>
         {
-          !closable ? null :
+          !closable || hideCloseButton ? null :
             <div className={S("close-container")}>
               <button
                 onClick={() => controls.Hide()}

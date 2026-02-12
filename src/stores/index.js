@@ -8,6 +8,7 @@ import {parseDomain} from "parse-domain";
 import UrlJoin from "url-join";
 
 import LocalizationEN from "@/assets/localizations/en.yml";
+import MediaDisplayStore from "@/stores/MediaDisplayStore.js";
 
 console.time("Initial Load");
 
@@ -60,6 +61,7 @@ class RootStore {
 
     this.paymentStore = new PaymentStore(this);
     this.pocketStore = new PocketStore(this);
+    this.mediaDisplayStore = new MediaDisplayStore(this);
 
     localStorage.setItem("user-id-code", this.userIdCode);
     localStorage.setItem("nonce", this.nonce);
@@ -96,6 +98,11 @@ class RootStore {
     yield this.pocketStore.LoadPocketInfo({pocketSlugOrId});
     yield this.pocketStore.LoadPocket({pocketSlugOrId, isPaymentFlow});
 
+    if(this.pocketStore.requirePassword) {
+      this.loading = false;
+      return;
+    }
+
     this.useOryLogin = this.pocketStore.pocket.metadata?.login?.settings?.use_oauth_login || false;
 
     // TODO: ory login flag
@@ -104,7 +111,6 @@ class RootStore {
       yield this.AuthenticateCode({customUserIdCode, force});
     } else if(this.LoginAuthInfo()) {
       yield this.AuthenticateSavedAuth();
-      this.signedIn = true;
     }
 
     if(this.signedIn) {
@@ -178,16 +184,16 @@ class RootStore {
         method: "POST",
         path: UrlJoin("as", "wlt", "refresh", "csat"),
         body: {
-          last_csat: tokenInfo.accessToken,
+          last_csat: tokenInfo.fabricToken,
           refresh_token: tokenInfo.refreshToken,
           nonce: tokenInfo.nonce
         },
         headers: {
-          Authorization: `Bearer ${tokenInfo.accessToken}`
+          Authorization: `Bearer ${tokenInfo.fabricToken}`
         }
       });
 
-      tokenInfo.accessToken = newTokens.token;
+      tokenInfo.fabricToken = newTokens.token;
       tokenInfo.refreshToken = newTokens.refresh_token;
       tokenInfo.expiresAt = newTokens.expires_at;
     } catch(error) {
@@ -195,11 +201,16 @@ class RootStore {
       console.error(error);
     }
 
-    this._loginAuthInfo = yield this.walletClient.Authenticate({
-      token: this.client.utils.B58(JSON.stringify(tokenInfo))
-    });
+    try {
+      this._loginAuthInfo = yield this.walletClient.Authenticate({
+        token: this.client.utils.B58(JSON.stringify(tokenInfo))
+      });
 
-    this.signedIn = true;
+      this.signedIn = true;
+    } catch(error) {
+      console.error("Error authenticating");
+      console.error(error);
+    }
   });
 
   InitializeOryClient = flow(function * () {
@@ -427,5 +438,6 @@ class RootStore {
 export const rootStore = new RootStore();
 export const paymentStore = rootStore.paymentStore;
 export const pocketStore = rootStore.pocketStore;
+export const mediaDisplayStore = rootStore.mediaDisplayStore;
 
 window.rootStore = rootStore;

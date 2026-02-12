@@ -609,12 +609,16 @@ const OryLogin = observer(({
             const email = flow.ui.nodes.find(node => node.attributes.name === "identifier")?.attributes.value;
             message.text = LocalizeString(rootStore.l10n.login.ory.messages.third_party_conflict, {email});
             break;
+          case 1010003:
+            // Weird 'please confirm this action by verifying that it is you' message
+            return;
         }
 
         return message;
       }),
     statusMessage
-  ].filter(m => m);
+  ]
+    .filter(m => m);
 
   const enableThirdPartyLogin = !loginSettings?.disable_third_party_login;
   const showGoogleLogin = !isThirdPartyConflict && enableThirdPartyLogin && !!flow?.ui?.nodes?.find(node => node.group === "oidc" && node.attributes?.value === "google");

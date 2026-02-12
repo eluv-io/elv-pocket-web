@@ -265,7 +265,6 @@ const Purchase = observer(({setShowPreview}) => {
   }
 
   const orientation = rootStore.mobile && permissions.displayedPermissionItems.length > 2 ? "horizontal" : "vertical";
-
   return (
     <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
       {
