@@ -17,6 +17,7 @@ import LeftArrowIcon from "@/assets/icons/left-arrow.svg";
 import PIPIcon from "@/assets/icons/pip.svg";
 import EyeIcon from "@/assets/icons/eye.svg";
 import MultiviewIcon from "@/assets/icons/multiview.svg";
+import FullscreenIcon from "@/assets/icons/full screen.svg";
 
 const S = CreateModuleClassMatcher(SidebarStyles);
 
@@ -479,6 +480,16 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
                       <SVG src={MultiviewIcon} />
                     </button>
                   </div>
+              }
+              {
+                rootStore.pageDimensions.width <= 1000 || !document.fullscreenEnabled || mediaDisplayStore.displayedContent.length <= 1 ? null :
+                  <button
+                    onClick={() => document.querySelector("#media-container").requestFullscreen()}
+                    title="View Content in Full Screen"
+                    className={S("fullscreen-button")}
+                  >
+                    <SVG src={FullscreenIcon}/>
+                  </button>
               }
             </div>
         }

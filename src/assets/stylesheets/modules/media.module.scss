@@ -443,16 +443,23 @@
 }
 
 .multiview-media-grid {
+  --height-buffer: 2;
+
   display: grid;
   width: 100%;
+
+  &--fullscreen {
+    --height-buffer: 0;
+  }
 
   @media screen and (width > 1400px), (orientation: landscape) {
     &--3,
     &--4,
     &--5,
     &--6 {
-      * {
-        max-height: calc(47 * var(--vh));
+      & > div,
+      & > div > div {
+        max-height: calc((50 - var(--height-buffer)) * var(--vh));
       }
     }
 
@@ -462,8 +469,9 @@
     &--10,
     &--11,
     &--12 {
-      * {
-        max-height: calc(31 * var(--vh));
+      & > div,
+      & > div > div {
+        max-height: calc((33.3 - var(--height-buffer)) * var(--vh));
       }
     }
 
@@ -471,8 +479,9 @@
     &--14,
     &--15,
     &--16 {
-      * {
-        max-height: calc(23 * var(--vh));
+      & > div,
+      & > div > div {
+        max-height: calc((25 - var(--height-buffer)) * var(--vh));
       }
     }
 
@@ -596,10 +605,11 @@
     }
   }
 
-  @media screen and (width <= 1400px) and (orientation: portrait) {
+  @media screen and (width <= 1400px)  {
     &--2,
     &--4 {
-      * {
+      & > div,
+      & > div > div {
         max-height: calc(45 * var(--vh));
       }
     }
@@ -607,14 +617,16 @@
     &--3,
     &--5,
     &--6 {
-      * {
+      & > div,
+      & > div > div {
         max-height: calc(30 * var(--vh));
       }
     }
 
     &--7,
     &--8 {
-      * {
+      & > div,
+      & > div > div {
         max-height: calc(23 * var(--vh));
       }
     }
@@ -688,7 +700,8 @@
               "video-4";
       grid-template-columns: 1fr;
 
-      * {
+      & > div,
+      & > div > div {
         max-height: calc(21 * var(--vh));
       }
     }

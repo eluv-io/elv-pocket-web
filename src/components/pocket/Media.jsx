@@ -11,11 +11,11 @@ import {HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import SVG from "react-inlinesvg";
 import UrlJoin from "url-join";
+import {MultiviewSelectionModal} from "@/components/pocket/Sidebar.jsx";
 
 import PlayIcon from "@/assets/icons/play.svg";
 import VolumeOnIcon from "@/assets/icons/volume-high.svg";
 import VolumeOffIcon from "@/assets/icons/volume-off.svg";
-import {MultiviewSelectionModal} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
@@ -411,8 +411,8 @@ const MultiviewContent = observer(({mediaInfo}) => {
   }
 
   return (
-    <div className={S("media-container", "media-container--multiview")}>
-      <div className={S("multiview-media-grid", `multiview-media-grid--${mediaInfo.length}`)}>
+    <div id="media-container" className={S("media-container", "media-container--multiview")}>
+      <div className={S("multiview-media-grid", `multiview-media-grid--${mediaInfo.length}`, mediaDisplayStore.isFullscreen ? "multiview-media-grid--fullscreen" : "")}>
         {
           mediaInfo.map((item, index) =>
             <Video
@@ -497,7 +497,7 @@ const PIPContent = observer(({mediaInfo}) => {
   );
 
   return (
-    <div className={S("media-container", "media-container--pip")}>
+    <div id="media-container" className={S("media-container", "media-container--pip")}>
       { primaryVideo }
       { secondaryVideo }
     </div>

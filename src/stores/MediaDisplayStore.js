@@ -1,10 +1,11 @@
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 
 class MediaDisplayStore {
   displayedContent = [];
   sidebarContent = {};
   mediaTags = {};
 
+  isFullscreen = false;
   selectedMultiviewMode = "pip";
   showSidebar = true;
   showTagSidebar = false;
@@ -39,6 +40,8 @@ class MediaDisplayStore {
     this.rootStore = rootStore;
 
     makeAutoObservable(this);
+
+    document.addEventListener("fullscreenchange", () => runInAction(() => this.isFullscreen = !!document.fullscreenElement));
   }
 
   Reset() {
