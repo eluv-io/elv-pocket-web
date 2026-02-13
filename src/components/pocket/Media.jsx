@@ -16,10 +16,19 @@ import {MultiviewSelectionModal} from "@/components/pocket/Sidebar.jsx";
 import PlayIcon from "@/assets/icons/play.svg";
 import VolumeOnIcon from "@/assets/icons/volume-high.svg";
 import VolumeOffIcon from "@/assets/icons/volume-off.svg";
+import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(MediaStyles);
 
-const MediaCountdown = observer(({mediaItem, setStarted}) => {
+const MediaCountdown = observer(({
+  mediaItem,
+  setStarted,
+  multiview,
+  containerProps={},
+  onClick,
+  onClose,
+  className=""
+}) => {
   if(!mediaItem.scheduleInfo.isLiveContent) {
     return null;
   }
@@ -29,7 +38,22 @@ const MediaCountdown = observer(({mediaItem, setStarted}) => {
     "countdown_background_desktop";
 
   return (
-    <div className={S("countdown-page")}>
+    <div
+      {...containerProps}
+      onClick={onClick}
+      className={
+        JoinClassNames(
+          S("countdown-page", multiview ? "countdown-page--multiview" : ""),
+          className
+        )
+      }
+    >
+      {
+        !onClose ? null :
+          <button onClick={() => onClose()} className={S("countdown-page__close", "opacity-hover")}>
+            <SVG src={XIcon}/>
+          </button>
+      }
       <HashedLoaderImage
         src={
           mediaItem[backgroundKey]?.url ||
@@ -401,6 +425,30 @@ const MediaContent = observer(({mediaInfo, className="", ...videoProps}) => {
   );
 });
 
+const MultiviewVideo = observer(({mediaInfo, primary, ...videoProps}) => {
+  const mediaItem = pocketStore.MediaItem(mediaInfo.mediaItemId || mediaInfo.id);
+  const scheduleInfo = pocketStore.MediaItemScheduleInfo(mediaItem);
+  const [started, setStarted] = useState(!scheduleInfo?.isLiveContent || scheduleInfo?.started);
+
+  if(started) {
+    return <Video {...videoProps } />;
+  }
+
+  return (
+    <MediaCountdown
+      mediaItem={mediaItem}
+      setStarted={setStarted}
+      multiview={!primary}
+      onClick={videoProps.onClick}
+      containerProps={videoProps.containerProps}
+      onClose={() => mediaDisplayStore.SetDisplayedContent(
+        mediaDisplayStore.displayedContent.filter(otherItem => otherItem.id !== mediaInfo.id)
+      )}
+      className={videoProps.className}
+    />
+  );
+});
+
 const MultiviewContent = observer(({mediaInfo}) => {
   if(mediaInfo.length === 0) {
     return (
@@ -415,7 +463,8 @@ const MultiviewContent = observer(({mediaInfo}) => {
       <div className={S("multiview-media-grid", `multiview-media-grid--${mediaInfo.length}`, mediaDisplayStore.isFullscreen ? "multiview-media-grid--fullscreen" : "")}>
         {
           mediaInfo.map((item, index) =>
-            <Video
+            <MultiviewVideo
+              mediaInfo={item}
               key={`media-${item.id}`}
               videoLink={item.mediaItem.media_link}
               videoLinkInfo={item.mediaItem.media_link_info}
@@ -455,7 +504,9 @@ const PIPContent = observer(({mediaInfo}) => {
   const secondaryMedia = mediaInfo[1];
 
   const primaryVideo = (
-    <Video
+    <MultiviewVideo
+      primary
+      mediaInfo={primaryMedia}
       key={`media-${primaryMedia.id}`}
       videoLink={primaryMedia.mediaItem.media_link}
       videoLinkInfo={primaryMedia.mediaItem.media_link_info}
@@ -470,7 +521,8 @@ const PIPContent = observer(({mediaInfo}) => {
   );
 
   const secondaryVideo = (
-    <Video
+    <MultiviewVideo
+      mediaInfo={secondaryMedia}
       key={`media-${secondaryMedia.id}`}
       videoLink={secondaryMedia.mediaItem.media_link}
       videoLinkInfo={secondaryMedia.mediaItem.media_link_info}
@@ -580,7 +632,12 @@ const Media = observer(({setShowPreview}) => {
 
         const display = mediaItem.override_settings_when_viewed ? mediaItem.viewed_settings : mediaItem;
 
-        return { id: item.id, type: "media-item", mediaItem, display };
+        return {
+          id: item.id,
+          type: "media-item",
+          mediaItem,
+          display
+        };
       }
     })
     .filter(item => item)

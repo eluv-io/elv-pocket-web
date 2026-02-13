@@ -22,26 +22,32 @@
   position: relative;
   width: 100%;
 
-  &--pip {
-    animation: 0.75s fadein ease;
-    bottom: 95px;
-    cursor: pointer;
-    height: max-content!important;
-    min-height: unset;
-    min-width: 200px;
-    position: absolute;
-    right: 15px;
-    transition: opacity 0.15s ease, outline 0.25s ease, box-shadow 0.25s ease;
-    width: 25%;
-    z-index: 10;
+  &.media {
+    &--pip {
+      animation: 0.75s fadein ease;
+      bottom: 95px;
+      cursor: pointer;
+      height: max-content !important;
+      min-height: unset;
+      min-width: 200px;
+      position: absolute;
+      right: 15px;
+      transition: opacity 0.15s ease, outline 0.25s ease, box-shadow 0.25s ease;
+      width: 25%;
+      z-index: 10;
 
-    &:hover {
-      box-shadow: 0 0 7px rgb(0 0 0 / 50%);
-    }
+      &:hover {
+        box-shadow: 0 0 7px rgb(0 0 0 / 50%);
+      }
 
-    &--under-menu {
-      opacity: 0.5;
-      z-index: 0;
+      &--under-menu {
+        opacity: 0.5;
+        z-index: 0;
+      }
+
+      .countdown-page__icons {
+        display: none;
+      }
     }
   }
 
@@ -326,6 +332,28 @@
   justify-content: center;
   position: relative;
 
+  &:focus-visible,
+  &:hover {
+    .countdown-page__close {
+      opacity: 1;
+    }
+  }
+
+  &__close {
+    color: var(--text-tertiary-alternate);
+    opacity: 0;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 15px;
+    z-index: 2;
+
+    svg {
+      height: 100%;
+      width: 100%;
+    }
+  }
+
   &__image,
   &__cover {
     height: 100%;
@@ -351,9 +379,12 @@
     justify-content: center;
     position: relative;
     text-align: center;
-    text-shadow: 0 0 10px black;
     width: 100%;
     z-index: 1;
+
+    * {
+      text-shadow: 0 0 5px black;
+    }
   }
 
   &__headers,
@@ -370,6 +401,43 @@
   &__countdown {
     animation: var(--animation-fadein) 0.5s ease;
     min-height: 50px;
+  }
+
+  &--multiview {
+    aspect-ratio: 16/9;
+    height: auto;
+
+    * {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .countdown-page {
+      &__icon {
+        height: 50px;
+        width: 50px;
+      }
+
+      &__content {
+        gap: 0;
+        padding: 10px;
+      }
+
+      &__title {
+        font-size: 14px;
+      }
+
+      &__header,
+      &__countdown {
+        font-size: 12px;
+      }
+
+      &__countdown {
+        min-height: unset;
+      }
+    }
   }
 }
 
@@ -458,7 +526,7 @@
     &--5,
     &--6 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc((50 - var(--height-buffer)) * var(--vh));
       }
     }
@@ -470,7 +538,7 @@
     &--11,
     &--12 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc((33.3 - var(--height-buffer)) * var(--vh));
       }
     }
@@ -480,7 +548,7 @@
     &--15,
     &--16 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc((25 - var(--height-buffer)) * var(--vh));
       }
     }
@@ -605,11 +673,11 @@
     }
   }
 
-  @media screen and (width <= 1400px)  {
+  @media screen and (width <= 1400px) and (orientation: portrait) {
     &--2,
     &--4 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc(45 * var(--vh));
       }
     }
@@ -618,7 +686,7 @@
     &--5,
     &--6 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc(30 * var(--vh));
       }
     }
@@ -626,7 +694,7 @@
     &--7,
     &--8 {
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc(23 * var(--vh));
       }
     }
@@ -692,6 +760,19 @@
   @media screen and (width <= 1000px) and (orientation: portrait) {
     padding-top: 10px;
 
+    &--5,
+    &--6,
+    &--7,
+    &--8 {
+      .countdown-page {
+        max-width: 50vw;
+
+        &__icons {
+          display: none;
+        }
+      }
+    }
+
     &--4 {
       grid-template-areas:
               "video-1"
@@ -701,7 +782,7 @@
       grid-template-columns: 1fr;
 
       & > div,
-      & > div > div {
+      .media > div {
         max-height: calc(21 * var(--vh));
       }
     }

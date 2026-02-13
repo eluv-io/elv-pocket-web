@@ -53,10 +53,7 @@ class PocketStore {
             return {
               ...mediaItem,
               resolvedPermissions: permissions,
-              isMultiviewable: (
-                permissions.authorized &&
-                (!mediaItem.scheduleInfo.isLiveContent || mediaItem.scheduleInfo.currentlyLive)
-              )
+              isMultiviewable: permissions.authorized && mediaItem.scheduleInfo.isMultiviewable
             };
           })
       }))
@@ -250,7 +247,8 @@ class PocketStore {
 
     if(!isLiveVideoType) {
       return {
-        isLiveContent: false
+        isLiveContent: false,
+        isMultiviewable: true
       };
     }
 
@@ -271,6 +269,7 @@ class PocketStore {
         endTime,
         isLiveContent: true,
         currentlyLive: started && !ended,
+        isMultiviewable: !ended,
         started,
         ended,
         displayStartDate,

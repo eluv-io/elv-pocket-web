@@ -94,7 +94,7 @@ const Video = forwardRef(function VideoComponent({
           maxBitrate: rootStore.isLocal ? 50000 : undefined,
           ui: EluvioPlayerParameters.ui.WEB,
           appName: rootStore.appId,
-          backgroundColor: "transparent",
+          backgroundColor: "black",
           autoplay: EluvioPlayerParameters.autoplay.ON,
           watermark: EluvioPlayerParameters.watermark.OFF,
           verifyContent: EluvioPlayerParameters.verifyContent.ON,
