@@ -6,7 +6,7 @@ class MediaDisplayStore {
   mediaTags = {};
 
   isFullscreen = false;
-  selectedMultiviewMode = "pip";
+  selectedMultiviewMode = "multiview";
   showSidebar = true;
   showTagSidebar = false;
   showMultiviewSelectionModal = false;
