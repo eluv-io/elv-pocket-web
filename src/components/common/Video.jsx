@@ -24,6 +24,7 @@ const Video = forwardRef(function VideoComponent({
   hideControls,
   showTitle,
   mute,
+  saveSettings=false,
   noReactiveMute=false,
   autoAspectRatio=true,
   onClick,
@@ -36,7 +37,17 @@ const Video = forwardRef(function VideoComponent({
   const [player, setPlayer] = useState(undefined);
   const [reloadKey, setReloadKey] = useState(0);
   const [targetRef, setTargetRef] = useState(undefined);
+  const [settingsUpdateKey, setSettingsUpdateKey] = useState(0);
   const contentId = contentHash && rootStore.client.utils.DecodeVersionHash(contentHash).objectId;
+
+  useEffect(() => {
+    if(!saveSettings || !player) { return; }
+
+    setTimeout(() => {
+      localStorage.setItem("video-settings", JSON.stringify({muted: player.controls.IsMuted()}));
+    }, 100);
+  }, [saveSettings, settingsUpdateKey, !!player]);
+
 
   useEffect(() => {
     let versionHash = videoHash;
@@ -67,6 +78,16 @@ const Video = forwardRef(function VideoComponent({
       } else if(!isLive){
         playoutParameters.clipStart = videoLinkInfo.clip_start_time;
         playoutParameters.clipEnd = videoLinkInfo.clip_end_time;
+      }
+    }
+
+    if(!player && saveSettings) {
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem("video-settings") || "{}");
+
+        mute = mute || savedSettings.muted;
+      } catch(error) {
+        console.error(error);
       }
     }
 
@@ -133,6 +154,8 @@ const Video = forwardRef(function VideoComponent({
         player.controls.RegisterSettingsListener(() => settingsUpdateCallback(player));
       }
 
+      player.controls.RegisterVideoEventListener("volumechange", () => setSettingsUpdateKey(Math.random()));
+
       if(callback) {
         callback(player);
       }
@@ -149,6 +172,14 @@ const Video = forwardRef(function VideoComponent({
   useEffect(() => {
     if(!player || noReactiveMute) { return; }
 
+    try {
+      const savedSettings = JSON.parse(localStorage.getItem("video-settings") || "{}");
+
+      mute = mute || savedSettings.muted;
+    } catch(error) {
+      console.error(error);
+    }
+
     if(mute) {
       player.__wasMuted = player.controls.IsMuted();
       player.controls.Mute();
@@ -164,8 +195,7 @@ const Video = forwardRef(function VideoComponent({
       try {
         player.Destroy();
       } catch(error) {
-        // eslint-disable-next-line no-console
-        console.log(error);
+        console.error(error);
       }
 
       delete window.players[contentId];

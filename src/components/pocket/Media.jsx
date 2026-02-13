@@ -383,6 +383,7 @@ const MediaContent = observer(({mediaInfo, className="", ...videoProps}) => {
           /> :
           <Video
             {...videoProps}
+            saveSettings
             isLive={scheduleInfo.currentlyLive}
             videoLink={mediaInfo.mediaItem.media_link}
             videoLinkInfo={mediaInfo.mediaItem.media_link_info}
@@ -464,6 +465,7 @@ const MultiviewContent = observer(({mediaInfo}) => {
         {
           mediaInfo.map((item, index) =>
             <MultiviewVideo
+              saveSettings={index === 0}
               mediaInfo={item}
               key={`media-${item.id}`}
               videoLink={item.mediaItem.media_link}
@@ -473,7 +475,7 @@ const MultiviewContent = observer(({mediaInfo}) => {
                 liveDVR: EluvioPlayerParameters.liveDVR[item.mediaItem.enable_dvr ? "ON" : "OFF"]
               }}
               showTitle
-              mute
+              mute={index > 0}
               onClose={() => mediaDisplayStore.SetDisplayedContent(
                 mediaDisplayStore.displayedContent.filter(otherItem => otherItem.id !== item.id)
               )}
@@ -505,6 +507,7 @@ const PIPContent = observer(({mediaInfo}) => {
 
   const primaryVideo = (
     <MultiviewVideo
+      saveSettings
       primary
       mediaInfo={primaryMedia}
       key={`media-${primaryMedia.id}`}
