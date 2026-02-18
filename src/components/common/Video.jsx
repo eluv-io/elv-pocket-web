@@ -21,6 +21,7 @@ const Video = forwardRef(function VideoComponent({
   readyCallback,
   errorCallback,
   settingsUpdateCallback,
+  endCallback,
   hideControls,
   showTitle,
   mute,
@@ -149,6 +150,10 @@ const Video = forwardRef(function VideoComponent({
         setVideoDimensions({width: event.target.videoWidth, height: event.target.videoHeight});
         readyCallback && readyCallback(player);
       });
+
+      if(endCallback) {
+        player.controls.RegisterVideoEventListener("ended", () => endCallback());
+      }
 
       if(settingsUpdateCallback) {
         player.controls.RegisterSettingsListener(() => settingsUpdateCallback(player));

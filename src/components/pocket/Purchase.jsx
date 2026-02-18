@@ -11,6 +11,7 @@ import {Payment} from "@/components/payment/Payment.jsx";
 import SVG from "react-inlinesvg";
 
 import XIcon from "@/assets/icons/x.svg";
+import {BumperContainer} from "@/components/pocket/Media.jsx";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
@@ -241,10 +242,11 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
 
 const Purchase = observer(({setShowPreview}) => {
   const {mediaItemSlugOrId} = useParams();
-  const [selectedItemId, setSelectedItemId] = useState(null);
-
   const mediaItem = pocketStore.MediaItem(mediaItemSlugOrId);
   const permissions = pocketStore.MediaItemPermissions({mediaItem});
+  const mediaInfo = pocketStore.MediaItemInfo(mediaItem?.id);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [bumpersFinished, setBumpersFinished] = useState((mediaInfo.bumpers || []).length === 0);
 
   useEffect(() => {
     if(selectedItemId) {
@@ -266,7 +268,7 @@ const Purchase = observer(({setShowPreview}) => {
 
   const orientation = rootStore.mobile && permissions.displayedPermissionItems.length > 2 ? "horizontal" : "vertical";
   return (
-    <div key={mediaItemSlugOrId} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
+    <div key={`${mediaItemSlugOrId}-${bumpersFinished}`} className={S("purchase", rootStore.mobileLandscape ? "purchase--fullscreen" : "")}>
       {
         rootStore.mobile ? null :
           <>
@@ -281,7 +283,7 @@ const Purchase = observer(({setShowPreview}) => {
               }
               className={S("background")}
             />
-            <div className={S("background-cover")} />
+            <div className={S("background-cover")}/>
           </>
       }
       {
@@ -289,15 +291,15 @@ const Purchase = observer(({setShowPreview}) => {
           <Carousel className={S("item-carousel")}>
             {
               permissions.permissionItems.map((permissionItem, index) =>
-                  selectedItemId && selectedItemId !== permissionItem.id ? null :
-                    <PurchaseItem
-                      orientation={orientation}
-                      key={permissionItem.id + index}
-                      selected={selectedItemId === permissionItem.id}
-                      Select={() => setSelectedItemId(permissionItem.id)}
-                      permissionItem={permissionItem}
-                    />
-                )
+                selectedItemId && selectedItemId !== permissionItem.id ? null :
+                  <PurchaseItem
+                    orientation={orientation}
+                    key={permissionItem.id + index}
+                    selected={selectedItemId === permissionItem.id}
+                    Select={() => setSelectedItemId(permissionItem.id)}
+                    permissionItem={permissionItem}
+                  />
+              )
             }
           </Carousel> :
           <div className={S("items", `items--${orientation}`)}>
@@ -329,8 +331,16 @@ const Purchase = observer(({setShowPreview}) => {
             onClick={() => rootStore.SetAttribute("showAdditionalPurchaseOptions", false)}
             className={S("close", "opacity-hover")}
           >
-            <SVG src={XIcon} />
+            <SVG src={XIcon}/>
           </button>
+      }
+
+      {
+        bumpersFinished ? null :
+          <BumperContainer
+            mediaItemId={mediaItem?.id}
+            onPrerollFinish={() => setBumpersFinished(true)}
+          />
       }
     </div>
   );

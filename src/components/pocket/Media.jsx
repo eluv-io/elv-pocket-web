@@ -266,50 +266,53 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
         className={S("bumper__video")}
         autoAspectRatio={false}
         playerOptions={{
-          controls: EluvioPlayerParameters.controls.OFF,
+          controls: EluvioPlayerParameters.controls[bumper.show_video_controls ? "AUTO_HIDE" : "OFF"],
           autoplay: EluvioPlayerParameters.autoplay.OFF,
           muted: EluvioPlayerParameters.muted.OFF
         }}
       />
-      <div className={S("bumper__controls")}>
-        {
-          !autoplayBlocked ? null :
-            <>
-              <HashedLoaderImage
-                src={mediaItem.poster_image?.url || mediaItem.thumbnail_image_landscape?.url}
-                hash={mediaItem.poster_image_hash || mediaItem.thumbnail_image_landscape_hash}
-                alt={mediaItem.title}
-                onClick={() => player.controls.Play()}
-                className={S("bumper__controls-background")}
-              />
-              <div
-                onClick={event => {
-                  event.stopPropagation();
-                  event.preventDefault();
-                }}
-                className={S("bumper__button-container")}
-              >
-                <button onClick={() => player.controls.Play()} className={S("bumper__play-button")}>
-                  <SVG src={PlayIcon} />
-                </button>
-              </div>
-            </>
-        }
-        {
-          !hasAudio ? null :
-            <div
-              onClick={event => {
-                event.stopPropagation();
-                event.preventDefault();
-              }}
-              className={S("bumper__button-container", "bumper__button-container--volume")}
-            >
-              <button onClick={() => muted ? player.controls.Unmute() : player.controls.Mute()} className={S("bumper__volume-button")}>
-                <SVG src={muted ? VolumeOffIcon : VolumeOnIcon} />
-              </button>
-            </div>
-        }
-      </div>
+      {
+        bumper.show_video_controls ? null :
+          <div className={S("bumper__controls")}>
+            {
+              !autoplayBlocked ? null :
+                <>
+                  <HashedLoaderImage
+                    src={mediaItem.poster_image?.url || mediaItem.thumbnail_image_landscape?.url}
+                    hash={mediaItem.poster_image_hash || mediaItem.thumbnail_image_landscape_hash}
+                    alt={mediaItem.title}
+                    onClick={() => player.controls.Play()}
+                    className={S("bumper__controls-background")}
+                  />
+                  <div
+                    onClick={event => {
+                      event.stopPropagation();
+                      event.preventDefault();
+                    }}
+                    className={S("bumper__button-container")}
+                  >
+                    <button onClick={() => player.controls.Play()} className={S("bumper__play-button")}>
+                      <SVG src={PlayIcon} />
+                    </button>
+                  </div>
+                </>
+            }
+            {
+              !hasAudio ? null :
+                <div
+                  onClick={event => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                  }}
+                  className={S("bumper__button-container", "bumper__button-container--volume")}
+                >
+                  <button onClick={() => muted ? player.controls.Unmute() : player.controls.Mute()} className={S("bumper__volume-button")}>
+                    <SVG src={muted ? VolumeOffIcon : VolumeOnIcon} />
+                  </button>
+                </div>
+            }
+          </div>
+      }
     </Linkish>
   );
 });
@@ -346,32 +349,62 @@ const Bumpers = observer(({mediaItem, position="before", setFinished}) => {
   );
 });
 
-// Single media item - may have bumpers, autoplay etc.
-const MediaContent = observer(({mediaInfo, className="", ...videoProps}) => {
-  const primaryMediaItem = pocketStore.MediaItem(mediaInfo.mediaItemId || mediaInfo.id);
-  const scheduleInfo = primaryMediaItem && pocketStore.MediaItemScheduleInfo(primaryMediaItem);
-  const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
+export const BumperContainer = observer(({
+  mediaItemId,
+  player,
+  onPrerollFinish
+}) => {
+  const primaryMediaItem = pocketStore.MediaItem(mediaItemId || mediaDisplayStore.primaryDisplayedMediaId);
   const [preRollFinished, setPreRollFinished] = useState(false);
   const [postRollFinished, setPostRollFinished] = useState(false);
-  const [player, setPlayer] = useState(undefined);
 
   useEffect(() => {
-    setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
-  }, [mediaInfo.id, scheduleInfo]);
-
-  useEffect(() => {
-    if(!player) { return; }
-
     if(preRollFinished) {
-      player.controls.Play();
+      onPrerollFinish?.();
+
+      if(player) {
+        // Small delay for the player to get started
+        setTimeout(() => player?.controls?.Play(), 100);
+      }
     }
-  }, [player, preRollFinished]);
+  }, [!!player, preRollFinished]);
 
   if(!primaryMediaItem) {
     return null;
   }
 
+  return (
+    !preRollFinished ?
+      <Bumpers
+        mediaItem={primaryMediaItem}
+        position="before"
+        setFinished={() => setPreRollFinished(true)}
+      /> :
+      !pocketStore.contentEnded ? null :
+        !postRollFinished ?
+          <Bumpers
+            mediaItem={primaryMediaItem}
+            position="after"
+            setFinished={() => setPostRollFinished(true)}
+          /> :
+          <EndScreen
+            mediaItem={primaryMediaItem}
+          />
+  );
+});
+
+// Single media item - may have bumpers, autoplay etc.
+const MediaContent = observer(({className="", ...videoProps}) => {
+  const mediaInfo = mediaDisplayStore.displayedMediaInfo[0];
+  const primaryMediaItem = pocketStore.MediaItem(mediaInfo.mediaItemId || mediaInfo.id);
+  const scheduleInfo = primaryMediaItem && pocketStore.MediaItemScheduleInfo(primaryMediaItem);
   const permissions = pocketStore.MediaItemPermissions({mediaItem: primaryMediaItem});
+  const [player, setPlayer] = useState(undefined);
+  const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
+
+  useEffect(() => {
+    setStarted(!scheduleInfo.isLiveContent || scheduleInfo.started);
+  }, [mediaInfo.id, scheduleInfo]);
 
   return (
     <div className={JoinClassNames(S("media"), className)}>
@@ -400,28 +433,10 @@ const MediaContent = observer(({mediaInfo, className="", ...videoProps}) => {
             }}
           />
       }
-      {
-        !preRollFinished ?
-          <Bumpers
-            mediaItem={primaryMediaItem}
-            position="before"
-            setFinished={() => {
-              player?.controls.Play();
-              // Small delay for the player to get started
-              setTimeout(() => setPreRollFinished(true), 100);
-            }}
-          /> :
-          !pocketStore.contentEnded ? null :
-            !postRollFinished ?
-              <Bumpers
-                mediaItem={primaryMediaItem}
-                position="after"
-                setFinished={() => setPostRollFinished(true)}
-              /> :
-              <EndScreen
-                mediaItem={primaryMediaItem}
-              />
-      }
+      <BumperContainer
+        mediaInfo={mediaInfo}
+        player={player}
+      />
     </div>
   );
 });
@@ -450,8 +465,8 @@ const MultiviewVideo = observer(({mediaInfo, primary, ...videoProps}) => {
   );
 });
 
-const MultiviewContent = observer(({mediaInfo}) => {
-  if(mediaInfo.length === 0) {
+const MultiviewContent = observer(() => {
+  if(mediaDisplayStore.displayedMediaInfo.length === 0) {
     return (
       <div className={S("media-container", "media-container--empty")}>
         Select Media
@@ -461,9 +476,17 @@ const MultiviewContent = observer(({mediaInfo}) => {
 
   return (
     <div id="media-container" className={S("media-container", "media-container--multiview")}>
-      <div className={S("multiview-media-grid", `multiview-media-grid--${mediaInfo.length}`, mediaDisplayStore.isFullscreen ? "multiview-media-grid--fullscreen" : "")}>
+      <div
+        className={
+          S(
+            "multiview-media-grid",
+            `multiview-media-grid--${mediaDisplayStore.displayedMediaInfo.length}`,
+            mediaDisplayStore.isFullscreen ? "multiview-media-grid--fullscreen" : ""
+          )
+        }
+      >
         {
-          mediaInfo.map((item, index) =>
+          mediaDisplayStore.displayedMediaInfo.map((item, index) =>
             <MultiviewVideo
               saveSettings={index === 0}
               mediaInfo={item}
@@ -491,10 +514,10 @@ const MultiviewContent = observer(({mediaInfo}) => {
   );
 });
 
-const PIPContent = observer(({mediaInfo}) => {
+const PIPContent = observer(() => {
   const [menuActive, setMenuActive] = useState(false);
 
-  if(mediaInfo.length === 0) {
+  if(mediaDisplayStore.displayedMediaInfo.length === 0) {
     return (
       <div className={S("media-container", "media-container--empty")}>
         Select Media
@@ -502,8 +525,8 @@ const PIPContent = observer(({mediaInfo}) => {
     );
   }
 
-  const primaryMedia = mediaInfo[0];
-  const secondaryMedia = mediaInfo[1];
+  const primaryMedia = mediaDisplayStore.displayedMediaInfo[0];
+  const secondaryMedia = mediaDisplayStore.displayedMediaInfo[1];
 
   const primaryVideo = (
     <MultiviewVideo
@@ -610,50 +633,14 @@ const Media = observer(({setShowPreview}) => {
     );
   }
 
-  const mediaInfo = mediaDisplayStore.displayedContent
-    .map(item => {
-      if(item.type === "additional-view") {
-        return {
-          id: item.id,
-          index: item.index,
-          type: "additional-view",
-          mediaItemId: item.mediaItemId,
-          mediaItem: {
-            media_link: item.media_link,
-            media_link_info: item.media_link_info,
-          },
-          display: {
-            title: item.label
-          }
-        };
-      } else {
-        const mediaItem = pocketStore.MediaItem(item.id);
-
-        if(!mediaItem) {
-          return;
-        }
-
-        const display = mediaItem.override_settings_when_viewed ? mediaItem.viewed_settings : mediaItem;
-
-        return {
-          id: item.id,
-          type: "media-item",
-          mediaItem,
-          display
-        };
-      }
-    })
-    .filter(item => item)
-    .slice(0, mediaDisplayStore.streamLimit);
-
   return (
     <>
       {
         mediaDisplayStore.displayedContent.length === 1 ?
-          <MediaContent key={mediaInfo[0]?.id} mediaInfo={mediaInfo[0]} /> :
+          <MediaContent key={mediaDisplayStore.displayedMediaInfo[0]?.id} /> :
           mediaDisplayStore.multiviewMode === "pip" ?
-            <PIPContent mediaInfo={mediaInfo} /> :
-            <MultiviewContent mediaInfo={mediaInfo} />
+            <PIPContent /> :
+            <MultiviewContent />
       }
       <MultiviewSelectionModal mediaItem={mediaItem} />
     </>
