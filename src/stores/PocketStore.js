@@ -155,11 +155,17 @@ class PocketStore {
           sequential = tab.sequential || group.sequential;
           bumpers = tab.override_bumpers ? tab.bumpers || [] : bumpers;
 
-          const isFree = this.MediaItemPermissions({mediaItemSlugOrId: mediaItemId})?.public;
+          const permissions = this.MediaItemPermissions({mediaItemSlugOrId: mediaItemId}) || {};
+          const isFree = permissions.public;
 
-          if(!isFree) {
+          if(!permissions.public) {
             bumpers = bumpers.filter(bumper => !bumper.free_only);
           }
+
+          bumpers = bumpers.filter(bumper =>
+            (permissions.authorized && !bumper.unauthorized_only) ||
+            (!permissions.authorized && bumper.unauthorized_only && bumper.position === "before")
+          );
 
           let nextItemId;
           if(sequential) {

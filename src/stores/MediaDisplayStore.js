@@ -1,4 +1,5 @@
 import {makeAutoObservable, runInAction} from "mobx";
+import {mediaDisplayStore, pocketStore} from "@/stores/index.js";
 
 class MediaDisplayStore {
   displayedContent = [];
@@ -34,6 +35,48 @@ class MediaDisplayStore {
 
   get multiviewing() {
     return this.displayedContent.length > 1;
+  }
+
+  get displayedMediaInfo() {
+    return this.displayedContent
+      .map(item => {
+        if(item.type === "additional-view") {
+          return {
+            id: item.id,
+            index: item.index,
+            type: "additional-view",
+            mediaItemId: item.mediaItemId,
+            mediaItem: {
+              media_link: item.media_link,
+              media_link_info: item.media_link_info,
+            },
+            display: {
+              title: item.label
+            }
+          };
+        } else {
+          const mediaItem = pocketStore.MediaItem(item.id);
+
+          if(!mediaItem) {
+            return;
+          }
+
+          const display = mediaItem.override_settings_when_viewed ? mediaItem.viewed_settings : mediaItem;
+
+          return {
+            id: item.id,
+            type: "media-item",
+            mediaItem,
+            display
+          };
+        }
+      })
+      .filter(item => item)
+      .slice(0, mediaDisplayStore.streamLimit);
+  }
+
+  get primaryDisplayedMediaId() {
+    return this.displayedContent[0]?.mediaItemId || this.displayedContent[0]?.id;
   }
 
   constructor(rootStore) {
