@@ -411,10 +411,13 @@ class RootStore {
   }
 
   ResetAccount() {
+    localStorage.removeItem(`auth-${EluvioConfiguration.network}`);
     localStorage.removeItem(`token-${EluvioConfiguration.network}`);
     localStorage.removeItem(`token-expires-${EluvioConfiguration.network}`);
     localStorage.removeItem("nonce");
     localStorage.removeItem("user-id-code");
+
+    this.SignOut(false);
 
     setTimeout(() => {
       const url = new URL(window.location.href);

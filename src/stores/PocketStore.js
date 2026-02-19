@@ -50,10 +50,11 @@ class PocketStore {
         )
           .map(mediaItem => {
             const permissions = this.MediaItemPermissions({mediaItem});
+            const scheduleInfo = this.MediaItemScheduleInfo(mediaItem);
             return {
               ...mediaItem,
               resolvedPermissions: permissions,
-              isMultiviewable: permissions.authorized && mediaItem.scheduleInfo.isMultiviewable
+              isMultiviewable: permissions.authorized && scheduleInfo.isMultiviewable
             };
           })
       }))
@@ -153,7 +154,8 @@ class PocketStore {
 
         if(itemIndex >= 0) {
           sequential = tab.sequential || group.sequential;
-          bumpers = tab.override_bumpers ? tab.bumpers || [] : bumpers;
+          bumpers = group.override_bumpers ? group.bumpers || [] :
+            tab.override_bumpers ? tab.bumpers || [] : bumpers;
 
           const permissions = this.MediaItemPermissions({mediaItemSlugOrId: mediaItemId}) || {};
           const isFree = permissions.public;
@@ -245,6 +247,7 @@ class PocketStore {
   }
 
   MediaItemScheduleInfo(mediaItem) {
+    const multiviewSetting = this.pocket.metadata.sidebar_config?.multiview_content || "";
     const isLiveVideoType =
       mediaItem &&
       mediaItem?.type === "media" &&
@@ -254,7 +257,7 @@ class PocketStore {
     if(!isLiveVideoType) {
       return {
         isLiveContent: false,
-        isMultiviewable: true
+        isMultiviewable: ["", "live_and_vod"].includes(multiviewSetting)
       };
     }
 
@@ -269,13 +272,18 @@ class PocketStore {
       const displayStartDateLong = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "short"}).replace(/0(\d)/g, "$1");
       const displayStartTime = startTime?.toLocaleTimeString?.(this.preferredLocale, {hour: "numeric", minute: "numeric"}).replace(/^0(\d)/, "$1").replace(":00", "");
 
+      let isMultiviewable = !ended && multiviewSetting !== "none";
+      if(["live", "live_and_vod"].includes(multiviewSetting)) {
+        isMultiviewable = isMultiviewable && started;
+      }
+
       return {
         startTime,
         streamStartTime,
         endTime,
         isLiveContent: true,
         currentlyLive: started && !ended,
-        isMultiviewable: !ended,
+        isMultiviewable,
         started,
         ended,
         displayStartDate,
@@ -513,11 +521,6 @@ class PocketStore {
     // Determine permission ids and generate schedule info
     let permissionItemIds = [];
     Object.keys(media).forEach(mediaItemId => {
-      media[mediaItemId] = {
-        ...media[mediaItemId],
-        scheduleInfo: this.MediaItemScheduleInfo(media[mediaItemId])
-      };
-
       (media[mediaItemId].permissions || []).forEach(({permission_item_id}) =>
         !permissionItemIds.includes(permission_item_id) && permissionItemIds.push(permission_item_id)
       );
@@ -652,6 +655,8 @@ class PocketStore {
       mediaLoaded: true,
       mediaLoadIndex: (this.pocket.mediaLoadIndex || 0) + 1
     };
+
+    this.rootStore.mediaDisplayStore.LoadMediaProgress();
 
     console.timeEnd("Load Media");
   });
