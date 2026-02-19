@@ -62,6 +62,8 @@ class PocketStore {
   }
 
   get showMultiview() {
+    if(!this.rootStore.mediaDisplayStore.multiviewAvailable) { return false; }
+
     let multiviewableItemCount = 0;
 
     this.sidebarContent.forEach(tab =>
