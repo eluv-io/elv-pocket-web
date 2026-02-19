@@ -14,8 +14,7 @@ import UrlJoin from "url-join";
 import {MultiviewSelectionModal} from "@/components/pocket/Sidebar.jsx";
 
 import PlayIcon from "@/assets/icons/play.svg";
-import VolumeOnIcon from "@/assets/icons/volume-high.svg";
-import VolumeOffIcon from "@/assets/icons/volume-off.svg";
+import RightArrowIcon from "@/assets/icons/right-arrow.svg";
 import XIcon from "@/assets/icons/x.svg";
 
 const S = CreateModuleClassMatcher(MediaStyles);
@@ -29,7 +28,8 @@ const MediaCountdown = observer(({
   onClose,
   className=""
 }) => {
-  if(!mediaItem.scheduleInfo.isLiveContent) {
+  const scheduleInfo = pocketStore.MediaItemScheduleInfo(mediaItem);
+  if(!scheduleInfo.isLiveContent) {
     return null;
   }
 
@@ -94,8 +94,8 @@ const MediaCountdown = observer(({
           {mediaItem.title}
         </div>
         <Countdown
-          displayTime={mediaItem.scheduleInfo.startTime}
-          time={mediaItem.scheduleInfo.streamStartTime}
+          displayTime={scheduleInfo.startTime}
+          time={scheduleInfo.streamStartTime}
           OnEnded={() => setStarted(true)}
           className={S("countdown-page__countdown")}
         />
@@ -196,8 +196,6 @@ const EndScreen = observer(({mediaItem}) => {
 const Bumper = observer(({mediaItem, bumper, setFinished}) => {
   const [player, setPlayer] = useState(undefined);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [hasAudio, setHasAudio] = useState(false);
-  const [muted, setMuted] = useState(false);
   const backgroundKey = rootStore.mobile && bumper.background_mobile ?
     "background_mobile" :
     "background";
@@ -221,19 +219,7 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
 
     player.controls.RegisterVideoEventListener(
       "play",
-      () => {
-        setAutoplayBlocked(false);
-        setHasAudio(
-          player.video.mozHasAudio ||
-          !!player.video.webkitAudioDecodedByteCount ||
-          !!player.video.audioTracks && player.video.audioTracks.length
-        );
-      }
-    );
-
-    player.controls.RegisterVideoEventListener(
-      "volumechange",
-      () => setMuted(player.controls.IsMuted())
+      () => setAutoplayBlocked(false)
     );
   }, [player]);
 
@@ -254,10 +240,7 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
   }
 
   return (
-    <Linkish
-      href={bumper.link}
-      className={S("bumper")}
-    >
+    <div className={S("bumper")}>
       <Video
         videoLink={bumper.video}
         videoLinkInfo={bumper.video_info}
@@ -265,15 +248,32 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
         endCallback={setFinished}
         className={S("bumper__video")}
         autoAspectRatio={false}
+        showTitle={bumper.show_video_controls && bumper.video_title}
+        contentInfo={{
+          title: bumper.show_video_controls && bumper.video_title
+        }}
         playerOptions={{
-          controls: EluvioPlayerParameters.controls[bumper.show_video_controls ? "AUTO_HIDE" : "OFF"],
+          keyboardControls: EluvioPlayerParameters.keyboardControls.OFF,
+          showLoader: EluvioPlayerParameters.showLoader.OFF,
+          controls: EluvioPlayerParameters.controls[bumper.show_video_controls ? "AUTO_HIDE" : "OFF_WITH_VOLUME_TOGGLE"],
           autoplay: EluvioPlayerParameters.autoplay.OFF,
           muted: EluvioPlayerParameters.muted.OFF
         }}
       />
       {
-        bumper.show_video_controls ? null :
-          <div className={S("bumper__controls")}>
+        autoplayBlocked || !bumper.link ? null :
+          <Linkish href={bumper.link} className={S("bumper__link", "opacity-hover")}>
+            Learn More
+            <SVG src={RightArrowIcon} />
+          </Linkish>
+
+      }
+      {
+        !autoplayBlocked || bumper.show_video_controls ? null :
+          <div
+            onClick={() => player.controls.TogglePlay()}
+            className={S("bumper__controls")}
+          >
             {
               !autoplayBlocked ? null :
                 <>
@@ -297,23 +297,9 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
                   </div>
                 </>
             }
-            {
-              !hasAudio ? null :
-                <div
-                  onClick={event => {
-                    event.stopPropagation();
-                    event.preventDefault();
-                  }}
-                  className={S("bumper__button-container", "bumper__button-container--volume")}
-                >
-                  <button onClick={() => muted ? player.controls.Unmute() : player.controls.Mute()} className={S("bumper__volume-button")}>
-                    <SVG src={muted ? VolumeOffIcon : VolumeOnIcon} />
-                  </button>
-                </div>
-            }
           </div>
       }
-    </Linkish>
+    </div>
   );
 });
 
@@ -422,6 +408,9 @@ const MediaContent = observer(({className="", ...videoProps}) => {
             videoLinkInfo={mediaInfo.mediaItem.media_link_info}
             callback={setPlayer}
             endCallback={() => pocketStore.SetContentEnded(true)}
+            mediaItemId={mediaInfo.id}
+            saveProgress
+            defaultStartTime={mediaInfo.type === "media-item" && primaryMediaItem.default_start_time}
             className={S("video")}
             playerOptions={{
               autoplay: false

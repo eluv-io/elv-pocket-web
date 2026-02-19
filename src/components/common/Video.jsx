@@ -1,4 +1,4 @@
-import {rootStore} from "@/stores/index.js";
+import {mediaDisplayStore, rootStore} from "@/stores/index.js";
 import {forwardRef, useEffect, useState} from "react";
 import {EluvioPlayerParameters, InitializeEluvioPlayer} from "@eluvio/elv-player-js/lib/index";
 
@@ -25,6 +25,9 @@ const Video = forwardRef(function VideoComponent({
   hideControls,
   showTitle,
   mute,
+  mediaItemId,
+  defaultStartTime,
+  saveProgress=false,
   saveSettings=false,
   noReactiveMute=false,
   autoAspectRatio=true,
@@ -92,6 +95,18 @@ const Video = forwardRef(function VideoComponent({
       }
     }
 
+
+    let startTime;
+    let startProgress = saveProgress && mediaDisplayStore.GetMediaProgress({mediaItemId});
+    if(startProgress > 0.95) {
+      startProgress = 0;
+    }
+
+    if(typeof startProgress !== "number" && defaultStartTime !== undefined) {
+      startTime = defaultStartTime;
+      startProgress = undefined;
+    }
+
     InitializeEluvioPlayer(
       targetRef,
       {
@@ -111,7 +126,7 @@ const Video = forwardRef(function VideoComponent({
         },
         playerOptions: {
           muted: EluvioPlayerParameters.muted[mute ? "ON" : "OFF"],
-          controls: EluvioPlayerParameters.controls[hideControls === "off_with_volume_toggle" ? "OFF_WITH_VOLUME_TOGGLE" : (hideControls ? "OFF" : "AUTO_HIDE")],
+          controls: EluvioPlayerParameters.controls[hideControls?.toLower === "off_with_volume_toggle" ? "OFF_WITH_VOLUME_TOGGLE" : (hideControls ? "OFF" : "AUTO_HIDE")],
           title: EluvioPlayerParameters.title[showTitle ? "ON" : "FULLSCREEN_ONLY"],
           maxBitrate: rootStore.isLocal ? 50000 : undefined,
           ui: EluvioPlayerParameters.ui.WEB,
@@ -121,6 +136,8 @@ const Video = forwardRef(function VideoComponent({
           watermark: EluvioPlayerParameters.watermark.OFF,
           verifyContent: EluvioPlayerParameters.verifyContent.ON,
           capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.pageDimensions.width <= 720 ? "ON" : "OFF"],
+          startProgress,
+          startTime,
           errorCallback,
           // For live content, latest hash instead of allowing player to reload
           restartCallback: async () => {
@@ -192,6 +209,31 @@ const Video = forwardRef(function VideoComponent({
       player.controls.Unmute();
     }
   }, [mute]);
+
+  useEffect(() => {
+    if(!saveProgress || isLive || !player || !mediaItemId) {
+      return;
+    }
+
+    const SaveProgress = () => {
+      const progress = player.controls.GetCurrentTime() / player.controls.GetDuration();
+
+      if(progress && !isNaN(progress) && progress !== mediaDisplayStore.GetMediaProgress({mediaItemId})) {
+        mediaDisplayStore.SetMediaProgress({
+          mediaItemId,
+          progress
+        });
+      }
+    };
+
+    const progressInterval = setInterval(SaveProgress, 10 * 1000);
+
+    return () => {
+      clearInterval(progressInterval);
+
+      SaveProgress();
+    };
+  }, [player]);
 
   useEffect(() => {
     return () => {

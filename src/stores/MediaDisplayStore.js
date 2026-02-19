@@ -1,15 +1,13 @@
-import {makeAutoObservable, runInAction} from "mobx";
 import {mediaDisplayStore, pocketStore} from "@/stores/index.js";
+import {flow, makeAutoObservable, runInAction} from "mobx";
 
 class MediaDisplayStore {
   displayedContent = [];
   sidebarContent = {};
-  mediaTags = {};
+  mediaProgress = {};
 
   isFullscreen = false;
   selectedMultiviewMode = "multiview";
-  showSidebar = true;
-  showTagSidebar = false;
   showMultiviewSelectionModal = false;
 
   get client() {
@@ -35,6 +33,17 @@ class MediaDisplayStore {
 
   get multiviewing() {
     return this.displayedContent.length > 1;
+  }
+
+  get multiviewAvailable() {
+    const firstItem = this.displayedMediaInfo[0];
+
+    if(!firstItem) { return false; }
+
+    const primaryMediaItem = pocketStore.MediaItem(firstItem.mediaItemId || firstItem.id);
+    const scheduleInfo = primaryMediaItem && pocketStore.MediaItemScheduleInfo(primaryMediaItem);
+
+    return scheduleInfo?.isMultiviewable;
   }
 
   get displayedMediaInfo() {
@@ -90,10 +99,6 @@ class MediaDisplayStore {
   Reset() {
     this.displayedContent = [];
     this.sidebarContent = {};
-    this.mediaTags = {};
-
-    this.showSidebar = true;
-    this.showTagSidebar = false;
     this.showMultiviewSelectionModal = false;
   }
 
@@ -105,20 +110,82 @@ class MediaDisplayStore {
     this.displayedContent = displayedContent;
   }
 
-  SetSidebarContent(sidebarContent) {
-    this.sidebarContent = sidebarContent;
-  }
-
-  SetShowSidebar(show) {
-    this.showSidebar = show;
-  }
-
-  SetShowTagSidebar(show) {
-    this.showTagSidebar = show;
-  }
-
   SetShowMultiviewSelectionModal(show) {
     this.showMultiviewSelectionModal = show;
+  }
+
+  SetMediaProgress = flow(function * ({mediaItemId, progress}) {
+    if(!this.rootStore.signedIn) { return; }
+
+    const pocketId = this.rootStore.pocketStore.pocketInfo.id;
+
+    if(!pocketId) { return; }
+
+    if(!this.mediaProgress[pocketId]) {
+      this.mediaProgress[pocketId] = {};
+    }
+
+    progress = parseFloat(parseFloat(progress).toFixed(5));
+
+    if(progress < 0.01) {
+      delete this.mediaProgress[pocketId][mediaItemId];
+    } else {
+      this.mediaProgress[pocketId][mediaItemId] = Math.min(1, Math.max(0, progress));
+    }
+
+    yield this.walletClient.SetProfileMetadata({
+      type: "app",
+      mode: "private",
+      appId: this.rootStore.appId,
+      key: `media-progress-${pocketId}`,
+      value: JSON.stringify(this.mediaProgress[pocketId])
+    });
+  });
+
+  LoadMediaProgress = flow(function * () {
+    if(!this.rootStore.signedIn) { return; }
+
+    const pocketId = this.rootStore.pocketStore.pocketInfo.id;
+
+    if(!pocketId) { return; }
+
+    if(!this.mediaProgress[pocketId]) {
+      this.mediaProgress[pocketId] = {};
+    }
+
+    let progress = {};
+    try {
+      progress = JSON.parse(
+        yield this.walletClient.ProfileMetadata({
+          type: "app",
+          mode: "private",
+          appId: this.rootStore.appId,
+          key: `media-progress-${pocketId}`
+        })
+      );
+    // eslint-disable-next-line no-unused-vars
+    } catch(error) { /* empty */ }
+
+    this.mediaProgress[pocketId] = progress;
+  });
+
+  GetMediaProgress({mediaItemId}) {
+    return this.mediaProgress[this.rootStore.pocketStore.pocketInfo.id]?.[mediaItemId];
+  }
+
+  async _ClearMediaProgress() {
+    if(!this.rootStore.signedIn) { return; }
+
+    const pocketId = this.rootStore.pocketStore.pocketInfo.id;
+
+    if(!pocketId) { return; }
+
+    await this.walletClient.RemoveProfileMetadata({
+      type: "app",
+      mode: "private",
+      appId: this.rootStore.appId,
+      key: `media-progress-${pocketId}`,
+    });
   }
 }
 

@@ -200,27 +200,20 @@
     }
   }
 
-  &__volume-button {
-    border-radius: 100%;
+  &__link {
+    align-items: center;
+    animation: var(--animation-fadein) 2s ease;
+    background: white;
+    border-radius: 10px;
+    bottom: 20px;
     color: black;
-    height: 45px;
-    padding: 10px;
-    width: 45px;
-    z-index: 1;
-
-    svg {
-      color: white;
-      filter: drop-shadow(0 0 10px black);
-      height: 100%;
-      width: 100%;
-    }
-  }
-
-  @media screen and (width <= 1000px) {
-    &__volume-button {
-      height: 35px;
-      width: 35px;
-    }
+    display: flex;
+    font-size: 16px;
+    gap: 10px;
+    left: 30px;
+    padding: 5px 10px 5px 20px;
+    position: absolute;
+    z-index: 10;
   }
 }
 
@@ -506,6 +499,26 @@
     &__icon {
       height: 60px;
       width: 60px;
+    }
+
+  }
+
+  .bumper {
+    &__link {
+      bottom: 23px;
+      font-size: 12px;
+      left: 10px;
+      opacity: 0.8;
+      padding: 3px 10px;
+
+      svg {
+        display: none;
+      }
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+      }
     }
   }
 }
