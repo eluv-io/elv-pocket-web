@@ -163,13 +163,14 @@ class PocketStore {
           const isFree = permissions.public;
 
           if(!permissions.public) {
-            bumpers = bumpers.filter(bumper => !bumper.free_only);
+            bumpers = bumpers.filter(bumper => bumper.display !== "free");
           }
 
-          bumpers = bumpers.filter(bumper =>
-            (permissions.authorized && !bumper.unauthorized_only) ||
-            (!permissions.authorized && bumper.unauthorized_only && bumper.position === "before")
-          );
+          if(permissions.authorized) {
+            bumpers = bumpers.filter(bumper => bumper.display !== "unauthorized");
+          } else {
+            bumpers = bumpers.filter(bumper => bumper.display !== "authorized" && bumper.position === "before");
+          }
 
           let nextItemId;
           if(sequential) {

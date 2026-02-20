@@ -253,7 +253,7 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
           title: bumper.show_video_controls && bumper.video_title
         }}
         playerOptions={{
-          keyboardControls: EluvioPlayerParameters.keyboardControls.OFF,
+          keyboardControls: EluvioPlayerParameters.keyboardControls[bumper.show_video_controls ? "ON" : "OFF"],
           showLoader: EluvioPlayerParameters.showLoader.OFF,
           controls: EluvioPlayerParameters.controls[bumper.show_video_controls ? "AUTO_HIDE" : "OFF_WITH_VOLUME_TOGGLE"],
           autoplay: EluvioPlayerParameters.autoplay.OFF,
@@ -262,7 +262,7 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
       />
       {
         autoplayBlocked || !bumper.link ? null :
-          <Linkish href={bumper.link} className={S("bumper__link", "opacity-hover")}>
+          <Linkish href={bumper.link} className={S("bumper__link", "styled-button", "opacity-hover")}>
             Learn More
             <SVG src={RightArrowIcon} />
           </Linkish>

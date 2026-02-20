@@ -226,7 +226,7 @@ const Video = forwardRef(function VideoComponent({
       }
     };
 
-    const progressInterval = setInterval(SaveProgress, 10 * 1000);
+    const progressInterval = setInterval(SaveProgress, 30 * 1000);
 
     return () => {
       clearInterval(progressInterval);
