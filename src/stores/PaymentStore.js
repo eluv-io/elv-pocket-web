@@ -78,6 +78,7 @@ class PaymentStore {
         subtitle: permissionItem.subtitle,
         access_title: permissionItem.access_title,
         price: permissionItem.marketplaceItem.price,
+        discountPrice: permissionItem.marketplaceItem?.discount?.price
       };
 
       const url = new URL(window.location.origin);
@@ -86,11 +87,6 @@ class PaymentStore {
         "pay",
         this.client.utils.B58(JSON.stringify(response))
       );
-
-      // TODO: Remove testing
-      if(url.hostname === "localhost") {
-        url.hostname = "192.168.0.28";
-      }
 
       if(this.rootStore.pocketStore.preview) {
         url.searchParams.set("preview", "");

@@ -3,28 +3,39 @@ import PurchaseStyles from "@/assets/stylesheets/modules/purchase.module.scss";
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
 import {pocketStore, paymentStore, rootStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher} from "@/utils/Utils.js";
-import {FormatPriceString, HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
+import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
+import {HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
 import Carousel from "@/components/common/Carousel.jsx";
 import {Payment} from "@/components/payment/Payment.jsx";
+import {FormatPriceString} from "@/utils/Money.js";
 import SVG from "react-inlinesvg";
+import {BumperContainer} from "@/components/pocket/Media.jsx";
 
 import XIcon from "@/assets/icons/x.svg";
-import {BumperContainer} from "@/components/pocket/Media.jsx";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
 const PermissionItemPrice = observer(({permissionItem, className}) =>
   permissionItem.type === "external" && !permissionItem?.price?.USD ? null :
-    <div className={className}>
+    <div className={JoinClassNames(S("price-string"), className)}>
       {
-        FormatPriceString(
-          permissionItem.type === "external" ?
-            permissionItem?.price :
-            permissionItem?.marketplaceItem?.price
-        )
+        permissionItem.type === "external" ||
+        !permissionItem.marketplaceItem?.discount ? null :
+          <span className={S("price-string__strikethrough")}>
+            { FormatPriceString(permissionItem?.marketplaceItem?.price)}
+          </span>
+
       }
+      <span>
+        {
+          FormatPriceString(
+            permissionItem.type === "external" ?
+              permissionItem?.price :
+              permissionItem?.marketplaceItem?.discount?.price || permissionItem?.marketplaceItem?.price
+          )
+        }
+      </span>
     </div>
 );
 

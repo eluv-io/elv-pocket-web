@@ -3,6 +3,7 @@ import {LinkTargetHash, SHA512} from "@/utils/Utils.js";
 
 import SanitizeHTML from "sanitize-html";
 import {pocketStore} from "@/stores/index.js";
+import {DiscountedPrice} from "@/utils/Money.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
@@ -574,6 +575,37 @@ class PocketStore {
         })).results || [];
 
         allUserItems = [...allUserItems, ...allMarketplaces[marketplaceId].ownedItems];
+
+        // Mark owned
+        allMarketplaces[marketplaceId].items = (allMarketplaces[marketplaceId].items || [])
+          .map(item => ({
+            ...item,
+            owned: !!allMarketplaces[marketplaceId].ownedItems
+              .find(({contractAddress}) =>
+                this.client.utils.EqualAddress(
+                  contractAddress,
+                  item.nftTemplateMetadata.address
+                )
+              )
+          }));
+
+        // Mark discount price
+        allMarketplaces[marketplaceId].items = (allMarketplaces[marketplaceId].items || [])
+          .map(item => {
+            if(item.owned || (item.owned_item_discounts || []).length === 0) {
+              return item;
+            }
+
+            const discount = (item.owned_item_discounts
+              .filter(discount =>
+                discount.sku &&
+                allMarketplaces[marketplaceId].items.find(item => item.sku === discount.sku)?.owned
+              )
+              .map(discount => DiscountedPrice({marketplaceItem: item, discount}))
+              .sort((a, b) => a.discountAmount > b.discountAmount ? -1 : 1))[0];
+
+            return !discount ? item : {...item, discount};
+          });
       })
     );
 
@@ -584,15 +616,10 @@ class PocketStore {
 
       const marketplace = allMarketplaces[permissionItem.marketplace.marketplace_id];
       const marketplaceItem = marketplace.items.find(item => item.sku === permissionItem.marketplace_sku);
+
       allPermissionItems[permissionItemId].marketplaceItem = marketplaceItem;
       allPermissionItems[permissionItemId].address = marketplaceItem.nftTemplateMetadata?.address;
-      allPermissionItems[permissionItemId].owned = !!marketplace.ownedItems
-        .find(({contractAddress}) =>
-          this.client.utils.EqualAddress(
-            contractAddress,
-            marketplaceItem.nftTemplateMetadata.address
-          )
-        );
+      allPermissionItems[permissionItemId].owned = marketplaceItem.owned;
 
       if(allPermissionItems[permissionItemId].address) {
         allUserItems.forEach((item, index) => {
