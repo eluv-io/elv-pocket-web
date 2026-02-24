@@ -210,6 +210,8 @@ class RootStore {
     } catch(error) {
       console.error("Error authenticating");
       console.error(error);
+
+      this.SignOut(false);
     }
   });
 
@@ -313,7 +315,7 @@ class RootStore {
     }
   });
 
-  SignOut = flow(function * () {
+  SignOut = flow(function * (reload) {
     clearInterval(this.tokenStatusInterval);
 
     localStorage.removeItem(`auth-${EluvioConfiguration.network}`);
@@ -329,8 +331,10 @@ class RootStore {
 
     yield this.walletClient?.LogOut();
 
-    // eslint-disable-next-line no-self-assign
-    window.location.href = window.location.href;
+    if(reload) {
+      // eslint-disable-next-line no-self-assign
+      window.location.href = window.location.href;
+    }
   });
 
   LoginAuthInfo() {
