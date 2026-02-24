@@ -315,7 +315,7 @@ class RootStore {
     }
   });
 
-  SignOut = flow(function * (reload) {
+  SignOut = flow(function * (reload=true) {
     clearInterval(this.tokenStatusInterval);
 
     localStorage.removeItem(`auth-${EluvioConfiguration.network}`);
