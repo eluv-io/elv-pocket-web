@@ -609,6 +609,7 @@ class PocketStore {
       })
     );
 
+    // Load permission items
     Object.keys(allPermissionItems).forEach(permissionItemId => {
       const permissionItem = allPermissionItems[permissionItemId];
 
@@ -630,6 +631,7 @@ class PocketStore {
       }
     });
 
+    // Mark subsumed permission items
     Object.keys(allPermissionItems).forEach(permissionItemId => {
       const permissionItem = allPermissionItems[permissionItemId];
 
@@ -640,6 +642,24 @@ class PocketStore {
           allPermissionItems[otherItemId].subsumed = true;
         }
       });
+    });
+
+    // Set alternate display on permission items
+    Object.keys(allPermissionItems).forEach(permissionItemId => {
+      if((allPermissionItems[permissionItemId]?.alternate_displays || []).length === 0) {
+        return;
+      }
+
+      let alternateDisplay = allPermissionItems[permissionItemId]?.alternate_displays.find(display =>
+        allPermissionItems[display.permission_item_id]?.owned
+      );
+
+      if(alternateDisplay) {
+        Object.keys(alternateDisplay).forEach(key =>
+          key === "permission_item_id" ? undefined :
+            allPermissionItems[permissionItemId][key] = alternateDisplay[key]
+        );
+      }
     });
 
     try {
