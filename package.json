@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@eluvio/elv-client-js": "^4.2.14",
-    "@eluvio/elv-player-js": "^2.1.19",
+    "@eluvio/elv-player-js": "^2.1.20",
     "@mantine/core": "^8.3.10",
     "@ory/client": "^1.22.15",
     "@ory/elements": "^0.9.0",

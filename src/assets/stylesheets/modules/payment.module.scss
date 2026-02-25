@@ -173,8 +173,17 @@
   }
 
   &__price {
+    align-items: center;
+    display: flex;
     font-family: var(--font-family-title);
     font-size: 24px;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  &__price-strikethrough {
+    color: var(--text-tertiary-alternate);
+    text-decoration: line-through;
   }
 
   &__subtitle {

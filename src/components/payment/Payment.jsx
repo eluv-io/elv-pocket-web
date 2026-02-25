@@ -6,7 +6,8 @@ import {rootStore, paymentStore} from "@/stores/index.js";
 import {Utils} from "@eluvio/elv-client-js/src/index.js";
 import {useEffect, useState} from "react";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
-import {FormatPriceString, Linkish, Loader} from "@/components/common/Common.jsx";
+import {Linkish, Loader} from "@/components/common/Common.jsx";
+import {FormatPriceString} from "@/utils/Money.js";
 import QRCode from "@/components/common/QRCode.jsx";
 
 const S = CreateModuleClassMatcher(PaymentStyles);
@@ -329,7 +330,15 @@ const PaymentPage = observer(() => {
           {params.permissionItem.title}
         </div>
         <div className={S("item__price")}>
-          {FormatPriceString(params.permissionItem.price)}
+          {
+            !params.permissionItem.discountPrice ? null :
+            <span className={S("item__price-strikethrough")}>
+              {FormatPriceString(params.permissionItem.price)}
+            </span>
+          }
+          <span>
+            {FormatPriceString(params.permissionItem.discountPrice || params.permissionItem.price)}
+          </span>
         </div>
         {
           !params.permissionItem.subtitle ? null :

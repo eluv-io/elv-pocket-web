@@ -69,6 +69,18 @@
   }
 }
 
+.price-string {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+
+  &__strikethrough {
+    color: var(--text-tertiary-alternate);
+    text-decoration: line-through;
+  }
+}
+
 .vertical-item {
   animation: var(--animation-fadein) 0.5s ease;
   background: var(--background-gradient);

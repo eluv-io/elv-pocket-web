@@ -254,7 +254,7 @@
     display: flex;
     font-size: 18px;
     font-weight: 600;
-    margin-top: 5px;
+    margin: 15px 0 8px;
     padding-left: var(--sidebar-inline-padding-left);
     padding-right: var(--sidebar-inline-padding-right);
     position: relative;
@@ -482,6 +482,7 @@
 
   .current-item {
     margin-bottom: 10px;
+    min-height: 60px;
   }
 
   .title {

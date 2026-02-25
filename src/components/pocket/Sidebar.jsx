@@ -13,7 +13,7 @@ import Modal from "@/components/common/Modal.jsx";
 
 import XIcon from "@/assets/icons/x.svg";
 import BagIcon from "@/assets/icons/bag.svg";
-import LeftArrowIcon from "@/assets/icons/left-arrow.svg";
+import LeftArrowIcon from "@/assets/icons/chevron-left.svg";
 import PIPIcon from "@/assets/icons/pip.svg";
 import EyeIcon from "@/assets/icons/eye.svg";
 import MultiviewIcon from "@/assets/icons/multiview.svg";
@@ -170,7 +170,7 @@ const Item = observer(({
         }
       </Linkish>
       {
-        noActions ? null :
+        noActions || !mediaDisplayStore.multiviewAvailable ? null :
           <div className={S("item__actions")}>
             <Linkish
               disabled={!isActive && displayedContent.length >= streamLimit}
@@ -224,7 +224,6 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                       noBorder={index === 0}
                       title={item.title}
                       subtitle={item.subtitle}
-                      scheduleInfo={item.scheduleInfo}
                       key={`item-${item.id}`}
                       contentItem={{type: "media-item", id: item.id}}
                       primaryMediaId={primaryMediaItem.id}
@@ -285,7 +284,6 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                         noBorder={index === 0}
                         title={item.title}
                         subtitle={item.subtitle}
-                        scheduleInfo={item.scheduleInfo}
                         key={`item-${item.id}`}
                         contentItem={{type: "media-item", id: item.id}}
                         primaryMediaId={primaryMediaItem.id}
@@ -297,7 +295,6 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                             <Item
                               title={view.label}
                               key={`item-${item.id}-${index}`}
-                              scheduleInfo={item.scheduleInfo}
                               contentItem={{
                                 ...view,
                                 type: "additional-view",
@@ -382,11 +379,12 @@ export const Banners = observer(({position="below"}) => {
 
 const ContentInfo = observer(({mediaItem}) => {
   const permissions = pocketStore.MediaItemPermissions({mediaItem});
+  const scheduleInfo = pocketStore.MediaItemScheduleInfo(mediaItem);
 
   return (
     <div className={S("content-info")}>
       {
-        !mediaItem.scheduleInfo.currentlyLive ? null :
+        !scheduleInfo.currentlyLive ? null :
           <div className={S("live-badge")}>LIVE</div>
       }
       {
@@ -418,9 +416,9 @@ const ContentInfo = observer(({mediaItem}) => {
             </div>
             <div className={(S("subtitle"))}>
               {
-                !mediaItem.scheduleInfo.isLiveContent ?
+                !scheduleInfo.isLiveContent ?
                   mediaItem.subtitle :
-                  `${mediaItem.scheduleInfo.displayStartDateLong} at ${mediaItem.scheduleInfo.displayStartTime}`
+                  `${scheduleInfo.displayStartDateLong} at ${scheduleInfo.displayStartTime}`
               }
             </div>
             {
@@ -638,7 +636,6 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                             toggleOnClick
                             title={item.title}
                             subtitle={item.subtitle}
-                            scheduleInfo={item.scheduleInfo}
                             key={`item-${item.id}`}
                             contentItem={{type: "media-item", id: item.id}}
                             primaryMediaId={mediaItem.id}

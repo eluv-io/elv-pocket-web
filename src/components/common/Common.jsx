@@ -5,9 +5,6 @@ import {Copy, CreateModuleClassMatcher, JoinClassNames, SetImageUrlDimensions} f
 import {forwardRef, useEffect, useState} from "react";
 import {decodeThumbHash, thumbHashToApproximateAspectRatio, thumbHashToDataURL} from "@/utils/Thumbhash.js";
 import {Link} from "wouter";
-import {rootStore} from "@/stores/index.js";
-import Money from "js-money";
-import Currencies from "js-money/lib/currency";
 import SVG from "react-inlinesvg";
 import SanitizeHTML from "sanitize-html";
 
@@ -184,79 +181,6 @@ export const MediaItemImageUrl = ({mediaItem, aspectRatio, width}) => {
     imageAspectRatio,
     altText: mediaItem.thumbnail_alt_text
   };
-};
-
-export const ParseMoney = (amount, currency) => {
-  currency = currency.toUpperCase();
-
-  if(typeof amount !== "object") {
-    if(isNaN(parseFloat(amount))) {
-      amount = new Money(0, currency);
-    } else {
-      amount = new Money(parseInt(Math.round(parseFloat(amount) * (10 ** Currencies[currency]?.decimal_digits || 2))), currency);
-    }
-  }
-
-  return amount;
-};
-
-export const PriceCurrency = prices => {
-  let price;
-  let currency = "USD";
-  if(typeof prices === "object") {
-    if(prices[rootStore.preferredCurrency]) {
-      price = prices[rootStore.preferredCurrency];
-      currency = rootStore.preferredCurrency;
-    } else if(prices[rootStore.currency]) {
-      price = prices[rootStore.currency];
-      currency = rootStore.currency;
-    } else {
-      currency = Object.keys(prices).find(currencyCode => prices[currencyCode]);
-      price = prices[currency];
-    }
-  } else {
-    price = parseFloat(prices);
-  }
-
-  return {
-    price,
-    currency
-  };
-};
-
-export const FormatPriceString = (
-  prices,
-  options= {
-    additionalFee: 0,
-    quantity: 1,
-    trimZeros: false,
-    numberOnly: false
-  }
-) => {
-  let { price, currency } = PriceCurrency(prices);
-
-  if(typeof price === "undefined" || isNaN(price)) {
-    return "";
-  }
-
-  price = ParseMoney(price, currency);
-  price = price.multiply(options.quantity || 1);
-
-  if(options.additionalFee) {
-    price.add(ParseMoney(options.additionalFee, currency));
-  }
-
-  if(options.numberOnly) {
-    return price.toDecimal();
-  }
-
-  let formattedPrice = new Intl.NumberFormat(rootStore.preferredLocale, { style: "currency", currency}).format(price.toString());
-
-  if(options.trimZeros && formattedPrice.endsWith(".00")) {
-    formattedPrice = formattedPrice.slice(0, -3);
-  }
-
-  return formattedPrice;
 };
 
 let copyTimeout;
