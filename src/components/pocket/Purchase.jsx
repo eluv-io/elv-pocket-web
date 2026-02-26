@@ -145,6 +145,12 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
                 BACK
               </Linkish>
             </div>
+            {
+              !permissionItem.disclaimer ? null :
+                <div className={S("vertical-item__disclaimer")}>
+                  {permissionItem.disclaimer}
+                </div>
+            }
           </div>
       }
       <div className={S("payment")}>

@@ -205,12 +205,6 @@ export const Payment = observer(({
           <RichText richText={payment_terms} className={S("payment__terms")} />
       }
       {
-        !payment_message ? null :
-          <div className={S("payment__message")}>
-            {payment_message}
-          </div>
-      }
-      {
         formDetails.type === "card" ?
           <div className={S("card")}>
             <div ref={setContainer} className={S("card__input")}/>
@@ -271,6 +265,12 @@ export const Payment = observer(({
                 </Linkish>
             }
             <div>
+              {
+                !payment_message ? null :
+                  <div className={S("payment__message")}>
+                    {payment_message}
+                  </div>
+              }
               By purchasing you are accepting the <a target="_blank" href="https://eluv.io/terms" rel="noreferrer">Eluvio Terms of Service
             </a>
             </div>
