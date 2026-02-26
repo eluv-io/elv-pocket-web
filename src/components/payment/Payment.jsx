@@ -2,11 +2,11 @@ import PaymentStyles from "@/assets/stylesheets/modules/payment.module.scss";
 
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
-import {rootStore, paymentStore} from "@/stores/index.js";
+import {rootStore, paymentStore, pocketStore} from "@/stores/index.js";
 import {Utils} from "@eluvio/elv-client-js/src/index.js";
 import {useEffect, useState} from "react";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
-import {Linkish, Loader} from "@/components/common/Common.jsx";
+import {Linkish, Loader, RichText} from "@/components/common/Common.jsx";
 import {FormatPriceString} from "@/utils/Money.js";
 import QRCode from "@/components/common/QRCode.jsx";
 
@@ -196,12 +196,18 @@ export const Payment = observer(({
     );
   }
 
+  const {payment_message, payment_terms} = pocketStore.pocket?.metadata || {};
+
   return (
     <div className={JoinClassNames(S("payment"), className)}>
       {
-        !params?.paymentMessage ? null :
+        !payment_terms ? null :
+          <RichText richText={payment_terms} className={S("payment__terms")} />
+      }
+      {
+        !payment_message ? null :
           <div className={S("payment__message")}>
-            {params.paymentMessage}
+            {payment_message}
           </div>
       }
       {

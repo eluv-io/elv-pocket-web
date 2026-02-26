@@ -214,6 +214,12 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
             { permissionItem.owned ? "SELECTED" : "SELECT" }
           </Linkish>
         </div>
+        {
+          !permissionItem.disclaimer ? null :
+            <div className={S("vertical-item__disclaimer")}>
+              {permissionItem.disclaimer}
+            </div>
+        }
       </div>
     );
   }
@@ -245,6 +251,12 @@ const PurchaseItem = observer(({permissionItem, orientation="vertical", Select})
         >
           { permissionItem.owned ? "SELECTED" : "SELECT" }
         </Linkish>
+        {
+          !permissionItem.disclaimer ? null :
+            <div className={S("horizontal-item__disclaimer")}>
+              {permissionItem.disclaimer}
+            </div>
+        }
       </div>
     </div>
   );

@@ -87,6 +87,11 @@
     min-height: 100px;
   }
 
+  &__terms {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
   &__message {
     color: var(--text-tertiary-alternate);
     font-size: 12px;
