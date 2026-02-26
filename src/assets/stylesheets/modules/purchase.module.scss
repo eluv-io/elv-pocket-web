@@ -478,7 +478,7 @@
     justify-content: center;
     margin-inline: auto;
     min-height: 250px;
-    padding: 20px;
+    padding: 20px 20px 25px;
     position: relative;
     width: 100%;
 
@@ -492,7 +492,7 @@
 
     &__title,
     &__price {
-      font-size: 16px;
+      font-size: 14px;
     }
 
     &__price {
@@ -500,14 +500,19 @@
     }
 
     &__subtitle {
-      font-size: 11px;
-      padding-inline: 10px;
+      font-size: 10px;
+      margin-top: 10px;
     }
 
     &__action {
       background-color: white;
       color: black;
       height: 40px;
+    }
+
+    &__disclaimer {
+      bottom: 7px;
+      font-size: 8px;
     }
 
     &:only-child {
