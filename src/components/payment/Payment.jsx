@@ -240,17 +240,16 @@ export const Payment = observer(({
           </div> :
           formDetails.type === "wallet" ?
             <>
-              <div className={S("message")}> Press the payment button to complete the transaction</div>
+              <div className={S("message")}>
+                Press the payment button to complete the transaction
+              </div>
               <div className={S("wallet")}>
-                <div ref={setContainer} className={S("wallet__input")}/>
+                <div ref={setContainer} className={S("wallet__input")} />
               </div>
             </> :
             <div className={S("unsupported")}>
-              <div className={S("unsupported__title")}>
-                Sorry, something went wrong
-              </div>
               <div className={S("unsupported__message")}>
-                Please use another browser with either Apple Pay or Google Wallet enabled
+                Please ensure Apple Pay or Google Wallet is enabled for your browser.
               </div>
             </div>
 
