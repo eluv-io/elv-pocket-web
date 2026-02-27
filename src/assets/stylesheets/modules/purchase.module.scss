@@ -386,8 +386,10 @@
       background-color: var(--background-tertiary);
       display: grid;
       grid-template-columns: 1fr 1fr;
+      margin-inline: auto;
       max-height: unset;
       min-height: 400px;
+      width: min-content;
 
       .vertical-item {
         max-width: 350px;
