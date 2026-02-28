@@ -19,11 +19,11 @@ const CONFIG = {
   "dotsOptionsHelper": {
     "colorType": {"single": true, "gradient": false}
   },
-  "cornersSquareOptions": {"type": "extra-rounded", "color": "white"},
+  "cornersSquareOptions": {"type": "square", "color": "white"},
   "cornersSquareOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
   },
-  "cornersDotOptions": {"type": "dot", "color": "white"},
+  "cornersDotOptions": {"type": "square", "color": "white"},
   "cornersDotOptionsHelper": {
     "colorType": {"single": true, "gradient": false},
   }
