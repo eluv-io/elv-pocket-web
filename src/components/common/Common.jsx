@@ -17,6 +17,7 @@ export const HashedLoaderImage = observer(({
   src,
   hash,
   width,
+  height,
   lazy=true,
   loaderClassName="",
   noAnimation,
@@ -29,8 +30,8 @@ export const HashedLoaderImage = observer(({
   hash = hash && decodeThumbHash(hash);
   const loaderAspectRatio = hash && thumbHashToApproximateAspectRatio(hash);
 
-  if(width && !error) {
-    src = SetImageUrlDimensions({url: src, width});
+  if((width || height) && !error) {
+    src = SetImageUrlDimensions({url: src, width, height});
   }
 
   return (

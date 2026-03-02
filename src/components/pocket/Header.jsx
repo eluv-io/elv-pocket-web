@@ -166,7 +166,7 @@ const MobileHeader = observer(({mediaItem, text}) => {
           {
             logoKey ?
               <HashedLoaderImage
-                width={400}
+                height={200}
                 src={pocketStore.pocket.metadata[logoKey].url}
                 hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
@@ -186,7 +186,7 @@ const MobileHeader = observer(({mediaItem, text}) => {
           {
             logoKey ?
               <HashedLoaderImage
-                width={400}
+                height={200}
                 src={pocketStore.pocket.metadata[logoKey].url}
                 hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
                 className={S("logo__image")}
@@ -216,7 +216,7 @@ const DesktopHeader = observer(({simple, text}) => {
         {
           logoKey ?
             <HashedLoaderImage
-              width={400}
+              height={200}
               src={pocketStore.pocket.metadata[logoKey].url}
               hash={pocketStore.pocket.metadata[`${logoKey}_hash`]}
               className={S("logo__image")}
