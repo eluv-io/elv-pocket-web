@@ -513,6 +513,10 @@
 }
 
 @media screen and (width <= 1000px) {
+  .title-container {
+    padding-right: 40px;
+  }
+
   .sidebar {
     --sidebar-inline-padding-left: 10px;
 

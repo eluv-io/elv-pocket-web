@@ -1,6 +1,6 @@
 import Money from "js-money";
 import Currencies from "js-money/lib/currency.js";
-import {rootStore} from "@/stores/index.js";
+import {paymentStore, rootStore} from "@/stores/index.js";
 
 export const ParseMoney = (amount, currency) => {
   currency = currency.toUpperCase();
@@ -20,12 +20,12 @@ export const PriceCurrency = prices => {
   let price;
   let currency = "USD";
   if(typeof prices === "object") {
-    if(prices[rootStore.preferredCurrency]) {
-      price = prices[rootStore.preferredCurrency];
-      currency = rootStore.preferredCurrency;
-    } else if(prices[rootStore.currency]) {
-      price = prices[rootStore.currency];
-      currency = rootStore.currency;
+    if(prices[paymentStore.preferredCurrency]) {
+      price = prices[paymentStore.preferredCurrency];
+      currency = paymentStore.preferredCurrency;
+    } else if(prices[paymentStore.currency]) {
+      price = prices[paymentStore.currency];
+      currency = paymentStore.currency;
     } else {
       currency = Object.keys(prices).find(currencyCode => prices[currencyCode]);
       price = prices[currency];

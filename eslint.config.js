@@ -81,7 +81,7 @@ export default defineConfig([
         "warn",
         { allowConstantExport: true },
       ],
-      "no-console": ["error", { "allow": ["error", "time", "timeEnd"] }],
+      "no-console": ["error", { "allow": ["error", "info", "time", "timeEnd"] }],
       "quotes": [
         "error",
         "double"

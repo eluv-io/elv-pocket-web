@@ -50,6 +50,23 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
 
       if(status?.status === "complete") {
         clearInterval(statusInterval);
+
+        const permissionItem = pocketStore.permissionItems[permissionItemId];
+        pocketStore.AnalyticsEvent({
+          eventType: "checkout",
+          params: {
+            transaction_id: confirmationId,
+            currency: paymentStore.currency,
+            value: permissionItem?.marketplaceItem?.price?.[paymentStore.currency],
+            items: [{
+              item_id: permissionItem?.marketplaceItem.sku,
+              item_name: permissionItem?.title,
+              price: permissionItem?.marketplaceItem?.price?.[paymentStore.currency],
+              quantity: 1
+            }]
+          }
+        });
+
         setTimeout(async () => {
           await pocketStore.LoadMedia();
           rootStore.SetAttribute("showAdditionalPurchaseOptions", false);

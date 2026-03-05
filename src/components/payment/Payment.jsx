@@ -91,6 +91,7 @@ export const Payment = observer(({
   showQR,
   onSuccess,
   onCancel,
+  isPaymentPage,
   className="",
   qrClassName=""
 }) => {
@@ -116,6 +117,26 @@ export const Payment = observer(({
         });
 
         paymentRequest.canMakePayment().then(function (result) {
+          if(!isPaymentPage) {
+            pocketStore.AnalyticsEvent({
+              eventType: "checkout",
+              params: {
+                transaction_id: params.client_reference_id,
+                currency: params.currency,
+                value: params.permissionItem?.price?.[params.currency],
+                google_wallet_available: result?.googlePay,
+                apple_pay_available: result?.applePay,
+                is_mobile: rootStore.mobile,
+                items: [{
+                  item_id: params.permissionItem?.sku,
+                  item_name: params.permissionItem?.title,
+                  price: params.permissionItem?.price?.[params.currency],
+                  quantity: 1
+                }]
+              }
+            });
+          }
+
           if(result?.applePay || result?.googlePay) {
             // Wallet payment flow
             paymentRequest.on(
@@ -336,13 +357,13 @@ const PaymentPage = observer(() => {
         </div>
         <div className={S("item__price")}>
           {
-            !params.permissionItem.discountPrice ? null :
+            !params.permissionItem.discount_price ? null :
             <span className={S("item__price-strikethrough")}>
               {FormatPriceString(params.permissionItem.price)}
             </span>
           }
           <span>
-            {FormatPriceString(params.permissionItem.discountPrice || params.permissionItem.price)}
+            {FormatPriceString(params.permissionItem.discount_price || params.permissionItem.price)}
           </span>
         </div>
         {
@@ -353,6 +374,7 @@ const PaymentPage = observer(() => {
         }
         <Payment
           params={params}
+          isPaymentPage
           onSuccess={() => setSuccess(true)}
           className={S("payment-page__payment")}
         />

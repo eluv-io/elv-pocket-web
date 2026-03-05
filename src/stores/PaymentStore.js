@@ -4,6 +4,7 @@ import UrlJoin from "url-join";
 
 class PaymentStore {
   currency = "USD";
+  preferredCurrency = "USD";
   stripe;
   purchaseDetails = {};
   purchaseStatus = {};
@@ -73,11 +74,14 @@ class PaymentStore {
       response.mediaTitle = mediaTitle;
       response.permissionItem = {
         id: permissionItemId,
+        client_reference_id: confirmationId,
         title: permissionItem.title,
         subtitle: permissionItem.subtitle,
         access_title: permissionItem.access_title,
         price: permissionItem.marketplaceItem.price,
-        discountPrice: permissionItem.marketplaceItem?.discount?.price
+        discount_price: permissionItem.marketplaceItem?.discount?.price,
+        sku: permissionItem.marketplace_sku,
+        marketplace_id: permissionItem.marketplace_id,
       };
 
       const url = new URL(window.location.origin);

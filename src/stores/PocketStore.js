@@ -14,6 +14,7 @@ class PocketStore {
   pocket;
   permissionItems = {};
   userItems = [];
+  analyticsEvents = {};
 
   preview = urlParams.has("preview") || urlParams.has("previewAll") || sessionStorage.getItem("preview");
   requirePassword = false;
@@ -483,7 +484,9 @@ class PocketStore {
       metadata
     };
 
-    this.LoadAnalytics();
+    if(!isPaymentFlow) {
+      this.LoadAnalytics();
+    }
   });
 
   LoadMedia = flow(function * () {
@@ -795,6 +798,44 @@ class PocketStore {
     }
 
     return variables;
+  }
+
+  AnalyticsEvent({eventType, params}) {
+    if(!this.analyticsEvents[`${this.pocket?.objectId}-${eventType}-${params?.transaction_id || Math.random()}`]) {
+      const analyticsIds = this.pocket.metadata?.analytics_ids || [];
+
+      for(const entry of analyticsIds) {
+        try {
+          switch(entry.type) {
+            case "google_analytics_id":
+            case "google_tag_manager_id":
+              console.info(`Registering ${eventType} event to Google Analytics`);
+              window.gtag(
+                "event",
+                eventType === "checkout" ? "begin_checkout" : "purchase",
+                params
+              );
+
+              break;
+
+            case "meta_pixel_id":
+              console.info(`Registering ${eventType} event to Meta Analytics`);
+              fbq(
+                "track",
+                eventType === "checkout" ? "InitiateCheckout" : "Purchase",
+                params
+              );
+              break;
+
+            default:
+              break;
+          }
+        } catch(error) {
+          console.error(`Failed to initialize analytics for ${entry.type}`);
+          console.error(error);
+        }
+      }
+    }
   }
 
   LoadAnalytics() {
