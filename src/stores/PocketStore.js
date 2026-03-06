@@ -802,11 +802,13 @@ class PocketStore {
 
   AnalyticsEvent({eventType, params}) {
     if(!this.analyticsEvents[`${this.pocket?.objectId}-${eventType}-${params?.transaction_id || Math.random()}`]) {
-      const analyticsIds = [
-        {type: "google_analytics_id", id: "G-JV6YRZHYG5"},
-        ...(this.pocket.metadata?.analytics_ids || [])
-      ];
-
+      let analyticsIds = (this.pocket.metadata?.analytics_ids || []);
+      if(analyticsIds.length === 0) {
+        analyticsIds = [
+          {type: "google_analytics_id", id: "G-JV6YRZHYG5"}
+        ];
+      }
+      
       for(const entry of analyticsIds) {
         try {
           switch(entry.type) {
@@ -842,10 +844,12 @@ class PocketStore {
   }
 
   LoadAnalytics() {
-    const analyticsIds = [
-      {type: "google_analytics_id", id: "G-JV6YRZHYG5"},
-      ...(this.pocket.metadata?.analytics_ids || [])
-    ];
+    let analyticsIds = (this.pocket.metadata?.analytics_ids || []);
+    if(analyticsIds.length === 0) {
+      analyticsIds = [
+        {type: "google_analytics_id", id: "G-JV6YRZHYG5"}
+      ];
+    }
 
     for(const entry of analyticsIds) {
       try {
