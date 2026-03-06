@@ -802,7 +802,10 @@ class PocketStore {
 
   AnalyticsEvent({eventType, params}) {
     if(!this.analyticsEvents[`${this.pocket?.objectId}-${eventType}-${params?.transaction_id || Math.random()}`]) {
-      const analyticsIds = this.pocket.metadata?.analytics_ids || [];
+      const analyticsIds = [
+        {type: "google_analytics_id", id: "G-JV6YRZHYG5"},
+        ...(this.pocket.metadata?.analytics_ids || [])
+      ];
 
       for(const entry of analyticsIds) {
         try {
@@ -839,13 +842,16 @@ class PocketStore {
   }
 
   LoadAnalytics() {
-    const analyticsIds = this.pocket.metadata?.analytics_ids || [];
+    const analyticsIds = [
+      {type: "google_analytics_id", id: "G-JV6YRZHYG5"},
+      ...(this.pocket.metadata?.analytics_ids || [])
+    ];
 
     for(const entry of analyticsIds) {
       try {
         switch(entry.type) {
           case "google_analytics_id":
-            this.Log("Initializing Google Analytics", "warn");
+            console.info("Initializing Google Analytics");
 
             const s = document.createElement("script");
             s.setAttribute("src", `https://www.googletagmanager.com/gtag/js?id=${entry.id}`);
@@ -868,7 +874,7 @@ class PocketStore {
             break;
 
           case "google_tag_manager_id":
-            this.Log("Initializing Google Tag Manager Analytics", "warn");
+            console.info("Initializing Google Tag Manager Analytics");
 
             (function(w, d, s, l, i) {
               w[l] = w[l] || [];
@@ -887,7 +893,7 @@ class PocketStore {
             break;
 
           case "meta_pixel_id":
-            this.Log("Initializing Meta Analytics", "warn");
+            console.info("Initializing Meta Analytics");
 
             !function(f, b, e, v, n, t, s) {
               if(f.fbq) return;
@@ -913,7 +919,7 @@ class PocketStore {
             break;
 
           case "app_nexus_segment_id":
-            this.Log("Initializing App Nexus Analytics", "warn");
+            console.info("Initializing App Nexus Analytics");
 
             const pixel = document.createElement("img");
 
@@ -927,7 +933,7 @@ class PocketStore {
             break;
 
           case "twitter_pixel_id":
-            this.Log("Initializing Twitter Analytics", "warn");
+            console.info("Initializing Twitter Analytics");
 
             !function(e, t, n, s, u, a) {
               e.twq || (s = e.twq = function() {
