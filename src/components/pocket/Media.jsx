@@ -214,8 +214,29 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
     if(!player) { return; }
     window.pl = player;
 
-    player.video.play()
-      .catch(() => setAutoplayBlocked(true));
+    setTimeout(async () => {
+      try {
+        await player.video.play();
+      } catch(e) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        console.error("Fist autoplay attempt blocked:");
+        console.error(e);
+
+        try {
+          await player.video.play();
+        } catch(error) {
+          setAutoplayBlocked(true);
+          console.error("Second autoplay attempt blocked:");
+          console.error(error);
+        }
+      }
+    }, 100);
+
+    player.controls.RegisterVideoEventListener(
+      "canplay",
+      () => player.controls.Play()
+    );
 
     player.controls.RegisterVideoEventListener(
       "play",
