@@ -234,11 +234,6 @@ const Bumper = observer(({mediaItem, bumper, setFinished}) => {
     }, 100);
 
     player.controls.RegisterVideoEventListener(
-      "canplay",
-      () => player.controls.Play()
-    );
-
-    player.controls.RegisterVideoEventListener(
       "play",
       () => setAutoplayBlocked(false)
     );
