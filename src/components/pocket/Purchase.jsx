@@ -309,6 +309,8 @@ const Purchase = observer(({setShowPreview}) => {
   }, [selectedItemId]);
 
   useEffect(() => {
+    if(!bumpersFinished) { return; }
+
     // Items view analytics event
     try {
       pocketStore.AnalyticsEvent({
@@ -329,7 +331,7 @@ const Purchase = observer(({setShowPreview}) => {
     } catch(error) {
       console.error(error);
     }
-  }, []);
+  }, [bumpersFinished]);
 
   if(!mediaItem) {
     return null;
