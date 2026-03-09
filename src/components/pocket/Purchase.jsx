@@ -308,6 +308,29 @@ const Purchase = observer(({setShowPreview}) => {
     return () => rootStore.SetBackAction(undefined);
   }, [selectedItemId]);
 
+  useEffect(() => {
+    // Items view analytics event
+    try {
+      pocketStore.AnalyticsEvent({
+        eventType: "view_item_list",
+        params: {
+          id: mediaItem.id,
+          item_list_id: mediaItem.id,
+          item_list_name: mediaItem.title,
+          is_mobile: rootStore.mobile,
+          items: permissions.displayedPermissionItems.map(permissionItem => ({
+            item_id: permissionItem?.sku,
+            item_name: permissionItem?.title,
+            price: permissionItem?.price?.[paymentStore.currency],
+            quantity: 1
+          }))
+        }
+      });
+    } catch(error) {
+      console.error(error);
+    }
+  }, []);
+
   if(!mediaItem) {
     return null;
   }

@@ -801,14 +801,16 @@ class PocketStore {
   }
 
   AnalyticsEvent({eventType, params}) {
-    if(!this.analyticsEvents[`${this.pocket?.objectId}-${eventType}-${params?.transaction_id || Math.random()}`]) {
+    const key = `${this.pocket?.objectId}-${eventType}-${params?.transaction_id || params?.id || Math.random()}`;
+    if(!this.analyticsEvents[key]) {
+      this.analyticsEvents[key] = true;
       let analyticsIds = (this.pocket.metadata?.analytics_ids || []);
       if(analyticsIds.length === 0) {
         analyticsIds = [
           {type: "google_analytics_id", id: "G-JV6YRZHYG5"}
         ];
       }
-      
+
       for(const entry of analyticsIds) {
         try {
           switch(entry.type) {
