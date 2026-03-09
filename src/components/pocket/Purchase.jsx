@@ -53,7 +53,7 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
 
         const permissionItem = pocketStore.permissionItems[permissionItemId];
         pocketStore.AnalyticsEvent({
-          eventType: "checkout",
+          eventType: "purchase",
           params: {
             transaction_id: confirmationId,
             currency: paymentStore.currency,
