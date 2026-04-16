@@ -512,6 +512,31 @@
   }
 }
 
+@media screen and (width <= 1450px) and (width >= 1001px) {
+  .title {
+    font-size: 18px;
+  }
+
+  .title-icon {
+    min-width: 40px;
+  }
+
+  .tab {
+    font-size: 14px;
+  }
+
+  .item {
+    &__image-container {
+      min-width: 130px;
+      width: 130px;
+    }
+
+    &__title {
+      font-size: 14px;
+    }
+  }
+}
+
 @media screen and (width <= 1000px) {
   .title-container {
     padding-right: 40px;

@@ -282,7 +282,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                     <>
                       <Item
                         noBorder={index === 0}
-                        title={item.title}
+                        title={item.sidebar_title || item.title}
                         subtitle={item.subtitle}
                         key={`item-${item.id}`}
                         contentItem={{type: "media-item", id: item.id}}
@@ -634,7 +634,7 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                           <Item
                             noBorder={index === 0}
                             toggleOnClick
-                            title={item.title}
+                            title={item.sidebar_title || item.title}
                             subtitle={item.subtitle}
                             key={`item-${item.id}`}
                             contentItem={{type: "media-item", id: item.id}}

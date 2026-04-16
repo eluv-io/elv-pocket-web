@@ -60,6 +60,12 @@
   }
 }
 
+@media screen and (width <= 1450px) {
+  .content {
+    grid-template-columns: 1fr 400px;
+  }
+}
+
 @media screen and (width <= 1000px) {
   .content {
     display: grid;
