@@ -119,9 +119,9 @@ const Pocket = observer(() => {
         hideSidebarTitle={showPurchase && rootStore.mobile}
       >
         {
-           showPurchase ?
-             <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />:
-             <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
+          showPurchase ?
+            <Purchase key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />:
+            <Media key={`${mediaItemSlugOrId}`} setShowPreview={setShowPreview} />
         }
       </Page>
     </>

@@ -801,6 +801,9 @@ class PocketStore {
   }
 
   AnalyticsEvent({eventType, params}) {
+    params.customer_type = Object.values(this.permissionItems || {}).find(item => item.owned) ?
+      "returning" : "new";
+
     const key = `${this.pocket?.objectId}-${eventType}-${params?.transaction_id || params?.id || Math.random()}`;
     if(!this.analyticsEvents[key]) {
       this.analyticsEvents[key] = true;
@@ -819,7 +822,7 @@ class PocketStore {
               console.info(`Registering ${eventType} event to Google Analytics`);
               window.gtag(
                 "event",
-                eventType === "checkout" ? "begin_checkout" : "purchase",
+                eventType,
                 params
               );
 

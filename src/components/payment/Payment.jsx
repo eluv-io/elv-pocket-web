@@ -119,13 +119,13 @@ export const Payment = observer(({
         paymentRequest.canMakePayment().then(function (result) {
           if(!isPaymentPage) {
             pocketStore.AnalyticsEvent({
-              eventType: "checkout",
+              eventType: "begin_checkout",
               params: {
                 transaction_id: params.client_reference_id,
                 currency: params.currency,
                 value: params.permissionItem?.price?.[params.currency],
-                google_wallet_available: result?.googlePay,
-                apple_pay_available: result?.applePay,
+                google_wallet_available: !!result?.googlePay,
+                apple_pay_available: !!result?.applePay,
                 is_mobile: rootStore.mobile,
                 items: [{
                   item_id: params.permissionItem?.sku,

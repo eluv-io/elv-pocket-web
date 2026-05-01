@@ -321,7 +321,7 @@ const Purchase = observer(({setShowPreview}) => {
           item_list_name: mediaItem.title,
           is_mobile: rootStore.mobile,
           items: permissions.displayedPermissionItems.map(permissionItem => ({
-            item_id: permissionItem?.sku,
+            item_id: permissionItem?.sku || permissionItem.id,
             item_name: permissionItem?.title,
             price: permissionItem?.price?.[paymentStore.currency],
             quantity: 1
