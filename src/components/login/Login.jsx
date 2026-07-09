@@ -831,7 +831,7 @@ const Login = observer(() => {
               hideHashedImage
               src={pocketStore.pocket.metadata.login.styling.logo.url}
               hash={pocketStore.pocket.metadata.login.styling.logo_hash}
-              className={S("logo__image")}
+              className={S("logo")}
             />
         }
         <div className={S("content")}>

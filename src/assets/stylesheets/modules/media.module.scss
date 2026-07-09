@@ -1,6 +1,8 @@
 .media-container {
   align-items: center;
   display: flex;
+  max-width: 100%;
+  overflow: hidden;
   position: relative;
 
   &--empty {
@@ -28,6 +30,7 @@
       bottom: 95px;
       cursor: pointer;
       height: max-content !important;
+      max-width: 100%;
       min-height: unset;
       min-width: 200px;
       position: absolute;

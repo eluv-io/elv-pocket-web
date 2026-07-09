@@ -178,27 +178,29 @@ class RootStore {
   AuthenticateSavedAuth = flow(function * () {
     let tokenInfo = this.LoginAuthInfo();
 
-    try {
-      const newTokens = yield this.client.MakeAuthServiceRequest({
-        format: "JSON",
-        method: "POST",
-        path: UrlJoin("as", "wlt", "refresh", "csat"),
-        body: {
-          last_csat: tokenInfo.fabricToken,
-          refresh_token: tokenInfo.refreshToken,
-          nonce: tokenInfo.nonce
-        },
-        headers: {
-          Authorization: `Bearer ${tokenInfo.fabricToken}`
-        }
-      });
+    if(!tokenInfo?.expiresAt || tokenInfo?.expiresAt < 8 * 60 * 60 * 1000 - Date.now()) {
+      try {
+        const newTokens = yield this.client.MakeAuthServiceRequest({
+          format: "JSON",
+          method: "POST",
+          path: UrlJoin("as", "wlt", "refresh", "csat"),
+          body: {
+            last_csat: tokenInfo.fabricToken,
+            refresh_token: tokenInfo.refreshToken,
+            nonce: tokenInfo.nonce
+          },
+          headers: {
+            Authorization: `Bearer ${tokenInfo.fabricToken}`
+          }
+        });
 
-      tokenInfo.fabricToken = newTokens.token;
-      tokenInfo.refreshToken = newTokens.refresh_token;
-      tokenInfo.expiresAt = newTokens.expires_at;
-    } catch(error) {
-      console.error("Error refreshing:");
-      console.error(error);
+        tokenInfo.fabricToken = newTokens.token;
+        tokenInfo.refreshToken = newTokens.refresh_token;
+        tokenInfo.expiresAt = newTokens.expires_at;
+      } catch(error) {
+        console.error("Error refreshing:");
+        console.error(error);
+      }
     }
 
     try {
