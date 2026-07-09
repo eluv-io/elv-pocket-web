@@ -278,20 +278,29 @@ const SidebarContent = observer(({primaryMediaItem}) => {
               }
               <div className={S("media-section__media")}>
                 {
-                  content.map((item, index) =>
-                    <>
-                      <Item
-                        noBorder={index === 0}
-                        title={item.sidebar_title || item.title}
-                        subtitle={item.subtitle}
-                        key={`item-${item.id}`}
-                        contentItem={{type: "media-item", id: item.id}}
-                        primaryMediaId={primaryMediaItem.id}
-                        noActions={!permissions.authorized || rootStore.mobile || !item.resolvedPermissions?.authorized || !item.isMultiviewable}
-                      />
-                      {
-                        (item?.additional_views || [])?.length === 0 || !item.isMultiviewable ? null :
-                          (item.additional_views || []).map((view, index) =>
+                  content.map((item, index) => {
+                    let additionalViews = item?.additional_views || [];
+                    const scheduleInfo = pocketStore.MediaItemScheduleInfo(item);
+                    if(
+                      (!item.isMultiviewable || (scheduleInfo.isLiveContent && !scheduleInfo.currentlyLive)) &&
+                      primaryMediaItem.id !== item.id
+                    ) {
+                      additionalViews = [];
+                    }
+
+                    return (
+                      <>
+                        <Item
+                          noBorder={index === 0}
+                          title={item.sidebar_title || item.title}
+                          subtitle={item.subtitle}
+                          key={`item-${item.id}`}
+                          contentItem={{type: "media-item", id: item.id}}
+                          primaryMediaId={primaryMediaItem.id}
+                          noActions={!permissions.authorized || rootStore.mobile || !item.resolvedPermissions?.authorized || !item.isMultiviewable}
+                        />
+                        {
+                          additionalViews.map((view, index) =>
                             <Item
                               title={view.label}
                               key={`item-${item.id}-${index}`}
@@ -307,9 +316,10 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                               noActions={!permissions.authorized || rootStore.mobile}
                             />
                           )
-                      }
-                    </>
-                  )
+                        }
+                      </>
+                    );
+                  })
                 }
               </div>
             </div>
@@ -629,48 +639,59 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                     }
                     {group.content
                       .filter(item => item.resolvedPermissions.authorized && item.isMultiviewable)
-                      .map((item, index) =>
-                        <>
-                          <Item
-                            noBorder={index === 0}
-                            toggleOnClick
-                            title={item.sidebar_title || item.title}
-                            subtitle={item.subtitle}
-                            key={`item-${item.id}`}
-                            contentItem={{type: "media-item", id: item.id}}
-                            primaryMediaId={mediaItem.id}
-                            multiviewMode="multiview"
-                            displayedContent={selectedContent}
-                            setDisplayedContent={setSelectedContent}
-                          />
-                          {
-                            (item?.additional_views || [])?.length === 0 ? null :
-                              <div className={S("content__views-container")}>
-                                {
-                                  (item.additional_views || []).map((view, index) =>
-                                    <Item
-                                      toggleOnClick
-                                      title={view.label}
-                                      key={`item-${item.id}-${index}`}
-                                      contentItem={{
-                                        ...view,
-                                        type: "additional-view",
-                                        id: `${item.id}-${index}`,
-                                        mediaItemId: item.id,
-                                        index,
-                                        label: `${item.title} - ${view.label}`
-                                      }}
-                                      primaryMediaId={mediaItem.id}
-                                      multiviewMode="multiview"
-                                      displayedContent={selectedContent}
-                                      setDisplayedContent={setSelectedContent}
-                                    />
-                                  )
-                                }
-                              </div>
-                          }
-                        </>
-                      )}
+                      .map((item, index) => {
+                        let additionalViews = item?.additional_views || [];
+                        const scheduleInfo = pocketStore.MediaItemScheduleInfo(item);
+                        if(
+                          (!item.isMultiviewable || (scheduleInfo.isLiveContent && !scheduleInfo.currentlyLive)) &&
+                          mediaItem.id !== item.id
+                        ) {
+                          additionalViews = [];
+                        }
+
+                        return (
+                          <>
+                            <Item
+                              noBorder={index === 0}
+                              toggleOnClick
+                              title={item.sidebar_title || item.title}
+                              subtitle={item.subtitle}
+                              key={`item-${item.id}`}
+                              contentItem={{type: "media-item", id: item.id}}
+                              primaryMediaId={mediaItem.id}
+                              multiviewMode="multiview"
+                              displayedContent={selectedContent}
+                              setDisplayedContent={setSelectedContent}
+                            />
+                            {
+                              additionalViews?.length === 0 ? null :
+                                <div className={S("content__views-container")}>
+                                  {
+                                    additionalViews.map((view, index) =>
+                                      <Item
+                                        toggleOnClick
+                                        title={view.label}
+                                        key={`item-${item.id}-${index}`}
+                                        contentItem={{
+                                          ...view,
+                                          type: "additional-view",
+                                          id: `${item.id}-${index}`,
+                                          mediaItemId: item.id,
+                                          index,
+                                          label: `${item.title} - ${view.label}`
+                                        }}
+                                        primaryMediaId={mediaItem.id}
+                                        multiviewMode="multiview"
+                                        displayedContent={selectedContent}
+                                        setDisplayedContent={setSelectedContent}
+                                      />
+                                    )
+                                  }
+                                </div>
+                            }
+                          </>
+                        );
+                      })}
                   </div>
               )
             }
