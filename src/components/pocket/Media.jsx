@@ -168,7 +168,7 @@ const EndScreen = observer(({mediaItem}) => {
               {
                 nextItem.subtitle ? null :
                   <div className={S("next__card-subtitle")}>
-                    Season 27, episode 4
+                    { nextItem.subtitle }
                   </div>
               }
             </div>
@@ -418,6 +418,7 @@ const MediaContent = observer(({className="", ...videoProps}) => {
           /> :
           <Video
             {...videoProps}
+            verticalOption={primaryMediaItem.show_vertical_video}
             saveSettings
             isLive={scheduleInfo.currentlyLive}
             videoLink={mediaInfo.mediaItem.media_link}
@@ -493,6 +494,7 @@ const MultiviewContent = observer(() => {
         {
           mediaDisplayStore.displayedMediaInfo.map((item, index) =>
             <MultiviewVideo
+              verticalOption={item.mediaItem.show_vertical_video}
               saveSettings={index === 0}
               mediaInfo={item}
               key={`media-${item.id}`}

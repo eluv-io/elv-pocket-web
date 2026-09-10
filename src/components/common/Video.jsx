@@ -1,12 +1,18 @@
+import CommonStyles from "@/assets/stylesheets/modules/common.module.scss";
+
 import {mediaDisplayStore, rootStore} from "@/stores/index.js";
 import {forwardRef, useEffect, useState} from "react";
 import {EluvioPlayerParameters, InitializeEluvioPlayer} from "@eluvio/elv-player-js/lib/index";
+import {CreateModuleClassMatcher, LinkTargetHash} from "@/utils/Utils.js";
+import SVG from "react-inlinesvg";
 
 import XIcon from "@/assets/icons/x.svg";
-import SVG from "react-inlinesvg";
-import {CreateModuleClassMatcher, LinkTargetHash} from "@/utils/Utils.js";
+import ShareIcon from "@/assets/icons/share.svg";
+import VerticalIcon from "@/assets/icons/vertical.svg";
+import {CopyButton} from "@/components/common/Common.jsx";
+import {observer} from "mobx-react-lite";
 
-const S = CreateModuleClassMatcher();
+const S = CreateModuleClassMatcher(CommonStyles);
 
 const Video = forwardRef(function VideoComponent({
   videoHash,
@@ -17,6 +23,7 @@ const Video = forwardRef(function VideoComponent({
   playoutParameters={},
   posterImage,
   isLive,
+  verticalOption,
   callback,
   readyCallback,
   errorCallback,
@@ -43,6 +50,28 @@ const Video = forwardRef(function VideoComponent({
   const [targetRef, setTargetRef] = useState(undefined);
   const [settingsUpdateKey, setSettingsUpdateKey] = useState(0);
   const contentId = contentHash && rootStore.client.utils.DecodeVersionHash(contentHash).objectId;
+  const [embedUrl, setEmbedUrl] = useState(undefined);
+  const [vertical, setVertical] = useState(
+    verticalOption === "always" ||
+    (rootStore.mobile && verticalOption === "mobile")
+  );
+
+  useEffect(() => {
+    if(verticalOption !== "mobile") { return; }
+
+    setVertical(rootStore.mobile);
+  }, [rootStore.mobile, verticalOption]);
+
+  useEffect(() => {
+    setEmbedUrl(undefined);
+
+    mediaDisplayStore.CreateEmbedUrl({
+      videoLink,
+      videoLinkInfo,
+      vertical
+    })
+      .then(url => setEmbedUrl(url));
+  }, [vertical]);
 
   useEffect(() => {
     if(!saveSettings || !player) { return; }
@@ -51,7 +80,6 @@ const Video = forwardRef(function VideoComponent({
       localStorage.setItem("video-settings", JSON.stringify({muted: player.controls.IsMuted()}));
     }, 100);
   }, [saveSettings, settingsUpdateKey, !!player]);
-
 
   useEffect(() => {
     let versionHash = videoHash;
@@ -105,6 +133,13 @@ const Video = forwardRef(function VideoComponent({
     if(typeof startProgress !== "number" && defaultStartTime !== undefined) {
       startTime = defaultStartTime;
       startProgress = undefined;
+    }
+
+    if(vertical) {
+      playoutParameters.vertical = true;
+      rootStore.client.SetNodes({
+        fabricURIs: rootStore.verticalNodes
+      });
     }
 
     InitializeEluvioPlayer(
@@ -182,7 +217,7 @@ const Video = forwardRef(function VideoComponent({
         callback(player);
       }
     });
-  }, [targetRef, contentId]);
+  }, [targetRef, contentId, vertical]);
 
   useEffect(() => {
     if(!player) { return; }
@@ -264,14 +299,35 @@ const Video = forwardRef(function VideoComponent({
       }
     >
       <div ref={setTargetRef} />
-      {
-        !onClose ? null :
-          <button onClick={() => onClose()} className={S("video__close")}>
-            <SVG src={XIcon} />
-          </button>
-      }
+        <div className={S("video__buttons")}>
+          <CopyButton
+            disabled={!embedUrl}
+            icon={ShareIcon}
+            value={embedUrl}
+            title="Copy Embed URL"
+            className={S("video__button")}
+          />
+
+          {
+            verticalOption !== "toggle" ? null :
+              <button
+                onClick={() => setVertical(!vertical)}
+                title={vertical ? "Show Standard" : "Show Vertical"}
+                className={S("video__button", vertical ? "video__button--rotate" : "")}
+              >
+                <SVG src={VerticalIcon}/>
+              </button>
+          }
+
+          {
+            !onClose ? null :
+              <button title="Close" onClick={() => onClose()} className={S("video__button")}>
+                <SVG src={XIcon}/>
+              </button>
+          }
+        </div>
     </div>
   );
 });
 
-export default Video;
+export default observer(Video);

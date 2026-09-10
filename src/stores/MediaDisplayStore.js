@@ -1,5 +1,6 @@
 import {mediaDisplayStore, pocketStore} from "@/stores/index.js";
 import {flow, makeAutoObservable, runInAction} from "mobx";
+import {LinkTargetHash} from "@/utils/Utils.js";
 
 class MediaDisplayStore {
   displayedContent = [];
@@ -113,6 +114,52 @@ class MediaDisplayStore {
   SetShowMultiviewSelectionModal(show) {
     this.showMultiviewSelectionModal = show;
   }
+
+  CreateEmbedUrl = flow(function * ({
+    videoLink,
+    videoLinkInfo,
+    title,
+    vertical,
+    tokenDuration=7*24*60*60*1000
+  }) {
+    const versionHash = LinkTargetHash(videoLink);
+
+    if(!versionHash) { return; }
+
+    const objectId = this.client.utils.DecodeVersionHash(versionHash).objectId;
+
+    let options = {
+      autoplay: true,
+    };
+
+    if(videoLinkInfo) {
+      if(videoLinkInfo.type === "composition") {
+        options.ch = videoLinkInfo.composition_key;
+      } else if(videoLinkInfo.clip_end_time) {
+        options.start = videoLinkInfo.clip_start_time || 0;
+        options.end = videoLinkInfo.clip_end_time;
+      }
+    }
+
+    const url = new URL(
+      yield this.rootStore.client.EmbedUrl({
+        objectId,
+        duration: tokenDuration,
+        options
+      })
+    );
+
+    if(vertical) {
+      url.searchParams.set("v", "");
+      url.searchParams.set("node", this.rootStore.verticalNodes[0]);
+    }
+
+    if(title) {
+      url.searchParams.set("ttl", this.rootStore.client.utils.B64(title));
+    }
+
+    return url.toString();
+  });
 
   SetMediaProgress = flow(function * ({mediaItemId, progress}) {
     if(!this.rootStore.signedIn) { return; }

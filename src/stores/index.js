@@ -25,6 +25,7 @@ class RootStore {
   client;
   walletClient;
   oryClient;
+  verticalNodes = [];
   authenticating = false;
   initialized = false;
   shortURLs = {};
@@ -119,6 +120,15 @@ class RootStore {
         new Promise(resolve => setTimeout(resolve, 3000)),
         this.pocketStore.LoadMedia()
       ]);
+    }
+
+    try {
+      this.verticalNodes = (yield (
+        yield fetch("https://main.net955305.contentfabric.io/config")
+      ).json())?.network?.services?.vertical || [];
+    } catch(error) {
+      console.error("Unable to load vertical nodes:");
+      console.error(error);
     }
 
     this.initialized = true;

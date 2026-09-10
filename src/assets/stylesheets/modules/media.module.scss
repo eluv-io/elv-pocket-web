@@ -68,10 +68,6 @@
   width: 100%;
 }
 
-.video {
-  animation: var(--animation-fadein) 2s ease;
-}
-
 .video-preview {
   align-items: center;
   animation: var(--animation-fadein) 1s ease;
@@ -519,6 +515,12 @@
         opacity: 1;
       }
     }
+  }
+}
+
+@media screen and (width <= 1000px) and (orientation: portrait) {
+  .media {
+    max-height: calc(40 * var(--vh));
   }
 }
 

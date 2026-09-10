@@ -19,6 +19,7 @@ import EyeIcon from "@/assets/icons/eye.svg";
 import MultiviewIcon from "@/assets/icons/multiview.svg";
 import FullscreenIcon from "@/assets/icons/full screen.svg";
 
+
 const S = CreateModuleClassMatcher(SidebarStyles);
 
 const Item = observer(({
@@ -506,7 +507,7 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
             <div className={S("sidebar__actions")}>
               {
                 !rootStore.showMyItems ? null :
-                  <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("sidebar__close")}>
+                  <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("sidebar__action")}>
                     <SVG src={XIcon} />
                   </Linkish>
               }

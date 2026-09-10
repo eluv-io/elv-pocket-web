@@ -185,7 +185,7 @@ export const MediaItemImageUrl = ({mediaItem, aspectRatio, width}) => {
 };
 
 let copyTimeout;
-export const CopyButton = observer(({value, onCopyChange, ...props}) => {
+export const CopyButton = observer(({value, onCopyChange, icon, ...props}) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -212,7 +212,7 @@ export const CopyButton = observer(({value, onCopyChange, ...props}) => {
         )
       }
     >
-      <SVG src={CopyIcon} className={S("copy-button__icon", !copied ? "copy-button__icon--active" : "")} />
+      <SVG src={icon || CopyIcon} className={S("copy-button__icon", !copied ? "copy-button__icon--active" : "")} />
       <SVG src={CheckIcon} className={S("copy-button__icon", copied ? "copy-button__icon--active" : "")} />
     </button>
   );
