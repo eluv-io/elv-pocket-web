@@ -9,12 +9,12 @@ import SVG from "react-inlinesvg";
 import XIcon from "@/assets/icons/x.svg";
 import ShareIcon from "@/assets/icons/share.svg";
 import VerticalIcon from "@/assets/icons/vertical.svg";
-import {CopyButton} from "@/components/common/Common.jsx";
+import {CopyButton, Loader} from "@/components/common/Common.jsx";
 import {observer} from "mobx-react-lite";
 
 const S = CreateModuleClassMatcher(CommonStyles);
 
-const Video = forwardRef(function VideoComponent({
+const Video = observer(forwardRef(function VideoComponent({
   videoHash,
   videoLink,
   videoLinkInfo,
@@ -51,6 +51,7 @@ const Video = forwardRef(function VideoComponent({
   const [settingsUpdateKey, setSettingsUpdateKey] = useState(0);
   const contentId = contentHash && rootStore.client.utils.DecodeVersionHash(contentHash).objectId;
   const [embedUrl, setEmbedUrl] = useState(undefined);
+  const [loading, setLoading] = useState(true);
   const [vertical, setVertical] = useState(
     verticalOption === "always" ||
     (rootStore.mobile && verticalOption === "mobile")
@@ -93,6 +94,8 @@ const Video = forwardRef(function VideoComponent({
 
   useEffect(() => {
     if(!targetRef || !contentHash) { return; }
+
+    setLoading(true);
 
     if(player) {
       try {
@@ -171,9 +174,20 @@ const Video = forwardRef(function VideoComponent({
           watermark: EluvioPlayerParameters.watermark.OFF,
           verifyContent: EluvioPlayerParameters.verifyContent.ON,
           capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize[rootStore.pageDimensions.width <= 720 ? "ON" : "OFF"],
+          showLoader: EluvioPlayerParameters.showLoader.OFF,
           startProgress,
           startTime,
           errorCallback,
+          playerCallback: ({player}) => {
+            let disposer;
+            disposer = player.controls.RegisterVideoEventListener(
+              "canplay",
+              () => {
+                setLoading(false);
+                disposer?.();
+              }
+            );
+          },
           // For live content, latest hash instead of allowing player to reload
           restartCallback: async () => {
             if(!isLive) { return false; }
@@ -299,35 +313,39 @@ const Video = forwardRef(function VideoComponent({
       }
     >
       <div ref={setTargetRef} />
-        <div className={S("video__buttons")}>
-          <CopyButton
-            disabled={!embedUrl}
-            icon={ShareIcon}
-            value={embedUrl}
-            title="Copy Embed URL"
-            className={S("video__button")}
-          />
+      <div className={S("video__buttons")}>
+        <CopyButton
+          disabled={!embedUrl}
+          icon={ShareIcon}
+          value={embedUrl}
+          title="Copy Embed URL"
+          className={S("video__button")}
+        />
 
-          {
-            verticalOption !== "toggle" ? null :
-              <button
-                onClick={() => setVertical(!vertical)}
-                title={vertical ? "Show Standard" : "Show Vertical"}
-                className={S("video__button", vertical ? "video__button--rotate" : "")}
-              >
-                <SVG src={VerticalIcon}/>
-              </button>
-          }
+        {
+          verticalOption !== "toggle" ? null :
+            <button
+              onClick={() => setVertical(!vertical)}
+              title={vertical ? "Show Standard" : "Show Vertical"}
+              className={S("video__button", vertical ? "video__button--rotate" : "")}
+            >
+              <SVG src={VerticalIcon}/>
+            </button>
+        }
 
-          {
-            !onClose ? null :
-              <button title="Close" onClick={() => onClose()} className={S("video__button")}>
-                <SVG src={XIcon}/>
-              </button>
-          }
-        </div>
+        {
+          !onClose ? null :
+            <button title="Close" onClick={() => onClose()} className={S("video__button")}>
+              <SVG src={XIcon}/>
+            </button>
+        }
+      </div>
+      {
+        !loading ? null :
+          <Loader className={S("video__loader")} />
+      }
     </div>
   );
-});
+}));
 
-export default observer(Video);
+export default Video;

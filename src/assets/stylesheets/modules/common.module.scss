@@ -377,12 +377,13 @@
   position: relative;
 
   &__loader {
-    height: 50px;
-    max-height: 50px;
-    max-width: 50px;
+    animation: var(--animation-fadein) 0.5s ease;
+    pointer-events: none;
     position: absolute;
-    width: 50px;
     z-index: 100;
+
+    --loader-height: 40px;
+    --loader-width: 4px;
   }
 
   &:focus-visible,
@@ -411,6 +412,7 @@
     }
 
     svg {
+      filter: drop-shadow(0 0 2px black);
       height: 90%;
       transition: all 0.25s ease;
       width: 90%;
@@ -434,9 +436,17 @@
   &__buttons {
     align-items: center;
     display: flex;
-    gap: 5px;
+    gap: 10px;
     position: absolute;
     right: 20px;
     top: 20px;
+  }
+
+  @media screen and (width <= 1001px) {
+    .video__button {
+      * {
+        color: white;
+      }
+    }
   }
 }
