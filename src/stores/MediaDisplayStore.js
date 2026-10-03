@@ -51,6 +51,8 @@ class MediaDisplayStore {
     return this.displayedContent
       .map(item => {
         if(item.type === "additional-view") {
+          const mediaItem = pocketStore.MediaItem(item.mediaItemId);
+
           return {
             id: item.id,
             index: item.index,
@@ -59,6 +61,7 @@ class MediaDisplayStore {
             mediaItem: {
               media_link: item.media_link,
               media_link_info: item.media_link_info,
+              enable_dvr: mediaItem?.enable_dvr
             },
             display: {
               title: item.label

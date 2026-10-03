@@ -435,7 +435,7 @@ const MediaContent = observer(({className="", ...videoProps}) => {
             contentInfo={{
               title: mediaInfo.display.title,
               subtitle: mediaInfo.display.subtitle,
-              liveDVR: EluvioPlayerParameters.liveDVR[permissions?.dvr && mediaInfo.mediaItem?.enable_dvr ? "ON" : "OFF"]
+              liveDVR: EluvioPlayerParameters.liveDVR[mediaInfo.mediaItem?.enable_dvr ? "ON" : "OFF"]
             }}
           />
       }
