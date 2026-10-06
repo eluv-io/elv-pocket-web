@@ -8,10 +8,14 @@ import {DiscountedPrice} from "@/utils/Money.js";
 const urlParams = new URLSearchParams(window.location.search);
 class PocketStore {
   media = {};
+  serials = {};
+  bumpers = {};
   slugMap = {};
   contentEnded = false;
+  contentType = "media";
   pocketInfo;
   pocket;
+  serialList = [];
   permissionItems = {};
   userItems = [];
   analyticsEvents = {};
@@ -140,6 +144,12 @@ class PocketStore {
     this.contentEnded = ended;
   }
 
+  Serial(serialSlugOrId) {
+    const serialId = this.slugMap[serialSlugOrId] || serialSlugOrId;
+
+    return this.serials[serialId];
+  }
+
   MediaItem(mediaItemSlugOrId) {
     const mediaItemId = this.slugMap[mediaItemSlugOrId] || mediaItemSlugOrId;
 
@@ -206,6 +216,14 @@ class PocketStore {
     }
 
     if(!mediaItem) { return {}; }
+
+    if(mediaItem.type === "serial") {
+      return {
+        public: true,
+        authorized: true,
+        permissionItems: []
+      };
+    }
 
     let permissions = {
       public: mediaItem.public,
@@ -484,6 +502,8 @@ class PocketStore {
       metadata
     };
 
+    this.contentType = metadata.content_type === "serial" ? "serial" : "media";
+
     if(!isPaymentFlow) {
       this.LoadAnalytics();
     }
@@ -502,7 +522,7 @@ class PocketStore {
           mediaCatalogInfo[mediaCatalogId] = await this.client.ContentObjectMetadata({
             versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
             metadataSubtree: "/public/asset_metadata/info",
-            select: [ "media", "slug_map" ],
+            select: [ "media", "serials", "bumpers", "slug_map" ],
             produceLinkUrls: true
           })
         )
@@ -510,13 +530,25 @@ class PocketStore {
     }
 
     let media = {};
+    let serials = {};
+    let bumpers = {};
     let slugMap = {};
     Object.keys(mediaCatalogInfo).forEach(mediaCatalogId => {
       const info = mediaCatalogInfo[mediaCatalogId];
 
       media = {
         ...media,
-        ...(info?.media || {})
+        ...(info?.media || {}),
+      };
+
+      serials = {
+        ...serials,
+        ...(info?.serials || {}),
+      };
+
+      bumpers = {
+        ...bumpers,
+        ...(info?.bumpers || {}),
       };
 
       slugMap = {
@@ -702,6 +734,8 @@ class PocketStore {
     this.permissionItems = allPermissionItems;
     this.slugMap = slugMap;
     this.media = media;
+    this.serials = serials;
+    this.bumpers = bumpers;
     this.pocket = {
       ...this.pocket,
       metadata,
@@ -710,6 +744,15 @@ class PocketStore {
     };
 
     this.rootStore.mediaDisplayStore.LoadMediaProgress();
+
+    if(this.contentType === "serial") {
+      this.serialList = (this.pocket.metadata.serial_config?.serials || [])
+        .filter(({serial_id}) => !!this.serials[serial_id])
+        .map(({serial_id}) => ({
+          serialId: serial_id,
+          slug: this.serials[serial_id]?.slug
+        }));
+    }
 
     console.timeEnd("Load Media");
   });

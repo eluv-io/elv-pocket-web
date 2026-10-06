@@ -13,6 +13,7 @@ import Page from "@/components/pocket/Page.jsx";
 import PreviewPasswordForm from "@/components/common/PreviewPasswordForm.jsx";
 import {ConcurrencyLockForm} from "@/components/pocket/PurchaseHistory.jsx";
 import Login from "@/components/login/Login.jsx";
+import Serials from "@/components/serials/Serials.jsx";
 
 const S = CreateModuleClassMatcher(PocketStyles);
 
@@ -87,16 +88,27 @@ const Pocket = observer(() => {
 
   const mediaItem = mediaItemSlugOrId && pocketStore.MediaItem(mediaItemSlugOrId);
   if(!mediaItem) {
-    // Item not found - find first item from sidebar content and redirect
-    for(const tab of pocketStore.sidebarContent) {
-      for(const group of tab.groups) {
-        const item = group.content[0];
+    // Item not found - find first item from serial list or sidebar content and redirect
 
-        if(item && !(item.id === mediaItemSlugOrId || (item.slug && item.slug === mediaItemSlugOrId))) {
-          return <Redirect to={UrlJoin("~/", pocketSlugOrId, item.slug || item.id)}/>;
+    if(pocketStore.contentType === "serial") {
+      if(pocketStore.serials.length > 0) {
+        return <Redirect to={UrlJoin("~/", pocketSlugOrId, pocketStore.serialList[0].slug || pocketStore.serialList[0].id)}/>;
+      }
+    } else {
+      for(const tab of pocketStore.sidebarContent) {
+        for(const group of tab.groups) {
+          const item = group.content[0];
+
+          if(item && !(item.id === mediaItemSlugOrId || (item.slug && item.slug === mediaItemSlugOrId))) {
+            return <Redirect to={UrlJoin("~/", pocketSlugOrId, item.slug || item.id)}/>;
+          }
         }
       }
     }
+  }
+
+  if(pocketStore.contentType === "serial") {
+    return <Serials key={Math.random()} />;
   }
 
   let permissions = {};
@@ -109,7 +121,7 @@ const Pocket = observer(() => {
     (rootStore.showAdditionalPurchaseOptions && permissions.anyItemsAvailable);
   const hideSidebar =
     (!rootStore.mobile && mediaDisplayStore.hideSidebar) ||
-    (showPurchase && rootStore.mobile && permissions.displayedPermissionItems.length > 2);
+    (showPurchase && rootStore.mobile && (permissions.displayedPermissionItems || []).length > 2);
 
   return (
     <>
