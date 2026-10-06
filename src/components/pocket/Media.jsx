@@ -21,6 +21,7 @@ const S = CreateModuleClassMatcher(MediaStyles);
 
 const MediaCountdown = observer(({
   mediaItem,
+  title,
   setStarted,
   multiview,
   containerProps={},
@@ -91,7 +92,7 @@ const MediaCountdown = observer(({
             </div>
         }
         <div className={S("countdown-page__title")}>
-          {mediaItem.title}
+          {title || mediaItem.title}
         </div>
         <Countdown
           displayTime={scheduleInfo.startTime}
@@ -400,7 +401,6 @@ const MediaContent = observer(({className="", ...videoProps}) => {
   const mediaInfo = mediaDisplayStore.displayedMediaInfo[0];
   const primaryMediaItem = pocketStore.MediaItem(mediaInfo.mediaItemId || mediaInfo.id);
   const scheduleInfo = primaryMediaItem && pocketStore.MediaItemScheduleInfo(primaryMediaItem);
-  const permissions = pocketStore.MediaItemPermissions({mediaItem: primaryMediaItem});
   const [player, setPlayer] = useState(undefined);
   const [started, setStarted] = useState(!scheduleInfo.isLiveContent || scheduleInfo.started);
 
@@ -414,6 +414,7 @@ const MediaContent = observer(({className="", ...videoProps}) => {
         !started ?
           <MediaCountdown
             mediaItem={primaryMediaItem}
+            title={mediaInfo.display?.title}
             setStarted={setStarted}
           /> :
           <Video
@@ -459,6 +460,7 @@ const MultiviewVideo = observer(({mediaInfo, primary, ...videoProps}) => {
   return (
     <MediaCountdown
       mediaItem={mediaItem}
+      title={mediaInfo.display?.title}
       setStarted={setStarted}
       multiview={!primary}
       onClick={videoProps.onClick}

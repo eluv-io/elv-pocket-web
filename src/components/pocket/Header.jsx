@@ -4,12 +4,13 @@ import {observer} from "mobx-react-lite";
 import SVG from "react-inlinesvg";
 import {Button, HashedLoaderImage, Linkish} from "@/components/common/Common.jsx";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
-import {rootStore, pocketStore} from "@/stores/index.js";
+import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
 import {useEffect, useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
 
 import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
+import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
 import Logo from "@/assets/icons/logo.svg";
 import ItemsIcon from "@/assets/icons/my-items.svg";
 import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
@@ -234,6 +235,14 @@ const DesktopHeader = observer(({simple, text}) => {
         simple ? null :
           <HeaderMenu/>
       }
+      <div className={S("right")}>
+        <Linkish
+          title={mediaDisplayStore.hideSidebar ? "Show Sidebar" : "Hide Sidebar"}
+          onClick={() => mediaDisplayStore.SetHideSidebar(!mediaDisplayStore.hideSidebar)}
+        >
+          <SVG src={mediaDisplayStore.hideSidebar ? ChevronLeftIcon : ChevronRightIcon} />
+        </Linkish>
+      </div>
     </header>
   );
 });

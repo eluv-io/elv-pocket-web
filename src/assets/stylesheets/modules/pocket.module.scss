@@ -52,6 +52,11 @@
     overflow: hidden;
     padding: var(--content-gutter-size);
     padding-top: 0;
+
+    &--no-sidebar {
+      grid-template-columns: 1fr!important;
+      width: 100%;
+    }
   }
 
   .logo {

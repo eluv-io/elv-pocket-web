@@ -281,13 +281,6 @@ const SidebarContent = observer(({primaryMediaItem}) => {
                 {
                   content.map((item, index) => {
                     let additionalViews = item?.additional_views || [];
-                    const scheduleInfo = pocketStore.MediaItemScheduleInfo(item);
-                    if(
-                      (!item.isMultiviewable || (scheduleInfo.isLiveContent && !scheduleInfo.currentlyLive)) &&
-                      primaryMediaItem.id !== item.id
-                    ) {
-                      additionalViews = [];
-                    }
 
                     return (
                       <>
@@ -642,13 +635,6 @@ export const MultiviewSelectionModal = observer(({mediaItem}) => {
                       .filter(item => item.resolvedPermissions.authorized && item.isMultiviewable)
                       .map((item, index) => {
                         let additionalViews = item?.additional_views || [];
-                        const scheduleInfo = pocketStore.MediaItemScheduleInfo(item);
-                        if(
-                          (!item.isMultiviewable || (scheduleInfo.isLiveContent && !scheduleInfo.currentlyLive)) &&
-                          mediaItem.id !== item.id
-                        ) {
-                          additionalViews = [];
-                        }
 
                         return (
                           <>

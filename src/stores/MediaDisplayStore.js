@@ -7,6 +7,7 @@ class MediaDisplayStore {
   sidebarContent = {};
   mediaProgress = {};
 
+  hideSidebar = false;
   isFullscreen = false;
   selectedMultiviewMode = "multiview";
   showMultiviewSelectionModal = false;
@@ -104,6 +105,10 @@ class MediaDisplayStore {
     this.displayedContent = [];
     this.sidebarContent = {};
     this.showMultiviewSelectionModal = false;
+  }
+
+  SetHideSidebar(hide) {
+    this.hideSidebar = hide;
   }
 
   SetMultiviewMode(mode) {
