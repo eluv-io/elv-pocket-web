@@ -20,6 +20,8 @@ class PocketStore {
   userItems = [];
   analyticsEvents = {};
 
+  currentSerialItemProgress = 0;
+
   preview = urlParams.has("preview") || urlParams.has("previewAll") || sessionStorage.getItem("preview");
   requirePassword = false;
   previewPasswordDigest;
@@ -142,6 +144,10 @@ class PocketStore {
 
   SetContentEnded(ended) {
     this.contentEnded = ended;
+  }
+
+  SetSerialProgress(progress) {
+    this.currentSerialItemProgress = Math.max(0, Math.min(1, progress || 0));
   }
 
   Serial(serialSlugOrId) {

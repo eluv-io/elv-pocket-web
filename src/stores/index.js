@@ -17,7 +17,7 @@ class RootStore {
   appId = "eluvio-pocket-web";
   l10n = LocalizationEN;
   siteConfiguration = SiteConfiguration[EluvioConfiguration.network][EluvioConfiguration.mode];
-  isLocal = window.location.hostname.includes("localhost") || urlParams.has("dev");
+  isLocal = window.location.hostname.includes("localhost") || window.location.hostname.includes("192.168") || urlParams.has("dev");
   tooManyLogins = false;
 
   preferredLocale = Intl.DateTimeFormat()?.resolvedOptions?.()?.locale || navigator.language;
@@ -171,6 +171,9 @@ class RootStore {
 
     localStorage.setItem("user-id-code", customUserIdCode || this.userIdCode);
     this.userIdCode = customUserIdCode || this.userIdCode;
+
+    // Don't check on local
+    if(this.isLocal) { return; }
 
     // Periodically check to ensure the token has not been revoked
     const CheckTokenStatus = async () => {

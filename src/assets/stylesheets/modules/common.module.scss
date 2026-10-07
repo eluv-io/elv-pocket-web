@@ -450,3 +450,42 @@
     }
   }
 }
+
+.progress-ring {
+  --track-color: rgb(255 255 255 / 10%);
+  --progress-color: white;
+
+  align-items: center;
+  display: flex;
+  height: var(--size);
+  justify-content: center;
+  pointer-events: none;
+  position: relative;
+  user-select: none;
+  width: var(--size);
+
+  &__label {
+    color: white;
+    font-size: calc(var(--size) / 3);
+    font-weight: 500;
+    z-index: 1;
+  }
+
+  &__track,
+  &__progress {
+    fill: transparent;
+    inset: 0;
+    position: absolute;
+  }
+
+  &__track {
+    stroke: var(--track-color);
+  }
+
+  &__progress {
+    stroke: var(--progress-color);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.35s;
+  }
+}

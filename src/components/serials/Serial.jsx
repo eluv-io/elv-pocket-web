@@ -4,13 +4,12 @@ import {observer} from "mobx-react-lite";
 import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import Bumper from "@/components/serials/Bumper.jsx";
-import Video from "@/components/common/Video.jsx";
-import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
 import {useEffect, useState} from "react";
 import SVG from "react-inlinesvg";
 
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
 import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
+import SerialVideo from "@/components/serials/SerialVideo.jsx";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -20,13 +19,14 @@ const SerialMediaProgressItem = observer(({type, active, finished}) => {
   }
 
   return (
-    <div className={S("serial-progress__item", "serial-progress__media-item")}>
+    <div className={S("serial-progress__item", "serial-progress__media-item", active ? "serial-progress__media-item--active" : "")}>
+      <div className={S("serial-progress__media-item-active-background")} />
       <div
         style={{
           width:
             finished ? "100%" :
               !active ? "0%" :
-                `${Math.max(0, Math.min(100, (pocketStore.serialMediaProgress || 0) * 100))}%`
+                `${Math.max(0, Math.min(100, (pocketStore.currentSerialItemProgress || 0) * 100))}%`
         }}
         className={S("serial-progress__media-item-progress")}
       />
@@ -68,7 +68,7 @@ const SerialProgress = observer(({serial, activeItemIndex}) => {
   );
 });
 
-const SerialItem = observer(({active, title, titleIcon, item, id}) => {
+const SerialItem = observer(({active, title, titleIcon, item, Next}) => {
   let className, content;
 
   if(item.type === "bumper") {
@@ -84,6 +84,7 @@ const SerialItem = observer(({active, title, titleIcon, item, id}) => {
         bumper={bumper}
         mobile
         unmute
+        Next={Next}
         className={S("serial-item__bumper")}
       />
     );
@@ -96,31 +97,17 @@ const SerialItem = observer(({active, title, titleIcon, item, id}) => {
 
     className = "serial-item--media";
     content = (
-      <>
-        <div className={S("serial-item__title-container")}>
-          {
-            !titleIcon ? null :
-              <img src={titleIcon} alt="Title Icon" className={S("serial-item__title-icon")} />
-          }
-          <div className={S("serial-item__title")}>
-            { title }
-          </div>
-        </div>
-        <Video
-          videoLink={mediaItem.media_link}
-          videoLinkInfo={mediaItem.media_link_info}
-          className={S("serial-item__media")}
-          playerOptions={{
-            autoplay: EluvioPlayerParameters.autoplay.OFF,
-            keyboardControls: EluvioPlayerParameters.keyboardControls.ARROW_KEYS_DISABLED,
-            muted: EluvioPlayerParameters.muted.OFF,
-            controls: EluvioPlayerParameters.controls.OFF,
-            capLevelToPlayerSize: true,
-            showLoader: false,
-            backgroundColor: "transparent",
-          }}
-        />
-      </>
+      <SerialVideo
+        title={title}
+        titleIcon={titleIcon}
+        videoLink={mediaItem.media_link}
+        videoLinkInfo={mediaItem.media_link_info}
+        showPlayPause
+        saveSettings
+        onEnd={Next}
+        onProgress={progress => pocketStore.SetSerialProgress(progress)}
+        className={S("serial-item__media", "serial-item__video")}
+      />
     );
   }
 
@@ -171,7 +158,6 @@ const Serial = observer(({serialId, index, active, className=""}) => {
     return () => ref.removeEventListener("scroll", FindCurrent);
   });
 
-  console.log(activeItemIndex);
   return (
     <div className={JoinClassNames(S("serial-wrapper"), className)}>
       <button
@@ -198,9 +184,16 @@ const Serial = observer(({serialId, index, active, className=""}) => {
               key={`serial-item-${item.id}`}
               id={`serial-item-${index}-${item.id}`}
               title={serial.title}
-              titleIcon={serial.title_icon?.url}
+              titleIcon={{
+                url: serial.title_icon?.url,
+                hash: serial.title_icon_hash
+              }}
               item={item}
               active={active && itemIndex === activeItemIndex}
+              Next={
+                itemIndex >= serial.items.length - 1 ? null :
+                  () => GetItemNodes(ref)[itemIndex + 1]?.scrollIntoView({behavior: "smooth"})
+              }
             />
           )
         }

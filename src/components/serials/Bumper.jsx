@@ -1,14 +1,24 @@
 import BumperStyles from "@/assets/stylesheets/modules/bumpers.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {useEffect, useState} from "react";
-import Video from "@/components/common/Video.jsx";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
-import {EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index.js";
+import SerialVideo from "@/components/serials/SerialVideo.jsx";
+import {CircleTimer} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(BumperStyles);
 
-const BumperOffer = observer(({offer, format, compact}) => {
+const BumperOffer = observer(({offer, format, compact, Next}) => {
+  const onClick = () => {
+    switch(offer.action?.behavior) {
+      case "continue":
+        Next?.();
+        break;
+      case "link":
+        window.open(offer.action.url);
+        break;
+    }
+  };
+
   if(format === "details") {
     if(compact) {
       return (
@@ -40,7 +50,10 @@ const BumperOffer = observer(({offer, format, compact}) => {
                   { offer.display.price }
                 </div>
             }
-            <button className={S("compact-offer__button", `compact-offer__button--${offer.display.button_variant}`)}>
+            <button
+              onClick={onClick}
+              className={S("compact-offer__button", `compact-offer__button--${offer.display.button_variant}`)}
+            >
               {offer.display.button_text}
             </button>
           </div>
@@ -75,7 +88,10 @@ const BumperOffer = observer(({offer, format, compact}) => {
             </div>
         }
         <div className={S("offer__spacer")} />
-        <button className={S("offer__button", `offer__button--${offer.display.button_variant}`)}>
+        <button
+          onClick={onClick}
+          className={S("offer__button", `offer__button--${offer.display.button_variant}`)}
+        >
           {offer.display.button_text}
         </button>
       </div>
@@ -83,15 +99,13 @@ const BumperOffer = observer(({offer, format, compact}) => {
   }
 
   return (
-    <button className={S("offer-button")}>
+    <button onClick={onClick} className={S("offer-button")}>
       { offer.display.button_text }
     </button>
   );
 });
 
-export const Bumper = observer(({bumper, mobile, className=""}) => {
-  const [player, setPlayer] = useState(undefined);
-
+export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
   const showCompactOffers = bumper.offers.format === "details" && bumper.offers.items.length > 2;
 
   const imageUrl = mobile ? bumper.image_mobile?.url : bumper.image?.url;
@@ -102,7 +116,8 @@ export const Bumper = observer(({bumper, mobile, className=""}) => {
   const videoLinkInfo = mobile ? bumper.video_mobile && bumper.video_mobile_info : bumper.video && bumper.video_info;
 
   return (
-    <div className={JoinClassNames(S("bumper", mobile ? "bumper--mobile" : "", bumper.blur ? "bumper--blur" : ""), className)}>
+    <div
+      className={JoinClassNames(S("bumper", mobile ? "bumper--mobile" : "", bumper.blur ? "bumper--blur" : ""), className)}>
       {
         !imageUrl ? null :
           <div className={S("bumper__image-container")}>
@@ -112,21 +127,25 @@ export const Bumper = observer(({bumper, mobile, className=""}) => {
       {
         !videoLink ? null :
           <div className={S("bumper__video-container")}>
-            <Video
-              aspectRatio={mobile ? 9/16 : 16/9}
+            <SerialVideo
               videoLink={videoLink}
               videoLinkInfo={videoLinkInfo}
               className={S("bumper__video")}
-              playerOptions={{
-                muted: EluvioPlayerParameters.muted.OFF,
-                autoplay: EluvioPlayerParameters.autoplay.OFF,
-                controls: EluvioPlayerParameters.controls.OFF,
-                loop: bumper.loop,
-                capLevelToPlayerSize: true,
-                showLoader: false,
-                backgroundColor: "transparent",
-              }}
-              SetPlayer={setPlayer}
+              playerOptions={{loop: bumper.loop}}
+              muteIfNecessary
+              showPlayPause={false}
+              showTimer={!bumper.duration && !bumper.loop}
+              onEnd={!bumper.duration && !bumper.loop ? Next : undefined}
+            />
+          </div>
+      }
+      {
+        !bumper.duration ? null :
+          <div className={S("bumper__timer-container")}>
+            <CircleTimer
+              duration={bumper.duration}
+              onEnd={Next}
+              className={S("bumper__timer")}
             />
           </div>
       }
@@ -139,25 +158,25 @@ export const Bumper = observer(({bumper, mobile, className=""}) => {
           )
         }
       >
-        {
-          (bumper.offers?.items || []).length === 0 ? null :
-            <div
-              className={
-                S(
-                  "bumper__offers",
-                  `bumper__offers--${bumper.offers.format}`,
-                  showCompactOffers ? "bumper__offers--compact" : ""
-                )
-              }
-            >
-              {
-                !bumper.offers.title ? null :
-                  <div className={S("bumper__offers-title")}>{bumper.offers.title}</div>
-              }
-              {
-                !bumper.offers.subtitle ? null :
-                  <div className={S("bumper__offers-subtitle")}>{bumper.offers.subtitle}</div>
-              }
+        <div
+          className={
+            S(
+              "bumper__offers",
+              `bumper__offers--${bumper.offers.format}`,
+              showCompactOffers ? "bumper__offers--compact" : ""
+            )
+          }
+        >
+          {
+            !bumper.offers.title ? null :
+              <div className={S("bumper__offers-title")}>{bumper.offers.title}</div>
+          }
+          {
+            !bumper.offers.subtitle ? null :
+              <div className={S("bumper__offers-subtitle")}>{bumper.offers.subtitle}</div>
+          }
+          {
+            (bumper.offers?.items || []).length === 0 ? null :
               <div className={S("bumper__offer-items")}>
                 {
                   bumper.offers.items.map((offer, index) =>
@@ -166,16 +185,17 @@ export const Bumper = observer(({bumper, mobile, className=""}) => {
                       format={bumper.offers.format}
                       compact={showCompactOffers}
                       offer={offer}
+                      Next={Next}
                     />
                   )
                 }
               </div>
-              {
-                !bumper.offers.bottom_text ? null :
-                  <div className={S("bumper__offers-bottom-text")}>{bumper.offers.bottom_text}</div>
-              }
-            </div>
-        }
+          }
+          {
+            !bumper.offers.bottom_text ? null :
+              <div className={S("bumper__offers-bottom-text")}>{bumper.offers.bottom_text}</div>
+          }
+        </div>
       </div>
     </div>
   );

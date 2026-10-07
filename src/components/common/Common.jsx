@@ -299,3 +299,95 @@ export const useIsVisible = (ref, unloadDelay=0) => {
 
   return isIntersecting;
 };
+
+export const ProgressRing = ({size=40, progress=0, strokeWidth=2, label, className=""}) => {
+  const radius = size / 2;
+  const normalizedRadius = (radius - strokeWidth * 2);
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - progress * circumference;
+
+  return (
+    <div
+      style={{"--size": `${size}px`}}
+      className={JoinClassNames(S("progress-ring"), className)}
+    >
+      <svg
+        height={size}
+        width={size}
+        className={S("progress-ring__track")}
+      >
+        <circle
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${circumference} ${circumference}`}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      </svg>
+      <svg
+        height={size}
+        width={size}
+        className={S("progress-ring__progress")}
+      >
+        <circle
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${circumference} ${circumference}`}
+          style={{strokeDashoffset}}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      </svg>
+      {
+        !label ? null :
+          <div className={S("progress-ring__label")}>
+            {label}
+          </div>
+      }
+    </div>
+  );
+};
+
+export const ControlledCircleTimer = observer(({remainingTime, duration, ...progressRingProps}) => {
+  const progress = (duration - remainingTime) / duration;
+
+  return (
+    <ProgressRing
+      {...progressRingProps}
+      progress={progress}
+      label={(remainingTime || 0).toFixed(0)}
+    />
+  );
+});
+
+export const CircleTimer = observer(({duration, onEnd, className="", ...progressRingProps}) => {
+  duration += 0.5;
+
+  const [start] = useState(Date.now());
+  const [time, setTime] = useState(duration);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newTime = Math.max(0, duration - (Date.now() - start) / 1000);
+
+      if(newTime === 0) {
+        onEnd?.();
+        clearInterval(interval);
+      }
+
+      setTime(newTime);
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <ControlledCircleTimer
+      {...progressRingProps}
+      remainingTime={time}
+      duration={duration}
+      className={className}
+    />
+  );
+});
+
