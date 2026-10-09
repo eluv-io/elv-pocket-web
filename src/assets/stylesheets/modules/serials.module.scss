@@ -4,7 +4,7 @@
   height: calc(100 * var(--vh));
   justify-content: center;
 
-  @media screen and (width >= 650px), (aspect-ratio >= 13 / 16), (aspect-ratio <= 7 / 16) {
+  @media screen and (width >= 650px), (aspect-ratio >= 11 / 16), (aspect-ratio <= 7 / 16) {
     .serial {
       aspect-ratio: 9/16;
       width: auto;
@@ -14,6 +14,7 @@
   @media screen and (aspect-ratio <= 7 / 16) {
     .serial {
       height: auto;
+      width: 100%;
     }
   }
 

@@ -3,7 +3,7 @@ import BumperStyles from "@/assets/stylesheets/modules/bumpers.module.scss";
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import SerialVideo from "@/components/serials/SerialVideo.jsx";
-import {CircleTimer} from "@/components/common/Common.jsx";
+import {CircleTimer, HashedLoaderImage} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(BumperStyles);
 
@@ -109,6 +109,7 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
   const showCompactOffers = bumper.offers.format === "details" && bumper.offers.items.length > 2;
 
   const imageUrl = mobile ? bumper.image_mobile?.url : bumper.image?.url;
+  const imageHash = mobile ? bumper.image_mobile_hash : bumper.image_hash;
   const position = mobile ? bumper.offers?.position_mobile || "center" : bumper.offers?.position || "bottom_right";
   const showOfferTextBackground = mobile && bumper.offers.format === "button" && (bumper.offers.title || bumper.offers.subtitle);
 
@@ -121,7 +122,12 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
       {
         !imageUrl ? null :
           <div className={S("bumper__image-container")}>
-            <img alt={bumper.image_alt} src={imageUrl} className={S("bumper__image")}/>
+            <HashedLoaderImage
+              alt={bumper.image_alt}
+              src={imageUrl}
+              hash={imageHash}
+              className={S("bumper__image")}
+            />
           </div>
       }
       {
