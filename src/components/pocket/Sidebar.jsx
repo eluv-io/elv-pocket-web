@@ -25,7 +25,6 @@ const S = CreateModuleClassMatcher(SidebarStyles);
 const Item = observer(({
   title,
   subtitle,
-  scheduleInfo,
   disabled,
   onClick,
   primaryMediaId,
@@ -55,6 +54,8 @@ const Item = observer(({
   const mediaItem = isMediaItem ?
     pocketStore.MediaItem(contentItem.id) :
     pocketStore.MediaItem(contentItem.mediaItemId);
+
+  const scheduleInfo = pocketStore.MediaItemScheduleInfo(mediaItem);
 
   const permissions = pocketStore.MediaItemPermissions({mediaItem});
 
