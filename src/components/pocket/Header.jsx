@@ -17,7 +17,7 @@ import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
 
 const S = CreateModuleClassMatcher(HeaderStyles);
 
-const MobileMenu = observer(({menuControls}) => {
+export const MobileMenu = observer(({menuControls}) => {
   return (
     <div className={S("menu")}>
       <Linkish

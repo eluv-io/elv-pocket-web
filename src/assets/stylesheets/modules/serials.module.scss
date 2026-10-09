@@ -165,6 +165,7 @@
 }
 
 .serial-progress {
+  animation: var(--animation-fadein) 0.75s ease;
   display: flex;
   gap: 3px;
   height: max-content;
@@ -308,6 +309,112 @@
 
     * {
       text-shadow: 0 0 3px black;
+    }
+  }
+
+  &__details {
+    bottom: 0;
+    color: white;
+    padding: 0 15px 50px;
+    position: absolute;
+    width: 100%;
+    z-index: 10;
+  }
+
+  &__detail-text {
+    pointer-events: none;
+    text-shadow: 0 0 3px black;
+    user-select: none;
+  }
+
+  &__detail-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__detail-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  &__detail-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    user-select: none;
+  }
+
+  &__detail-button {
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgb(90 90 90 / 20%);
+    border: 1px solid rgb(255 255 255 / 50%);
+    border-radius: 20px;
+    display: flex;
+    gap: 5px;
+    height: 40px;
+    justify-content: center;
+    margin-inline: auto;
+    padding: 10px 20px;
+    transition: border 0.35s ease;
+    width: 100%;
+
+    &--menu {
+      border-radius: 100%;
+      min-width: 40px;
+      padding: 0;
+      width: 40px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border: 1px solid white;
+    }
+
+    svg {
+      height: 25px;
+      width: 25px;
+    }
+  }
+}
+
+.swipe-message-container {
+  animation: var(--animation-fadein) 1s ease;
+  border: 2px solid transparent;
+  display: flex;
+  height: 50px;
+  overflow-x: scroll;
+  position: relative;
+  scroll-snap-align: center;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  transition: all 0.5s ease;
+  width: 100%;
+
+  &--hidden {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.swipe-message {
+  align-items: center;
+  color: var(--text-primary);
+  display: flex;
+  gap: 5px;
+  height: 50px;
+  justify-content: center;
+  min-width: 100%;
+  text-shadow: 0 0 2px black;
+  user-select: none;
+
+  svg {
+    filter: drop-shadow(0 0 1px white);
+  }
+
+  &--horizontal {
+    svg {
+      transform: rotate(-90deg);
     }
   }
 }

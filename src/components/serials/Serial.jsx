@@ -100,9 +100,12 @@ const SerialItem = observer(({active, title, titleIcon, item, Next}) => {
       <SerialVideo
         title={title}
         titleIcon={titleIcon}
+        contentTitle={mediaItem.title}
+        contentSubtitle={mediaItem.subtitle}
         videoLink={mediaItem.media_link}
         videoLinkInfo={mediaItem.media_link_info}
         showPlayPause
+        showDetails
         saveSettings
         onEnd={Next}
         onProgress={progress => pocketStore.SetSerialProgress(progress)}
@@ -170,6 +173,7 @@ const Serial = observer(({serialId, index, active, className=""}) => {
       {
         !ref || !active ? null :
           <SerialProgress
+            key={`progress-${serialId}-${active}`}
             serial={serial}
             activeItemIndex={activeItemIndex}
           />

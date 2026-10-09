@@ -2,17 +2,22 @@ import SerialStyles from "@/assets/stylesheets/modules/serials.module.scss";
 
 import {InitializeEluvioPlayer, EluvioPlayerParameters} from "@eluvio/elv-player-js/lib/index";
 import {useEffect, useState} from "react";
-import {rootStore} from "@/stores";
+import {rootStore, pocketStore} from "@/stores";
 import {observer} from "mobx-react-lite";
-import {CreateModuleClassMatcher, JoinClassNames, LinkTargetHash} from "@/utils/Utils.js";
+import {Copy, CreateModuleClassMatcher, JoinClassNames, LinkTargetHash} from "@/utils/Utils.js";
+import SVG from "react-inlinesvg";
+import {ControlledCircleTimer, HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
+import {MobileMenu} from "@/components/pocket/Header.jsx";
+import Modal from "@/components/common/Modal.jsx";
 
 import VolumeOffIcon from "@/assets/icons/volume-off.svg";
 import VolumeOnIcon from "@/assets/icons/volume-high.svg";
-
 import PlayIcon from "@/assets/icons/play.svg";
 import PauseIcon from "@/assets/icons/pause.svg";
-import SVG from "react-inlinesvg";
-import {ControlledCircleTimer, HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
+import MenuIcon from "@/assets/icons/menu.svg";
+import ShareIcon from "@/assets/icons/share.svg";
+import CopyIcon from "@/assets/icons/copy.svg";
+import SwipeIcon from "@/assets/icons/swipe-icon.svg";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -39,12 +44,177 @@ const VideoTimer = observer(({player}) => {
   );
 });
 
-const Controls = observer(({player, title, titleIcon, showPlayPause=true, showTimer}) => {
+let swipeMessageShown = false;
+const SwipeMessage = observer(() => {
+  const [ref, setRef] = useState(undefined);
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    if(!ref) { return; }
+
+    const nodes = Array.from(ref?.querySelectorAll(`.${S("swipe-message")}`) || []);
+
+    (async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      nodes?.[0]?.scrollIntoView({behavior: "instant"});
+
+      for(let i = 1; i < nodes.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        nodes[i].scrollIntoView({behavior: "smooth"});
+
+        if(i >= nodes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          setHidden(true);
+          //setTimeout(() => swipeMessageShown = true, 1000);
+        }
+      }
+    })();
+  }, [ref]);
+
+  if(swipeMessageShown) {
+    return null;
+  }
+
+  return (
+    <div ref={setRef} className={S("swipe-message-container", hidden ? "swipe-message-container--hidden" : "")}>
+      <div className={S("swipe-message", "swipe-message--horizontal")}>
+        <SVG src={SwipeIcon}/>
+        Swipe right for next episode
+      </div>
+      {
+        pocketStore.serialList.length <= 1 ? null :
+          <div className={S("swipe-message", "swipe-message--vertical")}>
+            <SVG src={SwipeIcon}/>
+            Swipe up for next series
+          </div>
+      }
+      <div className={S("swipe-message")}/>
+    </div>
+  );
+});
+
+const Details = observer(({title, subtitle, playing, SetPlaying}) => {
+  const [menuControls, setMenuControls] = useState(undefined);
+  const [wasPlaying, setWasPlaying] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [showCopyIcon, setShowCopyIcon] = useState(false);
+
+  // Resume playing after menu is closed if opening it stopped playback
+  useEffect(() => {
+    if(menuVisible || !wasPlaying) { return; }
+
+    SetPlaying(true);
+  }, [menuVisible]);
+
+  return (
+    <>
+      <div className={S("serial-video__details")}>
+        <div className={S("serial-video__detail-text")}>
+          <div className={S("serial-video__detail-title")}>
+            {title}
+          </div>
+          {
+            !subtitle ? null :
+              <div className={S("serial-video__detail-subtitle")}>
+                {subtitle}
+              </div>
+          }
+        </div>
+        <div className={S("serial-video__detail-buttons")}>
+          <button
+            title="Share"
+            onClick={async () => {
+              if(menuVisible) { return; }
+
+              const url = new URL(window.location.origin);
+              url.pathname = window.location.pathname;
+              try {
+                setMenuVisible(true);
+                setWasPlaying(playing);
+
+                if(playing) {
+                  SetPlaying?.(false);
+                }
+
+                await navigator.share({
+                  title: pocketStore.pocket.metadata?.meta_tags?.title || document.title,
+                  url: url.toString()
+                });
+              } catch(error) {
+                if(error?.toString()?.toLowerCase()?.includes("aborterror")) {
+                  // Aborted
+                  return;
+                }
+
+                Copy(url.toString());
+
+                if(playing) {
+                  SetPlaying?.(true);
+                }
+
+                setShowCopyIcon(true);
+
+                setTimeout(() => setShowCopyIcon(false), 2000);
+              } finally {
+                setMenuVisible(false);
+              }
+            }}
+            className={S("serial-video__detail-button", "serial-video__detail-button--share")}
+          >
+            {
+              showCopyIcon ?
+                <>
+                  <SVG src={CopyIcon}/>
+                  <span>COPIED</span>
+                </> :
+                <>
+                  <SVG src={ShareIcon}/>
+                  <span>SHARE</span>
+                </>
+            }
+          </button>
+          <button
+            title="Show Menu"
+            onClick={() => {
+              menuControls.Show();
+              setMenuVisible(!menuVisible);
+              setWasPlaying(playing);
+
+              if(playing) {
+                SetPlaying?.(false);
+              }
+            }}
+            className={S("serial-video__detail-button", "serial-video__detail-button--menu")}
+          >
+            <SVG src={MenuIcon}/>
+          </button>
+        </div>
+        <SwipeMessage />
+      </div>
+      <Modal align="top" onHide={() => setMenuVisible(false)} SetMenuControls={setMenuControls}>
+        <MobileMenu menuControls={menuControls}/>
+      </Modal>
+    </>
+  );
+});
+
+const Controls = observer(({
+  player,
+  title,
+  titleIcon,
+  contentTitle,
+  contentSubtitle,
+  showPlayPause = true,
+  showTimer,
+  showDetails
+}) => {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
-    if(!player) { return; }
+    if(!player) {
+      return;
+    }
 
     setMuted(player.controls.IsMuted());
     setPlaying(player.controls.IsPlaying());
@@ -59,51 +229,68 @@ const Controls = observer(({player, title, titleIcon, showPlayPause=true, showTi
   }, [!!player]);
 
   return (
-    <div onClick={event => event.stopPropagation()} className={S("serial-video__controls-container")}>
-      <div className={S("serial-video__title-container")}>
-        {
-          !showTimer ? null :
-            <VideoTimer player={player} />
-        }
-        {
-          !titleIcon?.url ? null :
-            <HashedLoaderImage
-              src={titleIcon.url}
-              hash={titleIcon.hash}
-              alt="Title Icon"
-              className={S("serial-video__title-icon")}
-            />
-        }
-        <div className={S("serial-video__title")}>
-          {title}
+    <>
+      <div onClick={event => event.stopPropagation()} className={S("serial-video__controls-container")}>
+        <div className={S("serial-video__title-container")}>
+          {
+            !showTimer ? null :
+              <VideoTimer player={player} />
+          }
+          {
+            !titleIcon?.url ? null :
+              <HashedLoaderImage
+                src={titleIcon.url}
+                hash={titleIcon.hash}
+                alt="Title Icon"
+                className={S("serial-video__title-icon")}
+              />
+          }
+          <div className={S("serial-video__title")}>
+            {title}
+          </div>
+        </div>
+        <div className={S("serial-video__controls")}>
+          {
+            !showPlayPause ? null :
+              <button
+                onClick={() => player?.controls?.TogglePlay()}
+                className={S("serial-video__controls-button", "serial-video__controls-button--play")}
+              >
+                <SVG src={PauseIcon} className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG src={PlayIcon} className={S("serial-video__controls-button-icon", !playing ? "serial-video__controls-button-icon--active" : "")}/>
+              </button>
+          }
+          <button
+            onClick={() => player?.controls?.ToggleMuted()}
+            className={S("serial-video__controls-button", "serial-video__controls-button--volume")}
+          >
+            <SVG src={VolumeOffIcon} className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}/>
+            <SVG src={VolumeOnIcon} className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}/>
+          </button>
         </div>
       </div>
-      <div className={S("serial-video__controls")}>
-        {
-          !showPlayPause ? null :
-            <button
-              onClick={() => player?.controls?.TogglePlay()}
-              className={S("serial-video__controls-button", "serial-video__controls-button--play")}
-            >
-              <SVG src={PauseIcon} className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}/>
-              <SVG src={PlayIcon} className={S("serial-video__controls-button-icon", !playing ? "serial-video__controls-button-icon--active" : "")}/>
-            </button>
-        }
-        <button
-          onClick={() => player?.controls?.ToggleMuted()}
-          className={S("serial-video__controls-button", "serial-video__controls-button--volume")}
-        >
-          <SVG src={VolumeOffIcon} className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}/>
-          <SVG src={VolumeOnIcon} className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}/>
-        </button>
-      </div>
-    </div>
+      {
+        !showDetails ? null :
+          <Details
+            title={contentTitle}
+            subtitle={contentSubtitle}
+            playing={playing}
+            SetPlaying={
+              play => play ?
+                player.controls?.Play() :
+                player.controls?.Pause()
+            }
+          />
+      }
+    </>
   );
 });
 
 const SerialVideo = observer(({
   title,
   titleIcon,
+  contentTitle,
+  contentSubtitle,
   videoLink,
   videoLinkInfo,
   videoHash,
@@ -111,10 +298,11 @@ const SerialVideo = observer(({
   saveSettings=true,
   showPlayPause=true,
   showTimer=false,
+  showDetails=false,
   muteIfNecessary,
   onProgress,
   onEnd,
-  className = ""
+  className=""
 }) => {
   const [ref, setRef] = useState(null);
   const [player, setPlayer] = useState(null);
@@ -191,6 +379,7 @@ const SerialVideo = observer(({
             }
           },
           playerOptions: {
+            maxBitrate: rootStore.isLocal ? 50000 : undefined,
             autoplay: EluvioPlayerParameters.autoplay.ON,
             capLevelToPlayerSize: EluvioPlayerParameters.capLevelToPlayerSize.ON,
             watermark: EluvioPlayerParameters.watermark.OFF,
@@ -245,8 +434,11 @@ const SerialVideo = observer(({
           <Controls
             title={title}
             titleIcon={titleIcon}
+            contentTitle={contentTitle}
+            contentSubtitle={contentSubtitle}
             showPlayPause={showPlayPause}
             showTimer={showTimer}
+            showDetails={showDetails}
             player={player}
           />
       }

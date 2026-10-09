@@ -211,7 +211,11 @@
 
     .bumper {
       &__content {
-        padding: 0;
+        padding: 65px 0 0;
+
+        &--center {
+          padding: 65px 0;
+        }
       }
 
       &__offers-subtitle {

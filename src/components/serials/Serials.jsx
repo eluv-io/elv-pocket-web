@@ -44,7 +44,7 @@ const Serials = observer(() => {
     ref.addEventListener("scroll", FindCurrent);
 
     return () => ref.removeEventListener("scroll", FindCurrent);
-  });
+  }, [ref]);
 
   return (
     <div className={S("serial-page")}>
