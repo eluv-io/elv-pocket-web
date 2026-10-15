@@ -447,6 +447,7 @@
   position: absolute;
   width: 100%;
   z-index: 1;
+  padding-inline: 20px;
 }
 
 .purchase {
@@ -456,10 +457,10 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 90vw;
   padding: 30px 20px;
   position: relative;
   text-align: center;
+  width: 100%;
 
   &__offer {
     max-width: 325px;
