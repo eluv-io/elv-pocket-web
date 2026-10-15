@@ -3,11 +3,52 @@ import BumperStyles from "@/assets/stylesheets/modules/bumpers.module.scss";
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import SerialVideo from "@/components/serials/SerialVideo.jsx";
-import {CircleTimer, HashedLoaderImage} from "@/components/common/Common.jsx";
+import {CircleTimer, HashedLoaderImage, PermissionItemPrice} from "@/components/common/Common.jsx";
+import {useState} from "react";
+import PaymentActions from "@/components/payment/PaymentActions.jsx";
+import {pocketStore} from "@/stores/index.js";
 
 const S = CreateModuleClassMatcher(BumperStyles);
 
-const BumperOffer = observer(({offer, format, compact, Next}) => {
+const BumperPurchase = observer(({offer, Cancel}) => {
+  const permissionItem = pocketStore.permissionItems[offer.permission_item_id];
+  return (
+    <div className={S("purchase")}>
+      <div className={S("purchase__offer")}>
+        {
+          !offer.display.subtitle ? null :
+            <div className={S("purchase__offer-subtitle")}>
+              { offer.display.subtitle }
+            </div>
+        }
+        {
+          !offer.display.title ? null :
+            <div className={S("purchase__offer-title")}>
+              { offer.display.title }
+            </div>
+        }
+        <PermissionItemPrice permissionItem={permissionItem} className={S("purchase__offer-price")} />
+        {
+          !offer.display.description ? null :
+            <div className={S("purchase__offer-description")}>
+              { offer.display.description }
+            </div>
+        }
+      </div>
+      <PaymentActions
+        title={offer.title}
+        permissionItemId={offer.permission_item_id}
+        className={S("purchase__actions")}
+        Cancel={Cancel}
+      />
+      <button onClick={Cancel} className={S("purchase__back")}>
+        Back
+      </button>
+    </div>
+  );
+});
+
+const BumperOffer = observer(({offer, format, compact, SetPurchaseOffer, Next}) => {
   const onClick = () => {
     switch(offer.action?.behavior) {
       case "continue":
@@ -15,6 +56,9 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
         break;
       case "link":
         window.open(offer.action.url);
+        break;
+      case "purchase":
+        SetPurchaseOffer(offer);
         break;
     }
   };
@@ -27,7 +71,7 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
             {
               !offer.display.subtitle ? null :
                 <div className={S("compact-offer__subtitle")}>
-                  { offer.display.subtitle }
+                { offer.display.subtitle }
                 </div>
             }
             {
@@ -45,10 +89,15 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
           </div>
           <div className={S("compact-offer__action")}>
             {
-              !offer.display.price ? null :
-                <div className={S("compact-offer__price")}>
-                  { offer.display.price }
-                </div>
+              offer.action?.behavior === "purchase" ?
+                <PermissionItemPrice
+                  permissionItem={pocketStore.permissionItems[offer.permission_item_id]}
+                  className={S("compact-offer__price")}
+                /> :
+                offer.display.price ?
+                  <div className={S("compact-offer__price")}>
+                    { offer.display.price }
+                  </div> : null
             }
             <button
               onClick={onClick}
@@ -76,10 +125,15 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
             </div>
         }
         {
-          !offer.display.price ? null :
-            <div className={S("offer__price")}>
-              { offer.display.price }
-            </div>
+          offer.action?.behavior === "purchase" ?
+            <PermissionItemPrice
+              permissionItem={pocketStore.permissionItems[offer.permission_item_id]}
+              className={S("offer__price")}
+            /> :
+            offer.display.price ?
+              <div className={S("offer__price")}>
+                { offer.display.price }
+              </div> : null
         }
         {
           !offer.display.description ? null :
@@ -107,6 +161,7 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
 
 // Bumpers that have already been viewed can be skipped
 export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
+  const [purchaseOffer, setPurchaseOffer] = useState(null);
   const showCompactOffers = bumper.offers.format === "details" && bumper.offers.items.length > 2;
 
   const imageUrl = mobile ? bumper.image_mobile?.url : bumper.image?.url;
@@ -166,44 +221,52 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
           )
         }
       >
-        <div
-          className={
-            S(
-              "bumper__offers",
-              `bumper__offers--${bumper.offers.format}`,
-              showCompactOffers ? "bumper__offers--compact" : ""
-            )
-          }
-        >
-          {
-            !bumper.offers.title ? null :
-              <div className={S("bumper__offers-title")}>{bumper.offers.title}</div>
-          }
-          {
-            !bumper.offers.subtitle ? null :
-              <div className={S("bumper__offers-subtitle")}>{bumper.offers.subtitle}</div>
-          }
-          {
-            (bumper.offers?.items || []).length === 0 ? null :
-              <div className={S("bumper__offer-items")}>
-                {
-                  bumper.offers.items.map((offer, index) =>
-                    <BumperOffer
-                      key={`offer-${index}`}
-                      format={bumper.offers.format}
-                      compact={showCompactOffers}
-                      offer={offer}
-                      Next={Next}
-                    />
-                  )
-                }
-              </div>
-          }
-          {
-            !bumper.offers.bottom_text ? null :
-              <div className={S("bumper__offers-bottom-text")}>{bumper.offers.bottom_text}</div>
-          }
-        </div>
+        {
+          purchaseOffer ?
+            <BumperPurchase
+              offer={purchaseOffer}
+              Cancel={() => setPurchaseOffer(undefined)}
+            /> :
+            <div
+              className={
+                S(
+                  "bumper__offers",
+                  `bumper__offers--${bumper.offers.format}`,
+                  showCompactOffers ? "bumper__offers--compact" : ""
+                )
+              }
+            >
+              {
+                !bumper.offers.title ? null :
+                  <div className={S("bumper__offers-title")}>{bumper.offers.title}</div>
+              }
+              {
+                !bumper.offers.subtitle ? null :
+                  <div className={S("bumper__offers-subtitle")}>{bumper.offers.subtitle}</div>
+              }
+              {
+                (bumper.offers?.items || []).length === 0 ? null :
+                  <div className={S("bumper__offer-items")}>
+                    {
+                      bumper.offers.items.map((offer, index) =>
+                        <BumperOffer
+                          key={`offer-${index}`}
+                          format={bumper.offers.format}
+                          compact={showCompactOffers}
+                          offer={offer}
+                          SetPurchaseOffer={setPurchaseOffer}
+                          Next={Next}
+                        />
+                      )
+                    }
+                  </div>
+              }
+              {
+                !bumper.offers.bottom_text ? null :
+                  <div className={S("bumper__offers-bottom-text")}>{bumper.offers.bottom_text}</div>
+              }
+            </div>
+        }
       </div>
     </div>
   );

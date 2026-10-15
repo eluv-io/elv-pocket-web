@@ -1,6 +1,7 @@
 import {flow, makeAutoObservable, runInAction} from "mobx";
 import {parse as ParseUUID, v4 as UUID} from "uuid";
 import UrlJoin from "url-join";
+import {rootStore} from "@/stores/index.js";
 
 class PaymentStore {
   currency = "USD";
@@ -41,7 +42,7 @@ class PaymentStore {
     return await this.rootStore.CreateShortURL(recoveryUrl.toString());
   }
 
-  InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId, mediaTitle}) {
+  InitiatePurchase = flow(function * ({pocketSlugOrId, permissionItemId, title}) {
     if(!this.purchaseDetails[permissionItemId]) {
       const pocket = this.rootStore.pocketStore.pocket.metadata;
       const permissionItem = this.rootStore.pocketStore.permissionItems[permissionItemId];
@@ -71,7 +72,7 @@ class PaymentStore {
 
       delete response.buy_url;
       response.address = this.client.CurrentAccountAddress();
-      response.mediaTitle = mediaTitle;
+      response.title = title;
       response.permissionItem = {
         id: permissionItemId,
         client_reference_id: confirmationId,
@@ -90,6 +91,10 @@ class PaymentStore {
         "pay",
         this.client.utils.B58(JSON.stringify(response))
       );
+
+      if(rootStore.isLocal) {
+        url.hostname = "192.168.0.10";
+      }
 
       if(this.rootStore.pocketStore.preview) {
         url.searchParams.set("preview", "");

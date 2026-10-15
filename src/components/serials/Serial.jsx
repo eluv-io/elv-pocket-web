@@ -103,6 +103,7 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
   useEffect(() => {
     if(!active) { return; }
 
+    let scrollTimeout;
     if(item.type !== "bumper") {
       SetScrollEnabled(true);
     } else {
@@ -110,12 +111,16 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
 
       if(!bumper?.passable) { return; }
 
-      if(!finishedBumpers[serialItemId]) {
+      if(!finishedBumpers[serialItemId] && !rootStore.isLocal) {
         SetScrollEnabled(false);
-        setTimeout(() => ref?.scrollIntoView({behavior: "smooth"}), 250);
+
+        scrollTimeout = setTimeout(() => ref?.scrollIntoView({behavior: "smooth"}), 500);
       }
 
-      return () => finishedBumpers[serialItemId] = true;
+      return () => {
+        finishedBumpers[serialItemId] = true;
+        clearTimeout(scrollTimeout);
+      };
     }
   }, [active]);
 

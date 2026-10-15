@@ -489,3 +489,15 @@
     transition: stroke-dashoffset 0.35s;
   }
 }
+
+.price-string {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+
+  &__strikethrough {
+    color: var(--text-tertiary-alternate);
+    text-decoration: line-through;
+  }
+}

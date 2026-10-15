@@ -109,6 +109,34 @@
   }
 }
 
+.payment-actions {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+  &__actions {
+    align-items: center;
+    animation: var(--animation-fadein) 0.5s ease;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+  }
+
+  &__status,
+  &__error {
+    align-items: center;
+    display: flex;
+    font-weight: 600;
+    inset: 0;
+    justify-content: center;
+    padding: 20px;
+    width: 50%;
+  }
+}
+
 .qr-container {
   align-items: center;
   animation: var(--animation-fadein) 0.25s ease;

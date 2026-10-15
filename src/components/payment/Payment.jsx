@@ -329,7 +329,7 @@ const PaymentPage = observer(() => {
   if(success) {
     return (
       <div className={S("payment-page")}>
-        <Header simple text={params.mediaTitle} />
+        <Header simple text={params.title} />
         <div className={S("payment-page__success")}>
           <div className={S("payment-page__success-title")}>
             Your purchase was successful
@@ -344,7 +344,7 @@ const PaymentPage = observer(() => {
 
   return (
     <div className={S("payment-page")}>
-      <Header simple text={params.mediaTitle} />
+      <Header simple text={params.title} />
       <div className={S("item")}>
         {
           !params.permissionItem.access_title ? null :

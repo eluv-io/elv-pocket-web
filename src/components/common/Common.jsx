@@ -12,6 +12,7 @@ const S = CreateModuleClassMatcher(CommonStyles);
 
 import CopyIcon from "@/assets/icons/copy.svg";
 import CheckIcon from "@/assets/icons/check-circle.svg";
+import {FormatPriceString} from "@/utils/Money.js";
 
 export const HashedLoaderImage = observer(({
   src,
@@ -391,3 +392,25 @@ export const CircleTimer = observer(({duration, onEnd, className="", ...progress
   );
 });
 
+export const PermissionItemPrice = observer(({permissionItem, className}) =>
+  !permissionItem || (permissionItem.type === "external" && !permissionItem?.price?.USD) ? null :
+    <div className={JoinClassNames(S("price-string"), className)}>
+      {
+        permissionItem.type === "external" ||
+        !permissionItem.marketplaceItem?.discount ? null :
+          <span className={S("price-string__strikethrough")}>
+            { FormatPriceString(permissionItem?.marketplaceItem?.price)}
+          </span>
+
+      }
+      <span>
+        {
+          FormatPriceString(
+            permissionItem.type === "external" ?
+              permissionItem?.price :
+              permissionItem?.marketplaceItem?.discount?.price || permissionItem?.marketplaceItem?.price
+          )
+        }
+      </span>
+    </div>
+);

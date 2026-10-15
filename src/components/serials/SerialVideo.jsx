@@ -421,7 +421,8 @@ const SerialVideo = observer(({
               // Mute if specified in component or muted by user
               EluvioPlayerParameters.muted.ON :
               // For things like ads, video must autoplay, may need to mute
-              muteIfNecessary ? EluvioPlayerParameters.muted.OFF_IF_POSSIBLE :
+              muteIfNecessary ?
+                EluvioPlayerParameters.muted.OFF_IF_POSSIBLE :
                 // Otherwise unmute
                 EluvioPlayerParameters.muted.OFF,
             playerCallback: params => {

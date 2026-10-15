@@ -3,134 +3,19 @@ import PurchaseStyles from "@/assets/stylesheets/modules/purchase.module.scss";
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
 import {pocketStore, paymentStore, rootStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
-import {HashedLoaderImage, Linkish, Loader} from "@/components/common/Common.jsx";
+import {CreateModuleClassMatcher} from "@/utils/Utils.js";
+import {HashedLoaderImage, Linkish, PermissionItemPrice} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
 import Carousel from "@/components/common/Carousel.jsx";
-import {Payment} from "@/components/payment/Payment.jsx";
-import {FormatPriceString} from "@/utils/Money.js";
 import SVG from "react-inlinesvg";
 import {BumperContainer} from "@/components/pocket/Media.jsx";
 
 import XIcon from "@/assets/icons/x.svg";
+import PaymentActions from "@/components/payment/PaymentActions.jsx";
 
 const S = CreateModuleClassMatcher(PurchaseStyles);
 
-const PermissionItemPrice = observer(({permissionItem, className}) =>
-  permissionItem.type === "external" && !permissionItem?.price?.USD ? null :
-    <div className={JoinClassNames(S("price-string"), className)}>
-      {
-        permissionItem.type === "external" ||
-        !permissionItem.marketplaceItem?.discount ? null :
-          <span className={S("price-string__strikethrough")}>
-            { FormatPriceString(permissionItem?.marketplaceItem?.price)}
-          </span>
 
-      }
-      <span>
-        {
-          FormatPriceString(
-            permissionItem.type === "external" ?
-              permissionItem?.price :
-              permissionItem?.marketplaceItem?.discount?.price || permissionItem?.marketplaceItem?.price
-          )
-        }
-      </span>
-    </div>
-);
-
-const MintingStatus = observer(({permissionItemId, confirmationId}) => {
-  const [status, setStatus] = useState(null);
-
-  useEffect(() => {
-    const statusInterval = setInterval(async () => {
-      let status = await paymentStore.MintingStatus({permissionItemId, confirmationId});
-
-      setStatus(status);
-
-      if(status?.status === "complete") {
-        clearInterval(statusInterval);
-
-        const permissionItem = pocketStore.permissionItems[permissionItemId];
-        pocketStore.AnalyticsEvent({
-          eventType: "purchase",
-          params: {
-            transaction_id: confirmationId,
-            currency: paymentStore.currency,
-            value: permissionItem?.marketplaceItem?.price?.[paymentStore.currency],
-            items: [{
-              item_id: permissionItem?.marketplaceItem.sku,
-              item_name: permissionItem?.title,
-              price: permissionItem?.marketplaceItem?.price?.[paymentStore.currency],
-              quantity: 1
-            }]
-          }
-        });
-
-        setTimeout(async () => {
-          await pocketStore.LoadMedia();
-          rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
-        }, 3500);
-      } else if(status?.status === "failed") {
-        clearInterval(statusInterval);
-      }
-    }, 1000);
-
-    return () => clearInterval(statusInterval);
-  }, [permissionItemId, confirmationId]);
-
-  if(status?.status === "failed") {
-    return (
-      <div className={S("payment__error")}>
-        Something went wrong, please try again
-      </div>
-    );
-  }
-
-  return (
-    <div className={S("payment__status")}>
-      <Loader/>
-    </div>
-  );
-});
-
-const PaymentActions = observer(({permissionItemId, mediaItem, Cancel}) => {
-  const {pocketSlugOrId} = useParams();
-
-  useEffect(() => {
-    paymentStore.InitiatePurchase({pocketSlugOrId, permissionItemId, mediaTitle: mediaItem.title})
-      .then(() => paymentStore.StartPollPurchaseStatus({permissionItemId}));
-
-    return () => paymentStore.StopPollPurchaseStatus({permissionItemId});
-  }, []);
-
-  if(
-    paymentStore.purchaseDetails[permissionItemId]?.success ||
-    paymentStore.purchaseStatus[permissionItemId]?.status === "succeeded"
-  ) {
-    return (
-      <div className={S("payment__status")}>
-        <MintingStatus
-          permissionItemId={permissionItemId}
-          confirmationId={paymentStore.purchaseDetails[permissionItemId].response.client_reference_id}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={S("payment__actions")}>
-      <Payment
-        showQR={!rootStore.mobile && !rootStore.isLocal}
-        //showQR
-        url={paymentStore.purchaseDetails[permissionItemId]?.url}
-        params={paymentStore.purchaseDetails[permissionItemId]?.response}
-        onCancel={Cancel}
-        className={S("payment__form")}
-      />
-    </div>
-  );
-});
 
 const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
   return (
@@ -193,9 +78,10 @@ const SelectedItem = observer(({permissionItem, mediaItem, Cancel}) => {
             </div>
         }
         <PaymentActions
-          mediaItem={mediaItem}
+          title={mediaItem?.title || permissionItem.title}
           permissionItemId={permissionItem.id}
           Cancel={Cancel}
+          className={S("payment__actions")}
         />
       </div>
     </div>
