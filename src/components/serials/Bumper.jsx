@@ -105,6 +105,7 @@ const BumperOffer = observer(({offer, format, compact, Next}) => {
   );
 });
 
+// Bumpers that have already been viewed can be skipped
 export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
   const showCompactOffers = bumper.offers.format === "details" && bumper.offers.items.length > 2;
 
@@ -138,6 +139,7 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
               videoLinkInfo={videoLinkInfo}
               className={S("bumper__video")}
               playerOptions={{loop: bumper.loop}}
+              autohideControls={false}
               muteIfNecessary
               showPlayPause={false}
               showTimer={!bumper.duration && !bumper.loop}

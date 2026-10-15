@@ -32,7 +32,11 @@ const VideoTimer = observer(({player}) => {
     return () => clearInterval(interval);
   }, [!!player]);
 
-  if(!player || !player?.controls?.GetDuration?.()) { return; }
+  if(
+    !player ||
+    !player?.controls?.GetDuration?.() ||
+    player?.controls?.GetDuration?.() < 7
+  ) { return; }
 
   return (
     <ControlledCircleTimer
@@ -53,19 +57,27 @@ const SwipeMessage = observer(() => {
     if(!ref) { return; }
 
     const nodes = Array.from(ref?.querySelectorAll(`.${S("swipe-message")}`) || []);
+    const Scroll = (item, behavior) => {
+      if(!item) { return; }
+
+      item.parentElement.scrollTo({
+        left: item.getBoundingClientRect().left + item.parentElement.scrollLeft,
+        behavior
+      });
+    };
 
     (async () => {
       await new Promise(resolve => setTimeout(resolve, 100));
-      nodes?.[0]?.scrollIntoView({behavior: "instant"});
+      Scroll(nodes?.[0], "instant");
 
       for(let i = 1; i < nodes.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        nodes[i].scrollIntoView({behavior: "smooth"});
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        Scroll(nodes[i], "smooth");
 
         if(i >= nodes.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 100));
           setHidden(true);
-          //setTimeout(() => swipeMessageShown = true, 1000);
+          setTimeout(() => swipeMessageShown = true, 1000);
         }
       }
     })();
@@ -202,52 +214,44 @@ const Controls = observer(({
   player,
   title,
   titleIcon,
+  subtitle,
   contentTitle,
   contentSubtitle,
-  showPlayPause = true,
+  showPlayPause=true,
   showTimer,
-  showDetails
+  showAudio,
+  showDetails,
+  playing,
+  muted
 }) => {
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-
-  useEffect(() => {
-    if(!player) {
-      return;
-    }
-
-    setMuted(player.controls.IsMuted());
-    setPlaying(player.controls.IsPlaying());
-
-    const Disposers = [
-      player.controls.RegisterVideoEventListener("volumechange", () => setMuted(player.controls.IsMuted())),
-      player.controls.RegisterVideoEventListener("playing", () => setPlaying(player.controls.IsPlaying())),
-      player.controls.RegisterVideoEventListener("pause", () => setPlaying(player.controls.IsPlaying()))
-    ];
-
-    return () => Disposers.forEach(Disposer => Disposer?.());
-  }, [!!player]);
-
   return (
-    <>
+    <div className={S("serial-video__controls-overlay")}>
       <div onClick={event => event.stopPropagation()} className={S("serial-video__controls-container")}>
-        <div className={S("serial-video__title-container")}>
-          {
-            !showTimer ? null :
-              <VideoTimer player={player} />
-          }
-          {
-            !titleIcon?.url ? null :
-              <HashedLoaderImage
-                src={titleIcon.url}
-                hash={titleIcon.hash}
-                alt="Title Icon"
-                className={S("serial-video__title-icon")}
-              />
-          }
-          <div className={S("serial-video__title")}>
-            {title}
+        <div className={S("serial-video__text")}>
+          <div className={S("serial-video__title-container")}>
+            {
+              !showTimer ? null :
+                <VideoTimer player={player}/>
+            }
+            {
+              !titleIcon?.url ? null :
+                <HashedLoaderImage
+                  src={titleIcon.url}
+                  hash={titleIcon.hash}
+                  alt="Title Icon"
+                  className={S("serial-video__title-icon")}
+                />
+            }
+            <div className={S("serial-video__title")}>
+              {title}
+            </div>
           </div>
+          {
+            !subtitle ? null :
+              <div className={S("serial-video__subtitle")}>
+                {subtitle}
+              </div>
+          }
         </div>
         <div className={S("serial-video__controls")}>
           {
@@ -256,17 +260,24 @@ const Controls = observer(({
                 onClick={() => player?.controls?.TogglePlay()}
                 className={S("serial-video__controls-button", "serial-video__controls-button--play")}
               >
-                <SVG src={PauseIcon} className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}/>
-                <SVG src={PlayIcon} className={S("serial-video__controls-button-icon", !playing ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG src={PauseIcon}
+                     className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG src={PlayIcon}
+                     className={S("serial-video__controls-button-icon", !playing ? "serial-video__controls-button-icon--active" : "")}/>
               </button>
           }
-          <button
-            onClick={() => player?.controls?.ToggleMuted()}
-            className={S("serial-video__controls-button", "serial-video__controls-button--volume")}
-          >
-            <SVG src={VolumeOffIcon} className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}/>
-            <SVG src={VolumeOnIcon} className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}/>
-          </button>
+          {
+            !showAudio ? null :
+              <button
+                onClick={() => player?.controls?.ToggleMuted()}
+                className={S("serial-video__controls-button", "serial-video__controls-button--volume")}
+              >
+                <SVG src={VolumeOffIcon}
+                     className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG src={VolumeOnIcon}
+                     className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}/>
+              </button>
+          }
         </div>
       </div>
       {
@@ -282,13 +293,15 @@ const Controls = observer(({
             }
           />
       }
-    </>
+    </div>
   );
 });
 
+let autohideTimeout;
 const SerialVideo = observer(({
   title,
   titleIcon,
+  subtitle,
   contentTitle,
   contentSubtitle,
   videoLink,
@@ -296,6 +309,7 @@ const SerialVideo = observer(({
   videoHash,
   playerOptions={},
   saveSettings=true,
+  autohideControls,
   showPlayPause=true,
   showTimer=false,
   showDetails=false,
@@ -306,7 +320,20 @@ const SerialVideo = observer(({
 }) => {
   const [ref, setRef] = useState(null);
   const [player, setPlayer] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState("initial");
+  const [hasAudio, setHasAudio] = useState(false);
+  const [autohide, setAutohide] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  const PokeAutohide = () => {
+    if(!autohideControls) { return; }
+
+    clearTimeout(autohideTimeout);
+    setAutohide(false);
+
+    autohideTimeout = setTimeout(() => setAutohide(true), 8000);
+  };
 
   useEffect(() => {
     if(!player || !saveSettings) { return; }
@@ -326,10 +353,7 @@ const SerialVideo = observer(({
   useEffect(() => {
     if(!player || !onEnd) { return; }
 
-    const Disposer = player.controls.RegisterVideoEventListener(
-      "ended",
-      () => setTimeout(onEnd, 1000)
-    );
+    const Disposer = player.controls.RegisterVideoEventListener("ended", onEnd);
 
     return () => Disposer?.();
   }, [!!player, onEnd]);
@@ -348,7 +372,7 @@ const SerialVideo = observer(({
   useEffect(() => {
     if(!ref) { return; }
 
-    setLoading(true);
+    const showLoaderTimeout = setTimeout(() => setState("loading"), 2000);
 
     let savedSettings = {};
 
@@ -361,8 +385,12 @@ const SerialVideo = observer(({
       }
     }
 
-    let playerPromise;
+    let playerPromise, unmounted;
+    const key = `Video Load ${(Math.random() * 1000).toFixed(0)}`;
     const timeout = setTimeout(() => {
+      if(unmounted) { return; }
+
+      console.time(key);
       playerPromise = InitializeEluvioPlayer(
         ref,
         {
@@ -397,23 +425,56 @@ const SerialVideo = observer(({
                 // Otherwise unmute
                 EluvioPlayerParameters.muted.OFF,
             playerCallback: params => {
+              if(unmounted) {
+                return;
+              }
+
+              const player = params.player;
               playerOptions?.playerCallback?.(params);
-              setPlayer(params.player);
+              setPlayer(player);
 
-              window.activeSerialPlayer = params.player;
+              window.activeSerialPlayer = player;
 
-              const Disposer = params.player.controls.RegisterVideoEventListener(
-                "canplay",
-                () => {
-                  setLoading(false);
-                  Disposer?.();
-                }
-              );
+              PokeAutohide();
+
+              const Disposer =
+
+              player.controls.RegisterVideoEventListener(
+                "loadeddata",
+                event => {
+                  const video = event.target;
+                  const hasAudio =
+                    (video.audioTracks && video.audioTracks.length > 0) || // Standard API
+                    video.mozHasAudio ||                                  // Firefox fallback
+                    Boolean(video.webkitAudioDecodedByteCount);           // Chrome/Webkit fallback
+
+                  setHasAudio(hasAudio);
+                });
+
+              setMuted(player.controls.IsMuted());
+              setPlaying(player.controls.IsPlaying());
+
+              const Disposers = [
+                player.controls.RegisterVideoEventListener("volumechange", () => setMuted(player.controls.IsMuted())),
+                player.controls.RegisterVideoEventListener("playing", () => setPlaying(player.controls.IsPlaying())),
+                player.controls.RegisterVideoEventListener("pause", () => setPlaying(player.controls.IsPlaying())),
+                player.controls.RegisterVideoEventListener(
+                  "canplay",
+                  () => {
+                    console.timeEnd(key);
+                    clearTimeout(showLoaderTimeout);
+                    setState("playing");
+                    Disposer?.();
+                  }
+                )
+              ];
+
+              return () => Disposers.forEach(Disposer => Disposer?.());
             }
           }
         }
       );
-    }, 250);
+    }, 350);
 
     return async () => {
       clearTimeout(timeout);
@@ -426,21 +487,32 @@ const SerialVideo = observer(({
   }, [ref, videoLink, videoHash]);
 
   return (
-    <div className={JoinClassNames(S("serial-video-container"), className)}>
-      <div className={S("serial-video", loading ? "serial-video--loading" : "")} ref={setRef} />
+    <div
+      onClick={PokeAutohide}
+      onMouseMove={PokeAutohide}
+      onDrag={PokeAutohide}
+      onDragStart={PokeAutohide}
+      className={JoinClassNames(S("serial-video-container", playing && autohide ? "serial-video-container--autohide" : ""), className)}
+    >
+      <div className={S("serial-video", state !== "playing" ? "serial-video--loading" : "")} ref={setRef} />
       {
-        loading ?
-          <Loader className={S("serial-video__loader")} /> :
-          <Controls
-            title={title}
-            titleIcon={titleIcon}
-            contentTitle={contentTitle}
-            contentSubtitle={contentSubtitle}
-            showPlayPause={showPlayPause}
-            showTimer={showTimer}
-            showDetails={showDetails}
-            player={player}
-          />
+        state === "initial" ? null :
+          state === "loading" ?
+            <Loader className={S("serial-video__loader")} /> :
+            <Controls
+              title={title}
+              titleIcon={titleIcon}
+              subtitle={subtitle}
+              contentTitle={contentTitle}
+              contentSubtitle={contentSubtitle}
+              showPlayPause={showPlayPause}
+              showTimer={showTimer}
+              showDetails={showDetails}
+              showAudio={hasAudio}
+              player={player}
+              playing={playing}
+              muted={muted}
+            />
       }
     </div>
   );

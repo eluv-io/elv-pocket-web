@@ -242,8 +242,8 @@
     }
 
     .offer {
-      font-size: 9px;
-      padding: 15px 10px;
+      font-size: 14px;
+      padding: 15px;
       padding-inline: 10px;
       width: 100%;
 
@@ -286,6 +286,7 @@
 .offer {
   background: linear-gradient(29deg, #0A0A0A 7.99%, #383838 88.36%);
   border-radius: 20px;
+  box-shadow: 0 0 10px black;
   display: flex;
   flex-direction: column;
   margin-inline: auto;
@@ -296,13 +297,14 @@
 
   &__title,
   &__price {
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: 700;
     line-height: 1.3em;
   }
 
   &__price {
     font-size: 1.6em;
+    margin-top: 5px;
   }
 
   &__subtitle {
@@ -313,7 +315,7 @@
 
   &__description {
     font-size: 0.9em;
-    margin-top: 10px;
+    margin: 10px 0;
     white-space: pre-wrap;
   }
 
@@ -329,7 +331,7 @@
   &__button {
     border-radius: 30px;
     color: black;
-    font-size: 1.2em;
+    font-size: 1.3em;
     font-weight: 600;
     margin-top: 20px;
     padding: 12px 20px;

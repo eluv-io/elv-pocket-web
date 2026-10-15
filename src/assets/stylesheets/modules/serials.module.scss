@@ -4,6 +4,22 @@
   height: calc(100 * var(--vh));
   justify-content: center;
 
+  &--scroll-disabled {
+    .serials-container {
+      overflow-y: hidden;
+    }
+
+    .serial {
+      overflow-x: hidden;
+    }
+
+    .serial-arrow {
+      opacity: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+  }
+
   @media screen and (width >= 650px), (aspect-ratio >= 11 / 16), (aspect-ratio <= 7 / 16) {
     .serial {
       aspect-ratio: 9/16;
@@ -170,19 +186,20 @@
   gap: 3px;
   height: max-content;
   opacity: 1;
+  overflow-y: scroll;
   position: absolute;
-  top: 10px;
+  scrollbar-width: none;
+  top: 15px;
   width: 100%;
   z-index: 100;
 
   * {
-    backdrop-filter: blur(10px);
     transition: all 0.5s ease;
   }
 
   &__media-item,
   &__bumper-item {
-    box-shadow: 0 0 5px rgb(0 0 0 / 50%);
+    backdrop-filter: blur(10px);
   }
 
   &__media-item {
@@ -190,6 +207,7 @@
     border-radius: 10px;
     flex-grow: 1;
     height: 5px;
+    min-width: 30px;
     overflow: hidden;
     position: relative;
 
@@ -209,6 +227,7 @@
     background-color: rgb(255 255 255 / 25%);
     border-radius: 100%;
     height: 5px;
+    min-width: 5px;
     width: 5px;
 
     &--active {
@@ -222,11 +241,17 @@
   display: flex;
   justify-content: center;
   position: relative;
+
+  &--autohide {
+    .serial-video__controls-overlay {
+      opacity: 0;
+    }
+  }
 }
 
 .serial-video {
   pointer-events: none;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.75s ease;
 
   &--loading {
     opacity: 0;
@@ -237,16 +262,29 @@
     position: absolute;
   }
 
+  &,
+  &__controls-overlay {
+    height: 100%;
+    inset: 0;
+    position: absolute;
+    width: 100%;
+  }
+
+  &__controls-overlay {
+    transition: opacity 0.5s ease;
+  }
+
   &__controls-container {
     align-items: center;
+    background: linear-gradient(rgb(0 0 0 / 50%), transparent);
     display: flex;
     justify-content: space-between;
     min-height: 40px;
-    padding-inline: 15px;
+    padding: 25px 15px 75px;
     position: absolute;
-    top: 25px;
+    top: 0;
     width: 100%;
-    z-index: 200;
+    z-index: 99;
   }
 
   &__title-container {
@@ -267,6 +305,10 @@
     font-size: 16px;
     font-weight: 600;
     text-shadow: 0 0 3px black;
+  }
+
+  &__subtitle {
+    margin-top: 5px;
   }
 
   &__controls {
@@ -307,15 +349,22 @@
   &__timer {
     animation: var(--animation-fadein) 0.5s ease;
 
+    --track-color: rgb(0 0 0 / 20%);
+
     * {
       text-shadow: 0 0 3px black;
+    }
+
+    svg {
+      filter: drop-shadow(0 0 2px rgb(0 0 0 / 30%));
     }
   }
 
   &__details {
+    background: linear-gradient(transparent, rgb(0 0 0 / 35%) 20%);
     bottom: 0;
     color: white;
-    padding: 0 15px 50px;
+    padding: 50px 15px 25px;
     position: absolute;
     width: 100%;
     z-index: 10;
@@ -379,7 +428,7 @@
 }
 
 .swipe-message-container {
-  animation: var(--animation-fadein) 1s ease;
+  animation: var(--animation-fadein) 0.5s ease;
   border: 2px solid transparent;
   display: flex;
   height: 50px;

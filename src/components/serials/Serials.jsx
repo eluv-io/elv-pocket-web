@@ -15,6 +15,7 @@ const S = CreateModuleClassMatcher(SerialStyles);
 const Serials = observer(() => {
   const [ref, setRef] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
   const GetItemNodes = ref => Array.from(ref?.querySelectorAll(`.${S("serials-container__item")}`) || []);
 
@@ -47,9 +48,9 @@ const Serials = observer(() => {
   }, [ref]);
 
   return (
-    <div className={S("serial-page")}>
+    <div className={S("serial-page", !scrollEnabled ? "serial-page--scroll-disabled" : "")}>
       <button
-        disabled={activeIndex === 0}
+        disabled={!scrollEnabled || activeIndex === 0}
         onClick={() => GetItemNodes(ref)[activeIndex - 1]?.scrollIntoView({behavior: "smooth"})}
         className={S("serial-arrow", "serial-arrow--vertical", "serial-arrow--top")}
       >
@@ -63,13 +64,15 @@ const Serials = observer(() => {
               serialId={serialId}
               index={index}
               key={`${serialId}-${index}`}
+              scrollEnabled={scrollEnabled}
+              setScrollEnabled={setScrollEnabled}
               className={S("serials-container__item")}
             />
           )
         }
       </div>
       <button
-        disabled={activeIndex >= pocketStore.serialList.length - 1}
+        disabled={!scrollEnabled || activeIndex >= pocketStore.serialList.length - 1}
         onClick={() => GetItemNodes(ref)[activeIndex + 1]?.scrollIntoView({behavior: "smooth"})}
         className={S("serial-arrow", "serial-arrow--vertical", "serial-arrow--bottom")}
       >

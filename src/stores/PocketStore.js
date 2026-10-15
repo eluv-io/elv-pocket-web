@@ -156,6 +156,63 @@ class PocketStore {
     return this.serials[serialId];
   }
 
+  // These are the items that determine what is shown in the progress bar
+  // We only want to hide things that are hidden when permissions are granted (e.g. ads),
+  // but still show items that are inaccessible when not permissioned (e.g. media)
+  ProgressSerialItems(serialSlugOrId) {
+    return (this.Serial(serialSlugOrId)?.items || [])
+      .filter(item =>
+        // No permissions
+        (item.permissions || []).length === 0 ||
+        // Behavior is show, show regardless of permission
+        item.permission_behavior === "show" ||
+        // Behavior is hide but not permissioned
+        (
+          item.permission_behavior === "hide" &&
+          !item.permissions.find(permissionItemId => this.permissionItems[permissionItemId]?.owned)
+        )
+      )
+      .map((item, itemIndex) => ({
+        ...item,
+        itemIndex
+      }));
+  }
+
+  // These are the items we want to show up in the serial, given the user's permissions
+  VisibleSerialItems(serialSlugOrId) {
+    const serial = this.Serial(serialSlugOrId);
+    const serialItems = serial?.items || [];
+
+    let items = [];
+    for(let itemIndex = 0; itemIndex < serialItems.length; itemIndex++) {
+      let add = false;
+      const item = serialItems[itemIndex];
+      if(item.permissions.length === 0) {
+        add = true;
+      } else {
+        const permissioned = item.permissions
+          .find(permissionItemId => this.permissionItems[permissionItemId]?.owned);
+
+        add = permissioned ?
+          // Behavior is show and permissioned
+          item.permission_behavior === "show" :
+          // Behavior is hide and not permissioned
+          item.permission_behavior === "hide";
+      }
+
+      if(add) {
+        items.push(item);
+
+        if(item.type === "bumper" && !this.bumpers[item.bumper_id]?.passable) {
+          // Unpassable bumper, stop here
+          break;
+        }
+      }
+    }
+
+    return items;
+  }
+
   MediaItem(mediaItemSlugOrId) {
     const mediaItemId = this.slugMap[mediaItemSlugOrId] || mediaItemSlugOrId;
 
@@ -736,6 +793,24 @@ class PocketStore {
       console.error("Error loading items and subscriptions");
       console.error(error);
     }
+
+    // Parse bumpers
+    Object.keys(bumpers || {}).forEach(bumperKey => {
+      const bumper = bumpers[bumperKey];
+
+      if(!bumper) {
+        delete bumpers[bumperKey];
+        return;
+      }
+
+      // Record whether bumper is 'passable', i.e. if it's possible to get to the next item
+      // without purchasing (explicit duration, video, or has 'continue' button)
+      bumpers[bumperKey].passable = (
+        bumper.duration ||
+        ((bumper.video || bumper.video_mobile) && !bumper.loop) ||
+        bumper.offers?.items?.find(offer => offer.action.behavior === "continue")
+      );
+    });
 
     this.permissionItems = allPermissionItems;
     this.slugMap = slugMap;
