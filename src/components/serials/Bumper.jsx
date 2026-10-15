@@ -12,38 +12,44 @@ const S = CreateModuleClassMatcher(BumperStyles);
 
 const BumperPurchase = observer(({offer, Cancel}) => {
   const permissionItem = pocketStore.permissionItems[offer.permission_item_id];
+
   return (
-    <div className={S("purchase")}>
-      <div className={S("purchase__offer")}>
-        {
-          !offer.display.subtitle ? null :
-            <div className={S("purchase__offer-subtitle")}>
-              { offer.display.subtitle }
-            </div>
-        }
-        {
-          !offer.display.title ? null :
-            <div className={S("purchase__offer-title")}>
-              { offer.display.title }
-            </div>
-        }
-        <PermissionItemPrice permissionItem={permissionItem} className={S("purchase__offer-price")} />
-        {
-          !offer.display.description ? null :
-            <div className={S("purchase__offer-description")}>
-              { offer.display.description }
-            </div>
-        }
+    <div className={S("purchase-container")}>
+      <div className={S("purchase")}>
+        <div className={S("purchase__offer")}>
+          {
+            !permissionItem.access_title ? null :
+              <div className={S("purchase__offer-subtitle")}>
+                {permissionItem.access_title}
+              </div>
+          }
+          <div className={S("purchase__offer-title")}>
+            {permissionItem.title}
+          </div>
+          <PermissionItemPrice permissionItem={permissionItem} className={S("purchase__offer-price")} />
+          {
+            !permissionItem.subtitle ? null :
+              <div className={S("purchase__offer-subtitle")}>
+                {permissionItem.subtitle}
+              </div>
+          }
+          {
+            !permissionItem.description ? null :
+              <div className={S("purchase__offer-description")}>
+                { permissionItem.description }
+              </div>
+          }
+        </div>
+        <PaymentActions
+          title={offer.title}
+          permissionItemId={offer.permission_item_id}
+          className={S("purchase__actions")}
+          Cancel={Cancel}
+        />
+        <button onClick={Cancel} className={S("purchase__back")}>
+          Back
+        </button>
       </div>
-      <PaymentActions
-        title={offer.title}
-        permissionItemId={offer.permission_item_id}
-        className={S("purchase__actions")}
-        Cancel={Cancel}
-      />
-      <button onClick={Cancel} className={S("purchase__back")}>
-        Back
-      </button>
     </div>
   );
 });
@@ -198,6 +204,7 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
               muteIfNecessary
               showPlayPause={false}
               showTimer={!bumper.duration && !bumper.loop}
+              pause={!!purchaseOffer}
               onEnd={!bumper.duration && !bumper.loop ? Next : undefined}
             />
           </div>
@@ -212,21 +219,21 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
             />
           </div>
       }
-      <div
-        className={
-          S(
-            "bumper__content",
-            `bumper__content--${position}`,
-            showOfferTextBackground ? "bumper__content--with-offer-text" : ""
-          )
-        }
-      >
-        {
-          purchaseOffer ?
-            <BumperPurchase
-              offer={purchaseOffer}
-              Cancel={() => setPurchaseOffer(undefined)}
-            /> :
+      {
+        purchaseOffer ?
+          <BumperPurchase
+            offer={purchaseOffer}
+            Cancel={() => setPurchaseOffer(undefined)}
+          /> :
+          <div
+            className={
+              S(
+                "bumper__content",
+                `bumper__content--${position}`,
+                showOfferTextBackground ? "bumper__content--with-offer-text" : ""
+              )
+            }
+          >
             <div
               className={
                 S(
@@ -266,8 +273,8 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
                   <div className={S("bumper__offers-bottom-text")}>{bumper.offers.bottom_text}</div>
               }
             </div>
+          </div>
         }
-      </div>
     </div>
   );
 });

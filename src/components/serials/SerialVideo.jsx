@@ -105,17 +105,13 @@ const SwipeMessage = observer(() => {
   );
 });
 
-const Details = observer(({title, subtitle, playing, SetPlaying}) => {
+const Details = observer(({title, subtitle, Pause, Resume}) => {
   const [menuControls, setMenuControls] = useState(undefined);
-  const [wasPlaying, setWasPlaying] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showCopyIcon, setShowCopyIcon] = useState(false);
 
-  // Resume playing after menu is closed if opening it stopped playback
   useEffect(() => {
-    if(menuVisible || !wasPlaying) { return; }
-
-    SetPlaying(true);
+    menuVisible ? Pause() : Resume();
   }, [menuVisible]);
 
   return (
@@ -142,11 +138,6 @@ const Details = observer(({title, subtitle, playing, SetPlaying}) => {
               url.pathname = window.location.pathname;
               try {
                 setMenuVisible(true);
-                setWasPlaying(playing);
-
-                if(playing) {
-                  SetPlaying?.(false);
-                }
 
                 await navigator.share({
                   title: pocketStore.pocket.metadata?.meta_tags?.title || document.title,
@@ -159,10 +150,6 @@ const Details = observer(({title, subtitle, playing, SetPlaying}) => {
                 }
 
                 Copy(url.toString());
-
-                if(playing) {
-                  SetPlaying?.(true);
-                }
 
                 setShowCopyIcon(true);
 
@@ -190,11 +177,6 @@ const Details = observer(({title, subtitle, playing, SetPlaying}) => {
             onClick={() => {
               menuControls.Show();
               setMenuVisible(!menuVisible);
-              setWasPlaying(playing);
-
-              if(playing) {
-                SetPlaying?.(false);
-              }
             }}
             className={S("serial-video__detail-button", "serial-video__detail-button--menu")}
           >
@@ -222,7 +204,9 @@ const Controls = observer(({
   showAudio,
   showDetails,
   playing,
-  muted
+  muted,
+  Pause,
+  Resume
 }) => {
   return (
     <div className={S("serial-video__controls-overlay")}>
@@ -237,7 +221,6 @@ const Controls = observer(({
               !titleIcon?.url ? null :
                 <HashedLoaderImage
                   src={titleIcon.url}
-                  hash={titleIcon.hash}
                   alt="Title Icon"
                   className={S("serial-video__title-icon")}
                 />
@@ -285,12 +268,8 @@ const Controls = observer(({
           <Details
             title={contentTitle}
             subtitle={contentSubtitle}
-            playing={playing}
-            SetPlaying={
-              play => play ?
-                player.controls?.Play() :
-                player.controls?.Pause()
-            }
+            Pause={Pause}
+            Resume={Resume}
           />
       }
     </div>
@@ -316,6 +295,7 @@ const SerialVideo = observer(({
   muteIfNecessary,
   onProgress,
   onEnd,
+  pause,
   className=""
 }) => {
   const [ref, setRef] = useState(null);
@@ -325,6 +305,21 @@ const SerialVideo = observer(({
   const [autohide, setAutohide] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [wasPlaying, setWasPlaying] = useState(false);
+
+  const Pause = () => {
+    if(!player) { return; }
+
+    setWasPlaying(player.controls.IsPlaying());
+    player.controls.Pause();
+  };
+
+  const Resume = () => {
+    if(!player || !wasPlaying) { return; }
+
+    setWasPlaying(false);
+    player.controls.Play();
+  };
 
   const PokeAutohide = () => {
     if(!autohideControls) { return; }
@@ -334,6 +329,11 @@ const SerialVideo = observer(({
 
     autohideTimeout = setTimeout(() => setAutohide(true), 8000);
   };
+
+  // Pause / Resume based on pause param
+  useEffect(() => {
+    pause ? Pause() : Resume();
+  }, [pause, state]);
 
   useEffect(() => {
     if(!player || !saveSettings) { return; }
@@ -464,7 +464,7 @@ const SerialVideo = observer(({
                   () => {
                     console.timeEnd(key);
                     clearTimeout(showLoaderTimeout);
-                    setState("playing");
+                    setState("ready");
                     Disposer?.();
                   }
                 )
@@ -495,7 +495,7 @@ const SerialVideo = observer(({
       onDragStart={PokeAutohide}
       className={JoinClassNames(S("serial-video-container", playing && autohide ? "serial-video-container--autohide" : ""), className)}
     >
-      <div className={S("serial-video", state !== "playing" ? "serial-video--loading" : "")} ref={setRef} />
+      <div className={S("serial-video", state !== "ready" ? "serial-video--loading" : "")} ref={setRef} />
       {
         state === "initial" ? null :
           state === "loading" ?
@@ -506,13 +506,15 @@ const SerialVideo = observer(({
               subtitle={subtitle}
               contentTitle={contentTitle}
               contentSubtitle={contentSubtitle}
-              showPlayPause={showPlayPause}
+              showPlayPause={showPlayPause || !playing}
               showTimer={showTimer}
               showDetails={showDetails}
               showAudio={hasAudio}
               player={player}
               playing={playing}
               muted={muted}
+              Pause={Pause}
+              Resume={Resume}
             />
       }
     </div>
