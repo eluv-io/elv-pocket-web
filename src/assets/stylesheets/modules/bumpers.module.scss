@@ -89,11 +89,9 @@
     &--top_right {
       align-items: safe flex-start;
 
-      &.bumper__content--with-offer-text {
-        .bumper__offers {
-          background: linear-gradient(rgb(0 0 0 / 70%), rgb(0 0 0 / 50%) 80%, transparent);
-          padding: 20px 10px 50px;
-        }
+      .bumper__offers {
+        background: linear-gradient(rgb(0 0 0 / 0%), rgb(0 0 0 / 10%) 80%, transparent);
+        padding: 20px 10px 50px;
       }
     }
 
@@ -102,11 +100,9 @@
     &--bottom_right {
       align-items: safe flex-end;
 
-      &.bumper__content--with-offer-text {
-        .bumper__offers {
-          background: linear-gradient(transparent, rgb(0 0 0 / 50%) 20%, rgb(0 0 0 / 70%));
-          padding: 50px 10px 20px;
-        }
+      .bumper__offers {
+        background: linear-gradient(transparent, rgb(0 0 0 / 20%));
+        padding: 50px 10px 20px;
       }
     }
 
@@ -126,9 +122,9 @@
     }
 
     &--center {
-      &.bumper__content--with-offer-text {
-        background: rgb(0 0 0 / 30%);
-      }
+      background: rgb(0 0 0 / 30%);
+      background: linear-gradient(transparent, rgba(0 0 0 / 30%), transparent);
+      padding: 50px 0;
     }
   }
 
@@ -178,7 +174,7 @@
     font-size: 12px;
     margin-top: 5px;
     text-align: center;
-    text-shadow: 2px 2px 2px black;
+    text-shadow: 0 0 2px black;
   }
 
   &__timer-container {
