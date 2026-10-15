@@ -61,7 +61,7 @@ const SwipeMessage = observer(() => {
       if(!item) { return; }
 
       item.parentElement.scrollTo({
-        left: item.getBoundingClientRect().left + item.parentElement.scrollLeft,
+        left: item.getBoundingClientRect().left - item.parentElement.getBoundingClientRect().left + item.parentElement.scrollLeft,
         behavior
       });
     };
