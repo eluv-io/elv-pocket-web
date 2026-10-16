@@ -231,7 +231,7 @@ const Serial = observer(({serialId, active, scrollEnabled, setScrollEnabled, cla
               const itemElement = Array.from(ref.childNodes)[nearestVisibleItemIndex];
 
               ref.scrollTo({left: 0, behavior: "instant"});
-              ref.scrollTo({left: itemElement.getBoundingClientRect().left - itemElement.getBoundingClientRect().width, behavior: "instant"});
+              ref.scrollTo({left: itemElement.getBoundingClientRect().left - itemElement.getBoundingClientRect().width * 0.5, behavior: "instant"});
             }, 100);
           }
         }

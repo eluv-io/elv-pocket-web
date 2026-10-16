@@ -18,6 +18,8 @@ import MenuIcon from "@/assets/icons/menu.svg";
 import ShareIcon from "@/assets/icons/share.svg";
 import CopyIcon from "@/assets/icons/copy.svg";
 import SwipeIcon from "@/assets/icons/swipe-icon.svg";
+import {useParams} from "wouter";
+import UrlJoin from "url-join";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -106,6 +108,7 @@ const SwipeMessage = observer(() => {
 });
 
 const Details = observer(({title, subtitle, Pause, Resume}) => {
+  const {pocketSlugOrId, serialSlugOrId} = useParams();
   const [menuControls, setMenuControls] = useState(undefined);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showCopyIcon, setShowCopyIcon] = useState(false);
@@ -135,7 +138,7 @@ const Details = observer(({title, subtitle, Pause, Resume}) => {
               if(menuVisible) { return; }
 
               const url = new URL(window.location.origin);
-              url.pathname = window.location.pathname;
+              url.pathname = UrlJoin("/", pocketSlugOrId, "s", serialSlugOrId);
               try {
                 setMenuVisible(true);
 
