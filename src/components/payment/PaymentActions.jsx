@@ -39,7 +39,7 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
         });
 
         setTimeout(async () => {
-          await pocketStore.LoadMedia();
+          await pocketStore.Reload();
           rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
         }, 3500);
       } else if(status?.status === "failed") {

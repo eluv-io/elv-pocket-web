@@ -16,8 +16,14 @@ const Serials = observer(() => {
   const [ref, setRef] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [rendered, setRendered] = useState(false);
 
   const GetItemNodes = ref => Array.from(ref?.querySelectorAll(`.${S("serials-container__item")}`) || []);
+
+  useEffect(() => {
+    // Initial buffer until content is visible to allow for scrolling to the right position
+    setTimeout(() => setRendered(true), 500);
+  }, []);
 
   useEffect(() => {
     if(!ref) { return; }
@@ -48,7 +54,7 @@ const Serials = observer(() => {
   }, [ref]);
 
   return (
-    <div className={S("serial-page", !scrollEnabled ? "serial-page--scroll-disabled" : "")}>
+    <div className={S("serial-page", !rendered ? "serial-page--loading" : "", !scrollEnabled ? "serial-page--scroll-disabled" : "")}>
       <button
         disabled={!scrollEnabled || activeIndex === 0}
         onClick={() => GetItemNodes(ref)[activeIndex - 1]?.scrollIntoView({behavior: "smooth"})}

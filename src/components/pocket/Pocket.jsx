@@ -92,7 +92,7 @@ const Pocket = observer(() => {
 
     if(pocketStore.contentType === "serial") {
       if(pocketStore.serials.length > 0) {
-        return <Redirect to={UrlJoin("~/", pocketSlugOrId, pocketStore.serialList[0].slug || pocketStore.serialList[0].id)}/>;
+        return <Redirect to={UrlJoin("~/", pocketSlugOrId, pocketStore.serialList[0].slug || pocketStore.serialList[0].serialId)}/>;
       }
     } else {
       for(const tab of pocketStore.sidebarContent) {
@@ -107,8 +107,16 @@ const Pocket = observer(() => {
     }
   }
 
+  if(pocketStore.reloading) {
+    return (
+      <div className={S("splash__loader")}>
+        <Loader/>
+      </div>
+    );
+  }
+
   if(pocketStore.contentType === "serial") {
-    return <Serials key={Math.random()} />;
+    return <Serials/>;
   }
 
   let permissions = {};

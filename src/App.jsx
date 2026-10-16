@@ -66,6 +66,9 @@ const App = () => {
       <Route path="/oidc/:pocketSlugOrId">
         <Pocket />
       </Route>
+      <Route path="/:pocketSlugOrId/s/:serialSlugOrId?/:serialItemSlugOrId?">
+        <Pocket />
+      </Route>
       <Route path="/:pocketSlugOrId/:mediaItemSlugOrId?">
         <Pocket />
       </Route>

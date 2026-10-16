@@ -20,6 +20,8 @@ class PocketStore {
   userItems = [];
   analyticsEvents = {};
 
+  reloading = false;
+
   currentSerialItemProgress = 0;
 
   preview = urlParams.has("preview") || urlParams.has("previewAll") || sessionStorage.getItem("preview");
@@ -201,7 +203,10 @@ class PocketStore {
       }
 
       if(add) {
-        items.push(item);
+        items.push({
+          ...item,
+          originalIndex: itemIndex
+        });
 
         if(item.type === "bumper" && !this.bumpers[item.bumper_id]?.passable) {
           // Unpassable bumper, stop here
@@ -836,6 +841,16 @@ class PocketStore {
     }
 
     console.timeEnd("Load Media");
+  });
+
+  Reload = flow(function * () {
+    this.reloading = true;
+
+    try {
+      yield pocketStore.LoadMedia();
+    } finally {
+      this.reloading = false;
+    }
   });
 
   LoadCustomization(metadata) {

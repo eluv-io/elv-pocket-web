@@ -6,10 +6,12 @@ import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import Bumper from "@/components/serials/Bumper.jsx";
 import {useEffect, useState} from "react";
 import SVG from "react-inlinesvg";
+import SerialVideo from "@/components/serials/SerialVideo.jsx";
+import UrlJoin from "url-join";
+import {useParams} from "wouter";
 
 import ChevronLeftIcon from "@/assets/icons/chevron-left.svg";
 import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
-import SerialVideo from "@/components/serials/SerialVideo.jsx";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -177,6 +179,7 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
   return (
     <div
       ref={setRef}
+      id={`serial-item-${serialItemId}`}
       className={S("serial-item", className, active ? "serial-item--active" : "")}
     >
       {
@@ -188,6 +191,7 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
 });
 
 const Serial = observer(({serialId, active, scrollEnabled, setScrollEnabled, className=""}) => {
+  const {serialSlugOrId, serialItemSlugOrId} = useParams();
   const [ref, setRef] = useState(null);
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [visibleSerialItems] = useState(pocketStore.VisibleSerialItems(serialId));
@@ -197,6 +201,42 @@ const Serial = observer(({serialId, active, scrollEnabled, setScrollEnabled, cla
 
   useEffect(() => {
     if(!ref) { return; }
+
+    if(serialItemSlugOrId) {
+      const activeItem = pocketStore.serialList.find(serial =>
+        serialSlugOrId === serial.slug ||
+        serialSlugOrId === serial.serialId
+      );
+
+      if(activeItem.serialId === serialId) {
+        setTimeout(() => {
+          const serialsContainer = ref.parentElement.parentElement;
+          serialsContainer.scrollTo({top: 0, behavior: "instant"});
+          serialsContainer.scrollTo({top: ref.parentElement.getBoundingClientRect().top, behavior: "instant"});
+        }, 100);
+
+        if(serialItemSlugOrId) {
+          const serial = pocketStore.Serial(serialId);
+          const actualItemIndex = (serial.items || []).findIndex(item =>
+            serialItemSlugOrId === item.slug ||
+            serialItemSlugOrId === item.id
+          );
+
+          const nearestVisibleItemIndex = visibleSerialItems.findIndex(item =>
+            item.originalIndex >= actualItemIndex
+          );
+
+          if(nearestVisibleItemIndex >= 0) {
+            setTimeout(() => {
+              const itemElement = Array.from(ref.childNodes)[nearestVisibleItemIndex];
+
+              ref.scrollTo({left: 0, behavior: "instant"});
+              ref.scrollTo({left: itemElement.getBoundingClientRect().left - itemElement.getBoundingClientRect().width, behavior: "instant"});
+            }, 100);
+          }
+        }
+      }
+    }
 
     let debounceTimeout;
     const FindCurrent = () => {
@@ -223,7 +263,28 @@ const Serial = observer(({serialId, active, scrollEnabled, setScrollEnabled, cla
     ref.addEventListener("scroll", FindCurrent);
 
     return () => ref.removeEventListener("scroll", FindCurrent);
-  });
+  }, [ref]);
+
+  // Update url path
+  useEffect(() => {
+    if(!active) { return; }
+
+    const timeout = setTimeout(() => {
+      const currentSerial = pocketStore.serials[serialId];
+
+      const path = UrlJoin(
+        "/",
+        pocketStore.pocketInfo.slug || pocketStore.pocketInfo.id,
+        "s",
+        currentSerial.slug || currentSerial.id,
+        visibleSerialItems[activeItemIndex]?.slug || visibleSerialItems[activeItemIndex]?.id || ""
+      );
+
+      window.history.replaceState({}, document.title, path);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [active, activeItemIndex]);
 
   return (
     <div className={JoinClassNames(S("serial-wrapper"), className)}>

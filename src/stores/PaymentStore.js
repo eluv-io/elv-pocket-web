@@ -1,7 +1,6 @@
 import {flow, makeAutoObservable, runInAction} from "mobx";
 import {parse as ParseUUID, v4 as UUID} from "uuid";
 import UrlJoin from "url-join";
-import {rootStore} from "@/stores/index.js";
 
 class PaymentStore {
   currency = "USD";
@@ -91,10 +90,6 @@ class PaymentStore {
         "pay",
         this.client.utils.B58(JSON.stringify(response))
       );
-
-      if(rootStore.isLocal) {
-        url.hostname = "192.168.0.10";
-      }
 
       if(this.rootStore.pocketStore.preview) {
         url.searchParams.set("preview", "");

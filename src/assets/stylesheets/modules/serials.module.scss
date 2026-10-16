@@ -4,6 +4,11 @@
   height: calc(100 * var(--vh));
   justify-content: center;
   padding: 5px 0;
+  transition: opacity 0.5s ease;
+
+  &--loading {
+    opacity: 0;
+  }
 
   &--scroll-disabled {
     .serials-container {
@@ -262,6 +267,7 @@
 .serial-video {
   pointer-events: none;
   transition: opacity 0.75s ease;
+  z-index: 0;
 
   &--loading {
     opacity: 0;
@@ -282,6 +288,7 @@
 
   &__controls-overlay {
     transition: opacity 0.5s ease;
+    z-index: 10;
   }
 
   &__controls-container {
