@@ -140,7 +140,9 @@ class PocketStore {
     }
 
     localStorage.setItem(`preview-password-${pocketSlugOrId}`, password);
-    this.requirePassword = false;
+
+    window.location.reload();
+    //this.requirePassword = false;
     return true;
   });
 
