@@ -139,6 +139,9 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
       className = "serial-item--bumper";
       content = (
         <Bumper
+          title={title}
+          titleIcon={titleIcon}
+          subtitle={subtitle}
           bumper={bumper}
           mobile
           unmute
@@ -226,12 +229,16 @@ const Serial = observer(({serialId, active, scrollEnabled, setScrollEnabled, cla
             item.originalIndex >= actualItemIndex
           );
 
-          if(nearestVisibleItemIndex >= 0) {
+          if(nearestVisibleItemIndex > 0) {
             setTimeout(() => {
               const itemElement = Array.from(ref.childNodes)[nearestVisibleItemIndex];
+              const dimensions = itemElement.getBoundingClientRect();
 
               ref.scrollTo({left: 0, behavior: "instant"});
-              ref.scrollTo({left: itemElement.getBoundingClientRect().left - itemElement.getBoundingClientRect().width * 0.5, behavior: "instant"});
+              ref.scrollTo({
+                left: dimensions.left - dimensions.width * 0.5 - itemElement.parentElement.getBoundingClientRect().left,
+                behavior: "instant"
+              });
             }, 100);
           }
         }

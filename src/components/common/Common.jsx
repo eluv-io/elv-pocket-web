@@ -301,6 +301,29 @@ export const useIsVisible = (ref, unloadDelay=0) => {
   return isIntersecting;
 };
 
+export const PermissionItemPrice = observer(({permissionItem, className}) =>
+  !permissionItem || (permissionItem.type === "external" && !permissionItem?.price?.USD) ? null :
+    <div className={JoinClassNames(S("price-string"), className)}>
+      {
+        permissionItem.type === "external" ||
+        !permissionItem.marketplaceItem?.discount ? null :
+          <span className={S("price-string__strikethrough")}>
+            { FormatPriceString(permissionItem?.marketplaceItem?.price)}
+          </span>
+
+      }
+      <span>
+        {
+          FormatPriceString(
+            permissionItem.type === "external" ?
+              permissionItem?.price :
+              permissionItem?.marketplaceItem?.discount?.price || permissionItem?.marketplaceItem?.price
+          )
+        }
+      </span>
+    </div>
+);
+
 export const ProgressRing = ({size=40, progress=0, strokeWidth=2, label, className=""}) => {
   const radius = size / 2;
   const normalizedRadius = (radius - strokeWidth * 2);
@@ -392,25 +415,84 @@ export const CircleTimer = observer(({duration, onEnd, className="", ...progress
   );
 });
 
-export const PermissionItemPrice = observer(({permissionItem, className}) =>
-  !permissionItem || (permissionItem.type === "external" && !permissionItem?.price?.USD) ? null :
-    <div className={JoinClassNames(S("price-string"), className)}>
-      {
-        permissionItem.type === "external" ||
-        !permissionItem.marketplaceItem?.discount ? null :
-          <span className={S("price-string__strikethrough")}>
-            { FormatPriceString(permissionItem?.marketplaceItem?.price)}
-          </span>
+export const VideoTimer = observer(({player, className=""}) => {
+  const [update, setUpdate] = useState(0);
 
-      }
-      <span>
+  useEffect(() => {
+    if(!player) { return; }
+
+    const interval = setInterval(() => setUpdate(Math.random()), 100);
+
+    return () => clearInterval(interval);
+  }, [!!player]);
+
+  if(
+    !player ||
+    !player?.controls?.GetDuration?.() ||
+    player?.controls?.GetDuration?.() < 7
+  ) { return; }
+
+  return (
+    <ControlledCircleTimer
+      update={update}
+      remainingTime={(player?.controls?.GetDuration() || 1) - (player?.controls?.GetCurrentTime() || 0)}
+      duration={player?.controls?.GetDuration() || 1}
+      className={className}
+    />
+  );
+});
+
+export const SerialTitle = observer(({
+  title,
+  titleIcon,
+  subtitle,
+  showTimer,
+  player,
+  onEnd,
+  duration,
+  className="",
+  children,
+  ...props
+}) => {
+  return (
+    <div {...props} className={JoinClassNames(S("serial-title-container"), className)}>
+      <div className={S("serial-title")}>
         {
-          FormatPriceString(
-            permissionItem.type === "external" ?
-              permissionItem?.price :
-              permissionItem?.marketplaceItem?.discount?.price || permissionItem?.marketplaceItem?.price
-          )
+          !showTimer ? null :
+            duration ?
+              <CircleTimer
+                duration={duration}
+                onEnd={onEnd}
+                className={S("serial-title__timer")}
+              /> :
+              <VideoTimer
+                player={player}
+                className={S("serial-title__timer")}
+              />
         }
-      </span>
+        <div className={S("serial-title__text")}>
+          <div className={S("serial-title__title-container")}>
+            {
+              !titleIcon?.url ? null :
+                <HashedLoaderImage
+                  src={titleIcon.url}
+                  alt="Title Icon"
+                  className={S("serial-title__title-icon")}
+                />
+            }
+            <div className={S("serial-title__title")}>
+              {title}
+            </div>
+          </div>
+          {
+            !subtitle ? null :
+              <div className={S("serial-title__subtitle")}>
+                {subtitle}
+              </div>
+          }
+        </div>
+      </div>
+      {children}
     </div>
-);
+  );
+});

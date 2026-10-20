@@ -6,7 +6,10 @@ import {rootStore, pocketStore} from "@/stores";
 import {observer} from "mobx-react-lite";
 import {Copy, CreateModuleClassMatcher, JoinClassNames, LinkTargetHash} from "@/utils/Utils.js";
 import SVG from "react-inlinesvg";
-import {ControlledCircleTimer, HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
+import {
+  Loader,
+  SerialTitle
+} from "@/components/common/Common.jsx";
 import {MobileMenu} from "@/components/pocket/Header.jsx";
 import Modal from "@/components/common/Modal.jsx";
 import {useParams} from "wouter";
@@ -24,33 +27,6 @@ import SwipeIcon from "@/assets/icons/swipe-icon.svg";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
-const VideoTimer = observer(({player}) => {
-  const [update, setUpdate] = useState(0);
-
-  useEffect(() => {
-    if(!player) { return; }
-
-    const interval = setInterval(() => setUpdate(Math.random()), 100);
-
-    return () => clearInterval(interval);
-  }, [!!player]);
-
-  if(
-    !player ||
-    !player?.controls?.GetDuration?.() ||
-    player?.controls?.GetDuration?.() < 7
-  ) { return; }
-
-  return (
-    <ControlledCircleTimer
-      update={update}
-      remainingTime={(player.controls.GetDuration() || 1) - (player.controls.GetCurrentTime() || 0)}
-      duration={player.controls.GetDuration() || 1}
-      className={S("serial-video__timer")}
-    />
-  );
-});
-
 let swipeMessageShown = false;
 const SwipeMessage = observer(() => {
   const [ref, setRef] = useState(undefined);
@@ -60,6 +36,8 @@ const SwipeMessage = observer(() => {
     if(!ref) { return; }
 
     const nodes = Array.from(ref?.querySelectorAll(`.${S("swipe-message")}`) || []);
+
+    const delay = nodes.length === 3 ? 3000 : 6000;
     const Scroll = (item, behavior) => {
       if(!item) { return; }
 
@@ -74,7 +52,7 @@ const SwipeMessage = observer(() => {
       Scroll(nodes?.[0], "instant");
 
       for(let i = 1; i < nodes.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, delay));
         Scroll(nodes[i], "smooth");
 
         if(i >= nodes.length - 1) {
@@ -108,7 +86,7 @@ const SwipeMessage = observer(() => {
   );
 });
 
-const Details = observer(({title, subtitle}) => {
+const Details = observer(({title, subtitle, ready}) => {
   const {pocketSlugOrId, serialSlugOrId} = useParams();
   const [menuControls, setMenuControls] = useState(undefined);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -191,7 +169,10 @@ const Details = observer(({title, subtitle}) => {
             <SVG src={MenuIcon}/>
           </button>
         </div>
-        <SwipeMessage />
+        {
+          !ready ? null :
+            <SwipeMessage />
+        }
       </div>
       <Modal align="top" onHide={() => setMenuVisible(false)} SetMenuControls={setMenuControls}>
         <MobileMenu menuControls={menuControls}/>
@@ -207,42 +188,25 @@ const Controls = observer(({
   subtitle,
   contentTitle,
   contentSubtitle,
-  showPlayPause=true,
+  showPlayPause = true,
   showTimer,
   showAudio,
   showDetails,
   playing,
-  muted
+  muted,
+  ready
 }) => {
   return (
     <div className={S("serial-video__controls-overlay")}>
-      <div onClick={event => event.stopPropagation()} className={S("serial-video__controls-container")}>
-        <div className={S("serial-video__text")}>
-          <div className={S("serial-video__title-container")}>
-            {
-              !showTimer ? null :
-                <VideoTimer player={player}/>
-            }
-            {
-              !titleIcon?.url ? null :
-                <HashedLoaderImage
-                  src={titleIcon.url}
-                  alt="Title Icon"
-                  className={S("serial-video__title-icon")}
-                />
-            }
-            <div className={S("serial-video__title")}>
-              {title}
-            </div>
-          </div>
-          {
-            !subtitle ? null :
-              <div className={S("serial-video__subtitle")}>
-                {subtitle}
-              </div>
-          }
-        </div>
-        <div className={S("serial-video__controls")}>
+      <SerialTitle
+        title={title}
+        titleIcon={titleIcon}
+        subtitle={subtitle}
+        showTimer={showTimer}
+        player={showTimer && player}
+        onClick={event => event.stopPropagation()}
+      >
+        <div className={S("serial-video__controls", !ready ? "serial-video__controls--hidden" : "")}>
           {
             !showPlayPause ? null :
               <button
@@ -268,12 +232,13 @@ const Controls = observer(({
               </button>
           }
         </div>
-      </div>
+      </SerialTitle>
       {
         !showDetails ? null :
           <Details
             title={contentTitle}
             subtitle={contentSubtitle}
+            ready={ready}
           />
       }
     </div>
@@ -356,7 +321,13 @@ const SerialVideo = observer(({
   useEffect(() => {
     if(!player || !onEnd) { return; }
 
-    const Disposer = player.controls.RegisterVideoEventListener("ended", onEnd);
+    const Disposer = player.controls.RegisterVideoEventListener(
+      "ended",
+      () => {
+        onEnd?.();
+        setState("ended");
+      }
+    );
 
     return () => Disposer?.();
   }, [!!player, onEnd]);
@@ -499,21 +470,23 @@ const SerialVideo = observer(({
         state === "initial" ? null :
           state === "loading" ?
             <Loader className={S("serial-video__loader")} /> :
-            <Controls
-              title={title}
-              titleIcon={titleIcon}
-              subtitle={subtitle}
-              contentTitle={contentTitle}
-              contentSubtitle={contentSubtitle}
-              showPlayPause={showPlayPause || !playing}
-              showTimer={showTimer}
-              showDetails={showDetails}
-              showAudio={hasAudio}
-              player={player}
-              playing={playing}
-              muted={muted}
-            />
+            null
       }
+      <Controls
+        title={title}
+        titleIcon={titleIcon}
+        subtitle={subtitle}
+        contentTitle={contentTitle}
+        contentSubtitle={contentSubtitle}
+        showPlayPause={showPlayPause || !playing && state === "ready"}
+        showTimer={showTimer}
+        showDetails={showDetails}
+        showAudio={hasAudio}
+        player={player}
+        playing={playing}
+        muted={muted}
+        ready={state === "ready"}
+      />
     </div>
   );
 });

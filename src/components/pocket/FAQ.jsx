@@ -6,7 +6,7 @@ import {useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {pocketStore, rootStore} from "@/stores/index.js";
 import {Accordion, MantineProvider} from "@mantine/core";
-import {HashedLoaderImage, Linkish, RichText} from "@/components/common/Common.jsx";
+import {HashedLoaderImage, Linkish, PageLoader, RichText} from "@/components/common/Common.jsx";
 import {Redirect, useParams} from "wouter";
 import SVG from "react-inlinesvg";
 
@@ -60,7 +60,9 @@ const FAQPage = observer(() => {
       );
   }, [pocketSlugOrId]);
 
-  if(!rootStore.initialized || !pocketStore.pocket) { return null; }
+  if(!rootStore.initialized || !pocketStore.pocket) {
+    return <PageLoader />;
+  }
 
   let faq = pocketStore.pocket.metadata?.faq || {};
 

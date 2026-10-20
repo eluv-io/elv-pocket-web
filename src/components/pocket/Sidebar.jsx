@@ -206,7 +206,8 @@ export const MyItemsContainer = observer(({className=""}) => {
         {
           (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
             <Linkish
-              href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
+              href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}
+            >
               FAQ
             </Linkish>
         }

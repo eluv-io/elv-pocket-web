@@ -3,7 +3,7 @@ import BumperStyles from "@/assets/stylesheets/modules/bumpers.module.scss";
 import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import SerialVideo from "@/components/serials/SerialVideo.jsx";
-import {CircleTimer, HashedLoaderImage, PermissionItemPrice} from "@/components/common/Common.jsx";
+import {HashedLoaderImage, PermissionItemPrice, SerialTitle} from "@/components/common/Common.jsx";
 import {useEffect, useState} from "react";
 import PaymentActions from "@/components/payment/PaymentActions.jsx";
 import {rootStore, pocketStore} from "@/stores/index.js";
@@ -150,7 +150,7 @@ const BumperOffer = observer(({offer, format, compact, SetPurchaseOffer, Next}) 
         <div className={S("offer__spacer")} />
         <button
           onClick={onClick}
-          className={S("offer__button", `offer__button--${offer.display.button_variant}`)}
+          className={S("styled-button", offer.display?.button_variant === "outline" ? "styled-outline-button" : "", "offer__button")}
         >
           {offer.display.button_text}
         </button>
@@ -166,7 +166,7 @@ const BumperOffer = observer(({offer, format, compact, SetPurchaseOffer, Next}) 
 });
 
 // Bumpers that have already been viewed can be skipped
-export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
+export const Bumper = observer(({bumper, mobile, title, titleIcon, subtitle, Next, className=""}) => {
   const [purchaseOffer, setPurchaseOffer] = useState(null);
   const showCompactOffers = bumper.offers.format === "details" && bumper.offers.items.length > 2;
 
@@ -204,11 +204,13 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
         !videoLink ? null :
           <div className={S("bumper__video-container")}>
             <SerialVideo
+              title={title}
+              titleIcon={titleIcon}
+              subtitle={subtitle}
               videoLink={videoLink}
               videoLinkInfo={videoLinkInfo}
               className={S("bumper__video")}
               playerOptions={{loop: bumper.loop}}
-              autohideControls={false}
               muteIfNecessary
               showPlayPause={false}
               showTimer={!bumper.duration && !bumper.loop}
@@ -217,15 +219,17 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
           </div>
       }
       {
-        !bumper.duration ? null :
-          <div className={S("bumper__timer-container")}>
-            <CircleTimer
-              duration={bumper.duration}
-              onEnd={Next}
-              className={S("bumper__timer")}
-            />
-          </div>
+        videoLink ? null :
+          <SerialTitle
+            title={title}
+            titleIcon={titleIcon}
+            subtitle={subtitle}
+            showTimer={bumper.duration}
+            duration={bumper.duration}
+            onEnd={Next}
+          />
       }
+
       {
         purchaseOffer ?
           <BumperPurchase

@@ -452,7 +452,7 @@
 }
 
 .progress-ring {
-  --track-color: rgb(255 255 255 / 10%);
+  --track-color: rgb(0 0 0 / 20%);
   --progress-color: white;
 
   align-items: center;
@@ -461,6 +461,7 @@
   justify-content: center;
   pointer-events: none;
   position: relative;
+  transition: opacity 0.5s ease;
   user-select: none;
   width: var(--size);
 
@@ -499,5 +500,58 @@
   &__strikethrough {
     color: var(--text-tertiary-alternate);
     text-decoration: line-through;
+  }
+}
+
+.serial-title-container {
+  align-items: center;
+  background: linear-gradient(rgb(0 0 0 / 70%), transparent);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  left: 0;
+  padding: 30px 10px 80px;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 200;
+}
+
+.serial-title {
+  display: flex;
+  gap: 10px;
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__timer {
+    animation: var(--animation-fadein) 1s ease;
+  }
+
+  &__title-container {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  &__title-icon {
+    height: 25px;
+    width: auto;
+  }
+
+  &__title {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  &__subtitle {
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-top: 5px;
   }
 }
