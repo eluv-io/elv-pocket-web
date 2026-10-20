@@ -4,9 +4,9 @@ import {observer} from "mobx-react-lite";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import SerialVideo from "@/components/serials/SerialVideo.jsx";
 import {CircleTimer, HashedLoaderImage, PermissionItemPrice} from "@/components/common/Common.jsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import PaymentActions from "@/components/payment/PaymentActions.jsx";
-import {pocketStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 
 const S = CreateModuleClassMatcher(BumperStyles);
 
@@ -178,6 +178,14 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
   const videoLink = mobile ? bumper.video_mobile : bumper.video;
   const videoLinkInfo = mobile ? bumper.video_mobile && bumper.video_mobile_info : bumper.video && bumper.video_info;
 
+  useEffect(() => {
+    if(purchaseOffer) {
+      rootStore.SetModalOpened();
+    } else {
+      rootStore.SetModalClosed();
+    }
+  }, [!!purchaseOffer]);
+
   return (
     <div
       className={JoinClassNames(S("bumper", mobile ? "bumper--mobile" : "", bumper.blur ? "bumper--blur" : ""), className)}>
@@ -204,7 +212,6 @@ export const Bumper = observer(({bumper, mobile, Next, className=""}) => {
               muteIfNecessary
               showPlayPause={false}
               showTimer={!bumper.duration && !bumper.loop}
-              pause={!!purchaseOffer}
               onEnd={!bumper.duration && !bumper.loop ? Next : undefined}
             />
           </div>

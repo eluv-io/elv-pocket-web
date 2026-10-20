@@ -47,6 +47,8 @@ class RootStore {
 
   backAction = undefined;
 
+  activeModals = 0;
+
   _loginAuthInfo = localStorage.getItem(`auth-${EluvioConfiguration.network}`);
 
   get mobile() {
@@ -70,6 +72,14 @@ class RootStore {
 
   SetAttribute(attribute, value) {
     this[attribute] = value;
+  }
+
+  SetModalOpened() {
+    this.activeModals = this.activeModals + 1;
+  }
+
+  SetModalClosed() {
+    this.activeModals = Math.max(0, this.activeModals - 1);
   }
 
   InitializeClient = flow(function * () {

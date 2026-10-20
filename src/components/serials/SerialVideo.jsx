@@ -9,6 +9,8 @@ import SVG from "react-inlinesvg";
 import {ControlledCircleTimer, HashedLoaderImage, Loader} from "@/components/common/Common.jsx";
 import {MobileMenu} from "@/components/pocket/Header.jsx";
 import Modal from "@/components/common/Modal.jsx";
+import {useParams} from "wouter";
+import UrlJoin from "url-join";
 
 import VolumeOffIcon from "@/assets/icons/volume-off.svg";
 import VolumeOnIcon from "@/assets/icons/volume-high.svg";
@@ -18,8 +20,7 @@ import MenuIcon from "@/assets/icons/menu.svg";
 import ShareIcon from "@/assets/icons/share.svg";
 import CopyIcon from "@/assets/icons/copy.svg";
 import SwipeIcon from "@/assets/icons/swipe-icon.svg";
-import {useParams} from "wouter";
-import UrlJoin from "url-join";
+
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -107,14 +108,18 @@ const SwipeMessage = observer(() => {
   );
 });
 
-const Details = observer(({title, subtitle, Pause, Resume}) => {
+const Details = observer(({title, subtitle}) => {
   const {pocketSlugOrId, serialSlugOrId} = useParams();
   const [menuControls, setMenuControls] = useState(undefined);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showCopyIcon, setShowCopyIcon] = useState(false);
 
   useEffect(() => {
-    menuVisible ? Pause() : Resume();
+    if(menuVisible) {
+      rootStore.SetModalOpened();
+    } else {
+      rootStore.SetModalClosed();
+    }
   }, [menuVisible]);
 
   return (
@@ -207,9 +212,7 @@ const Controls = observer(({
   showAudio,
   showDetails,
   playing,
-  muted,
-  Pause,
-  Resume
+  muted
 }) => {
   return (
     <div className={S("serial-video__controls-overlay")}>
@@ -271,8 +274,6 @@ const Controls = observer(({
           <Details
             title={contentTitle}
             subtitle={contentSubtitle}
-            Pause={Pause}
-            Resume={Resume}
           />
       }
     </div>
@@ -298,7 +299,6 @@ const SerialVideo = observer(({
   muteIfNecessary,
   onProgress,
   onEnd,
-  pause,
   className=""
 }) => {
   const [ref, setRef] = useState(null);
@@ -313,7 +313,7 @@ const SerialVideo = observer(({
   const Pause = () => {
     if(!player) { return; }
 
-    setWasPlaying(player.controls.IsPlaying());
+    setWasPlaying(wasPlaying || player.controls.IsPlaying());
     player.controls.Pause();
   };
 
@@ -333,10 +333,10 @@ const SerialVideo = observer(({
     autohideTimeout = setTimeout(() => setAutohide(true), 8000);
   };
 
-  // Pause / Resume based on pause param
+  // Pause / Resume automatically when menus are opened
   useEffect(() => {
-    pause ? Pause() : Resume();
-  }, [pause, state]);
+    rootStore.activeModals ? Pause() : Resume();
+  }, [rootStore.activeModals, state]);
 
   useEffect(() => {
     if(!player || !saveSettings) { return; }
@@ -389,7 +389,7 @@ const SerialVideo = observer(({
     }
 
     let playerPromise, unmounted;
-    const key = `Video Load ${(Math.random() * 1000).toFixed(0)}`;
+    const key = `Video Load ${videoHash || LinkTargetHash(videoLink)}`;
     const timeout = setTimeout(() => {
       if(unmounted) { return; }
 
@@ -441,20 +441,6 @@ const SerialVideo = observer(({
 
               PokeAutohide();
 
-              const Disposer =
-
-              player.controls.RegisterVideoEventListener(
-                "loadeddata",
-                event => {
-                  const video = event.target;
-                  const hasAudio =
-                    (video.audioTracks && video.audioTracks.length > 0) || // Standard API
-                    video.mozHasAudio ||                                  // Firefox fallback
-                    Boolean(video.webkitAudioDecodedByteCount);           // Chrome/Webkit fallback
-
-                  setHasAudio(hasAudio);
-                });
-
               setMuted(player.controls.IsMuted());
               setPlaying(player.controls.IsPlaying());
 
@@ -463,12 +449,22 @@ const SerialVideo = observer(({
                 player.controls.RegisterVideoEventListener("playing", () => setPlaying(player.controls.IsPlaying())),
                 player.controls.RegisterVideoEventListener("pause", () => setPlaying(player.controls.IsPlaying())),
                 player.controls.RegisterVideoEventListener(
+                "loadeddata",
+                  event => {
+                    const video = event.target;
+                    const hasAudio =
+                      (video.audioTracks && video.audioTracks.length > 0) || // Standard API
+                      video.mozHasAudio ||                                  // Firefox fallback
+                      Boolean(video.webkitAudioDecodedByteCount);           // Chrome/Webkit fallback
+
+                    setHasAudio(hasAudio);
+                  }),
+                player.controls.RegisterVideoEventListener(
                   "canplay",
                   () => {
                     console.timeEnd(key);
                     clearTimeout(showLoaderTimeout);
                     setState("ready");
-                    Disposer?.();
                   }
                 )
               ];
@@ -516,8 +512,6 @@ const SerialVideo = observer(({
               player={player}
               playing={playing}
               muted={muted}
-              Pause={Pause}
-              Resume={Resume}
             />
       }
     </div>

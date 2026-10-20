@@ -826,3 +826,24 @@
     }
   }
 }
+
+.my-items-container {
+  --sidebar-inline-padding-left: 18px;
+  --sidebar-inline-padding-right: 10px;
+
+  background: var(--background-sidebar);
+  display: flex;
+  flex-direction: column;
+  min-width: min(100vw, 400px);
+  width: 100%;
+
+  @media screen and (width < 850px) {
+    height: calc(100 * var(--vh));
+    padding-bottom: 20px;
+    width: 100vw;
+
+    .media-section__close {
+      display: none;
+    }
+  }
+}

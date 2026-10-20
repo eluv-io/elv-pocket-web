@@ -1,7 +1,7 @@
 import SerialStyles from "@/assets/stylesheets/modules/serials.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {pocketStore} from "@/stores/index.js";
+import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Serial from "@/components/serials/Serial.jsx";
 import {useEffect, useState} from "react";
@@ -9,8 +9,51 @@ import {useEffect, useState} from "react";
 import ChevronUpIcon from "@/assets/icons/chevron-up.svg";
 import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import SVG from "react-inlinesvg";
+import Modal from "@/components/common/Modal.jsx";
+import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
+import {MyItemsContainer} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(SerialStyles);
+
+const PurchaseHistoryModal = observer(() => {
+  const [modalControls, setModalControls] = useState(undefined);
+
+  useEffect(() => {
+    if(!modalControls) { return; }
+
+    if(rootStore.showPurchaseHistory) {
+      modalControls.Show();
+    } else {
+      modalControls.Hide();
+    }
+  }, [modalControls, rootStore.showPurchaseHistory]);
+
+  return (
+    <Modal align="center" SetMenuControls={setModalControls} onHide={() => rootStore.SetAttribute("showPurchaseHistory", false)}>
+      <PurchaseHistory className={S("serial-modal-menu")} />
+    </Modal>
+  );
+});
+
+const MyItemsModal = observer(() => {
+  const [modalControls, setModalControls] = useState(undefined);
+
+  useEffect(() => {
+    if(!modalControls) { return; }
+
+    if(rootStore.showMyItems) {
+      modalControls.Show();
+    } else {
+      modalControls.Hide();
+    }
+  }, [modalControls, rootStore.showMyItems]);
+
+  return (
+    <Modal align="center" SetMenuControls={setModalControls} onHide={() => rootStore.SetAttribute("showMyItems", false)}>
+      <MyItemsContainer className={S("serial-modal-menu")}/>
+    </Modal>
+  );
+});
 
 const Serials = observer(() => {
   const [ref, setRef] = useState(null);
@@ -84,6 +127,8 @@ const Serials = observer(() => {
       >
         <SVG src={ChevronDownIcon}/>
       </button>
+      <MyItemsModal />
+      <PurchaseHistoryModal />
     </div>
   );
 });

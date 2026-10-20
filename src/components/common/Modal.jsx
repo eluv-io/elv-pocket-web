@@ -1,12 +1,13 @@
 import ModalStyles from "@/assets/stylesheets/modules/modal.module.scss";
 
+import {rootStore} from "@/stores/index.js";
 import {observer} from "mobx-react-lite";
 import {useEffect, useState} from "react";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import SVG from "react-inlinesvg";
+import {HashedLoaderImage} from "@/components/common/Common.jsx";
 
 import XIcon from "@/assets/icons/x.svg";
-import {HashedLoaderImage} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(ModalStyles);
 
@@ -25,6 +26,16 @@ const Modal = observer(({
   const [controls, setControls] = useState({});
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if(open) {
+      rootStore.SetModalOpened();
+    } else {
+      rootStore.SetModalClosed();
+    }
+
+    return () => rootStore.SetModalClosed();
+  }, [open]);
 
   useEffect(() => {
     if(!dialog) {

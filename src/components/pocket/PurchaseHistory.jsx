@@ -1,7 +1,7 @@
 import PurchaseHistoryStyles from "@/assets/stylesheets/modules/purchase-history.module.scss";
 
 import {observer} from "mobx-react-lite";
-import {CreateModuleClassMatcher} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import {pocketStore, rootStore} from "@/stores/index.js";
 import {useEffect, useState} from "react";
 import Modal from "@/components/common/Modal.jsx";
@@ -168,12 +168,12 @@ const RecoveryForm = observer(({menuControls, setMenuControls}) => {
   );
 });
 
-const PurchaseHistory = observer(() => {
+const PurchaseHistory = observer(({className=""}) => {
   const [recoveryMenuControls, setRecoveryMenuControls] = useState(undefined);
 
   return (
     <>
-      <div className={S("menu")}>
+      <div className={JoinClassNames(S("menu"), className)}>
         <div className={S("block", "header")}>
           <span>Purchase History</span>
           <button

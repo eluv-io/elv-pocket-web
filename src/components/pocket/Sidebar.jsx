@@ -3,7 +3,7 @@ import SidebarStyles from "@/assets/stylesheets/modules/sidebar.module.scss";
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
 import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
@@ -192,6 +192,65 @@ const Item = observer(({
   );
 });
 
+export const MyItemsContainer = observer(({className=""}) => {
+  const {pocketSlugOrId} = useParams();
+
+  return (
+    <div className={JoinClassNames(S("my-items-container"), className)}>
+      <MyItems/>
+      <div className={S("links")}>
+        <Linkish
+          href={pocketStore.pocket.metadata?.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>
+          Get Support
+        </Linkish>
+        {
+          (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
+            <Linkish
+              href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
+              FAQ
+            </Linkish>
+        }
+      </div>
+    </div>
+  );
+});
+
+const MyItems = observer(() => {
+  return (
+    <>
+      <div className={S("media")}>
+        <div className={S("media-section")}>
+          <div className={S("media-section__title", "media-section__title--large")}>
+            <span>My Items</span>
+            <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("media-section__close")}>
+              <SVG src={XIcon}/>
+            </Linkish>
+          </div>
+          <div className={S("media-section__media")}>
+            {
+              (pocketStore.FilteredMedia({select: {permissions: "authorized", sort_order: "time_asc"}}))
+                .map((item, index) =>
+                  <Item
+                    noBorder={index === 0}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    key={`item-${item.id}`}
+                    contentItem={{type: "media-item", id: item.id}}
+                    primaryMediaId={primaryMediaItem.id}
+                    noActions
+                  />
+                )
+            }
+          </div>
+        </div>
+      </div>
+      <div className={S("history-link")}>
+        Missing something? Check your <Linkish onClick={() => rootStore.SetAttribute("showPurchaseHistory", true)}>Purchase History</Linkish>.
+      </div>
+    </>
+  );
+});
+
 const SidebarContent = observer(({primaryMediaItem}) => {
   const [tabIndex, setTabIndex] = useState(parseInt(sessionStorage.getItem("sidebar-tab-index") || 0));
   const [containerRef, setContainerRef] = useState(null);
@@ -208,39 +267,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
   }
 
   if(rootStore.showMyItems) {
-    return (
-      <>
-        <div className={S("media")}>
-          <div className={S("media-section")}>
-            <div className={S("media-section__title", "media-section__title--large")}>
-              <span>My Items</span>
-              <Linkish onClick={() => rootStore.SetAttribute("showMyItems", false)} className={S("media-section__close")}>
-              <SVG src={XIcon} />
-            </Linkish>
-            </div>
-            <div className={S("media-section__media")}>
-              {
-                (pocketStore.FilteredMedia({select: {permissions: "authorized", sort_order: "time_asc"}}))
-                  .map((item, index) =>
-                    <Item
-                      noBorder={index === 0}
-                      title={item.title}
-                      subtitle={item.subtitle}
-                      key={`item-${item.id}`}
-                      contentItem={{type: "media-item", id: item.id}}
-                      primaryMediaId={primaryMediaItem.id}
-                      noActions
-                    />
-                  )
-              }
-            </div>
-          </div>
-        </div>
-        <div className={S("history-link")}>
-          Missing something? Check your <Linkish onClick={() => rootStore.SetAttribute("showPurchaseHistory", true)}>Purchase History</Linkish>.
-        </div>
-      </>
-    );
+    return <MyItems />;
   }
 
   if(pocketStore.hasSingleItem) {
