@@ -37,6 +37,8 @@ const Base = () => {
 
 const App = () => {
   useEffect(() => {
+    scrollTo({top: 0, left: 0, behavior: "instant"});
+
     const HandleResize = () => rootStore.UpdatePageDimensions();
     HandleResize();
 

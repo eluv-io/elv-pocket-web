@@ -234,7 +234,7 @@ const Controls = observer(({
         !showPlayPause ? null :
           <button
             onClick={() => player?.controls?.Play()}
-            className={S("serial-video__big-play-button", !ready || playing ? "serial-video__big-play-button--hidden" : "")}
+            className={S("serial-video__big-play-button", !ready || playing || rootStore.activeModals > 0 ? "serial-video__big-play-button--hidden" : "")}
           >
             <SVG src={PlayIcon} />
           </button>

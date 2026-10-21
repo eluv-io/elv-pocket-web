@@ -122,8 +122,7 @@
     }
 
     &--center {
-      background: rgb(0 0 0 / 30%);
-      background: linear-gradient(transparent, rgba(0 0 0 / 30%), transparent);
+      background: rgb(0 0 0 / 70%);
       padding: 50px 0;
     }
   }
@@ -158,11 +157,10 @@
   &__offers-subtitle {
     font-weight: 600;
     text-align: center;
-    text-shadow: 2px 2px 2px black;
   }
 
   &__offers-title {
-    font-size: 1.6em;
+    font-size: 1.7em;
   }
 
   &__offers-subtitle {
@@ -174,7 +172,6 @@
     font-size: 12px;
     margin-top: 5px;
     text-align: center;
-    text-shadow: 0 0 2px black;
   }
 
   &__top {
@@ -208,8 +205,7 @@
 
     .bumper {
       &__content {
-        margin-top: 65px;
-        padding: 0;
+        padding: 65px 0 0;
 
         &--center {
           padding-bottom: 65px;
@@ -382,22 +378,22 @@
   }
 
   &__title {
-    font-size: 1.4em;
+    font-size: 1.6em;
     font-weight: 700;
   }
 
   &__price {
-    font-size: 1em;
+    font-size: 1.2em;
     font-weight: bold;
   }
 
   &__subtitle {
-    font-size: 0.8em;
+    font-size: 1em;
     font-weight: 700;
   }
 
   &__description {
-    font-size: 0.9em;
+    font-size: 1em;
     white-space: pre-wrap;
   }
 
@@ -418,30 +414,10 @@
   }
 
   &__button {
-    border-radius: 30px;
-    color: black;
     font-size: 1em;
     font-weight: 600;
     padding: 8px 0;
-    transition: all 0.35s ease;
     width: 100%;
-
-    &--filled {
-      background: white;
-      border: 2px solid transparent;
-      color: black;
-    }
-
-    &--outline {
-      background: transparent;
-      border: 2px solid white;
-      color: white;
-
-      &:hover {
-        background: white;
-        color: black;
-      }
-    }
   }
 }
 

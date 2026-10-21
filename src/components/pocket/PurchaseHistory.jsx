@@ -235,7 +235,7 @@ const PurchaseHistory = observer(({className=""}) => {
             Trouble accessing content?
           </div>
           <div>
-            Visit this <a href={pocketStore.pocket.metadata.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>support link</a> for additional assistance.
+            Visit this <a target="_blank" rel="noreferrer" href={pocketStore.pocket.metadata.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>support link</a> for additional assistance.
           </div>
         </div>
       </div>

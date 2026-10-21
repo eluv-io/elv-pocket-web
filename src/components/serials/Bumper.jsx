@@ -107,7 +107,7 @@ const BumperOffer = observer(({offer, format, compact, SetPurchaseOffer, Next}) 
             }
             <button
               onClick={onClick}
-              className={S("compact-offer__button", `compact-offer__button--${offer.display.button_variant}`)}
+              className={S("styled-button", offer.display?.button_variant === "outline" ? "styled-outline-button" : "", "compact-offer__button")}
             >
               {offer.display.button_text}
             </button>

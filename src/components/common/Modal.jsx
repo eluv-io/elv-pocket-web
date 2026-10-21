@@ -135,10 +135,7 @@ const Modal = observer(({
             </div>
         }
         <div
-          onClick={event => {
-            event.stopPropagation();
-            event.preventDefault();
-          }}
+          onClick={event => event.stopPropagation()}
           className={S("content")}
         >
           {open || closing ? children : null}

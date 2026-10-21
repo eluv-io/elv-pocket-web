@@ -349,7 +349,7 @@
     z-index: 101;
 
     &--hidden {
-      opacity: 0;
+      opacity: 0!important;
       pointer-events: none;
       user-select: none;
     }
