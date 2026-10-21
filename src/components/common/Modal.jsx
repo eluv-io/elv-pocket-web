@@ -31,7 +31,7 @@ const Modal = observer(({
     if(open) {
       rootStore.SetModalOpened();
     } else {
-      rootStore.SetModalClosed();
+      setTimeout(() => rootStore.SetModalClosed(), 100);
     }
   }, [open]);
 

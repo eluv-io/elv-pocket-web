@@ -185,7 +185,8 @@ const Controls = observer(({
   subtitle,
   contentTitle,
   contentSubtitle,
-  showPlayPause = true,
+  showPlayPause=true,
+  showBigPlayButton=false,
   showTimer,
   showAudio,
   showDetails,
@@ -205,15 +206,19 @@ const Controls = observer(({
       >
         <div className={S("serial-video__controls", !ready ? "serial-video__controls--hidden" : "")}>
           {
-            !showPlayPause ? null :
+            !showPlayPause || rootStore.activeModals > 0 ? null :
               <button
                 onClick={() => player?.controls?.TogglePlay()}
                 className={S("serial-video__controls-button", "serial-video__controls-button--play")}
               >
-                <SVG src={PauseIcon}
-                     className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}/>
-                <SVG src={PlayIcon}
-                     className={S("serial-video__controls-button-icon", !playing ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG
+                  src={PauseIcon}
+                  className={S("serial-video__controls-button-icon", playing ? "serial-video__controls-button-icon--active" : "")}
+                />
+                <SVG
+                  src={PlayIcon}
+                  className={S("serial-video__controls-button-icon", !playing && !showBigPlayButton ? "serial-video__controls-button-icon--active" : "")}
+                />
               </button>
           }
           {
@@ -222,16 +227,20 @@ const Controls = observer(({
                 onClick={() => player?.controls?.ToggleMuted()}
                 className={S("serial-video__controls-button", "serial-video__controls-button--volume")}
               >
-                <SVG src={VolumeOffIcon}
-                     className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}/>
-                <SVG src={VolumeOnIcon}
-                     className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}/>
+                <SVG
+                  src={VolumeOffIcon}
+                  className={S("serial-video__controls-button-icon", muted ? "serial-video__controls-button-icon--active" : "")}
+                />
+                <SVG
+                  src={VolumeOnIcon}
+                  className={S("serial-video__controls-button-icon", !muted ? "serial-video__controls-button-icon--active" : "")}
+                />
               </button>
           }
         </div>
       </SerialTitle>
       {
-        !showPlayPause ? null :
+        !showPlayPause || !showBigPlayButton ? null :
           <button
             onClick={() => player?.controls?.Play()}
             className={S("serial-video__big-play-button", !ready || playing || rootStore.activeModals > 0 ? "serial-video__big-play-button--hidden" : "")}
@@ -265,6 +274,7 @@ const SerialVideo = observer(({
   saveSettings=true,
   autohideControls,
   showPlayPause=true,
+  showBigPlayButton=false,
   showTimer=false,
   showDetails=false,
   muteIfNecessary,
@@ -485,6 +495,7 @@ const SerialVideo = observer(({
         contentTitle={contentTitle}
         contentSubtitle={contentSubtitle}
         showPlayPause={showPlayPause || !playing && state === "ready"}
+        showBigPlayButton={showBigPlayButton}
         showTimer={showTimer}
         showDetails={showDetails}
         showAudio={hasAudio}
