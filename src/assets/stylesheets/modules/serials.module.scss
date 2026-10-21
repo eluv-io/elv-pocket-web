@@ -389,10 +389,18 @@
       z-index: 1;
     }
 
-    &--playing {
+    &--playing,
+    &--autoplay-blocked {
       svg {
         margin-left: 5px;
       }
+    }
+
+    &--autoplay-blocked {
+      animation: var(--animation-fadein) 0.5s ease;
+      opacity: 1;
+      height: 80px;
+      width: 80px;
     }
   }
 

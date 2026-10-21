@@ -194,8 +194,11 @@ const Controls = observer(({
   showDetails,
   playing,
   muted,
-  ready
+  ready,
+  autoplayBlocked
 }) => {
+  const [playStateChanged, setPlayStateChanged] = useState(false);
+
   return (
     <div
       onClick={
@@ -205,6 +208,7 @@ const Controls = observer(({
             if(event.target !== event.currentTarget) { return; }
 
             player?.controls?.TogglePlay();
+            setPlayStateChanged(true);
           }
       }
       className={S("serial-video__controls-overlay")}
@@ -253,12 +257,23 @@ const Controls = observer(({
         </div>
       </SerialTitle>
       {
-        !showPlayPause || !implicitPlayPause ? null :
+        !implicitPlayPause || !playStateChanged ? null :
           <div
             key={`indicator-${playing}`}
-            className={S("serial-video__center-indicator", playing ? "serial-video__center-indicator--playing" : "")}
+            className={
+              S(
+                "serial-video__center-indicator",
+                playing ? "serial-video__center-indicator--playing" : ""
+              )
+            }
           >
             <SVG src={playing ? PlayIcon : PauseIcon} />
+          </div>
+      }
+      {
+        !autoplayBlocked ? null :
+          <div className={S("serial-video__center-indicator", "serial-video__center-indicator--autoplay-blocked")}>
+            <SVG src={PlayIcon}/>
           </div>
       }
       {
@@ -303,6 +318,7 @@ const SerialVideo = observer(({
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [wasPlaying, setWasPlaying] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   const Pause = () => {
     if(!player) { return; }
@@ -446,8 +462,11 @@ const SerialVideo = observer(({
 
               const Disposers = [
                 player.controls.RegisterVideoEventListener("volumechange", () => setMuted(player.controls.IsMuted())),
-                player.controls.RegisterVideoEventListener("playing", () => setPlaying(player.controls.IsPlaying())),
                 player.controls.RegisterVideoEventListener("pause", () => setPlaying(player.controls.IsPlaying())),
+                player.controls.RegisterVideoEventListener("playing", () => {
+                  setPlaying(player.controls.IsPlaying());
+                  setAutoplayBlocked(false);
+                }),
                 player.controls.RegisterVideoEventListener(
                 "loadeddata",
                   event => {
@@ -465,6 +484,12 @@ const SerialVideo = observer(({
                     console.timeEnd(key);
                     clearTimeout(showLoaderTimeout);
                     setState("ready");
+
+                    setTimeout(() => {
+                      if(player.controls.IsPlaying()) { return; }
+
+                      setAutoplayBlocked(true);
+                    }, 1000);
                   }
                 )
               ];
@@ -516,6 +541,7 @@ const SerialVideo = observer(({
         playing={playing}
         muted={muted}
         ready={state === "ready"}
+        autoplayBlocked={autoplayBlocked}
       />
     </div>
   );
