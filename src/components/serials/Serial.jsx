@@ -169,7 +169,7 @@ const SerialItem = observer(({serialItemId, active, title, titleIcon, subtitle, 
           videoLinkInfo={mediaItem.media_link_info}
           autohideControls
           showPlayPause
-          showBigPlayButton
+          implicitPlayPause
           showDetails
           saveSettings
           onEnd={Next}

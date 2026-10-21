@@ -68,17 +68,19 @@ const SwipeMessage = observer(() => {
     return null;
   }
 
+  const mobile = rootStore.pageDimensions.width <= 650;
+
   return (
     <div ref={setRef} className={S("swipe-message-container", hidden ? "swipe-message-container--hidden" : "")}>
       <div className={S("swipe-message", "swipe-message--horizontal")}>
         <SVG src={SwipeIcon}/>
-        Swipe right for next episode
+        {mobile ? "Swipe right" : "Click the right arrow"} for next episode
       </div>
       {
         pocketStore.serialList.length <= 1 ? null :
           <div className={S("swipe-message", "swipe-message--vertical")}>
             <SVG src={SwipeIcon}/>
-            Swipe up for next series
+            {mobile ? "Swipe up" : "Click the arrow below"} for next series
           </div>
       }
       <div className={S("swipe-message")}/>
@@ -102,7 +104,7 @@ const Details = observer(({title, subtitle, ready}) => {
 
   return (
     <>
-      <div className={S("serial-video__details")}>
+      <div onClick={event => event.stopPropagation()} className={S("serial-video__details")}>
         <div className={S("serial-video__detail-text")}>
           <div className={S("serial-video__detail-title")}>
             {title}
@@ -186,7 +188,7 @@ const Controls = observer(({
   contentTitle,
   contentSubtitle,
   showPlayPause=true,
-  showBigPlayButton=false,
+  implicitPlayPause=false,
   showTimer,
   showAudio,
   showDetails,
@@ -195,7 +197,18 @@ const Controls = observer(({
   ready
 }) => {
   return (
-    <div className={S("serial-video__controls-overlay")}>
+    <div
+      onClick={
+        !implicitPlayPause ? null :
+          event => {
+            // Ignore if not clicked directly
+            if(event.target !== event.currentTarget) { return; }
+
+            player?.controls?.TogglePlay();
+          }
+      }
+      className={S("serial-video__controls-overlay")}
+    >
       <SerialTitle
         title={title}
         titleIcon={titleIcon}
@@ -206,7 +219,7 @@ const Controls = observer(({
       >
         <div className={S("serial-video__controls", !ready ? "serial-video__controls--hidden" : "")}>
           {
-            !showPlayPause || rootStore.activeModals > 0 ? null :
+            !showPlayPause || implicitPlayPause || rootStore.activeModals > 0 ? null :
               <button
                 onClick={() => player?.controls?.TogglePlay()}
                 className={S("serial-video__controls-button", "serial-video__controls-button--play")}
@@ -217,7 +230,7 @@ const Controls = observer(({
                 />
                 <SVG
                   src={PlayIcon}
-                  className={S("serial-video__controls-button-icon", !playing && !showBigPlayButton ? "serial-video__controls-button-icon--active" : "")}
+                  className={S("serial-video__controls-button-icon", !playing && !implicitPlayPause ? "serial-video__controls-button-icon--active" : "")}
                 />
               </button>
           }
@@ -240,13 +253,13 @@ const Controls = observer(({
         </div>
       </SerialTitle>
       {
-        !showPlayPause || !showBigPlayButton ? null :
-          <button
-            onClick={() => player?.controls?.Play()}
-            className={S("serial-video__big-play-button", !ready || playing || rootStore.activeModals > 0 ? "serial-video__big-play-button--hidden" : "")}
+        !showPlayPause || !implicitPlayPause ? null :
+          <div
+            key={`indicator-${playing}`}
+            className={S("serial-video__center-indicator", playing ? "serial-video__center-indicator--playing" : "")}
           >
-            <SVG src={PlayIcon} />
-          </button>
+            <SVG src={playing ? PlayIcon : PauseIcon} />
+          </div>
       }
       {
         !showDetails ? null :
@@ -274,7 +287,7 @@ const SerialVideo = observer(({
   saveSettings=true,
   autohideControls,
   showPlayPause=true,
-  showBigPlayButton=false,
+  implicitPlayPause=false,
   showTimer=false,
   showDetails=false,
   muteIfNecessary,
@@ -495,7 +508,7 @@ const SerialVideo = observer(({
         contentTitle={contentTitle}
         contentSubtitle={contentSubtitle}
         showPlayPause={showPlayPause || !playing && state === "ready"}
-        showBigPlayButton={showBigPlayButton}
+        implicitPlayPause={implicitPlayPause}
         showTimer={showTimer}
         showDetails={showDetails}
         showAudio={hasAudio}
