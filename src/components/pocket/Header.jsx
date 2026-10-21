@@ -14,22 +14,27 @@ import ChevronRightIcon from "@/assets/icons/chevron-right.svg";
 import Logo from "@/assets/icons/logo.svg";
 import ItemsIcon from "@/assets/icons/my-items.svg";
 import PurchaseHistoryIcon from "@/assets/icons/purchase-history.svg";
+import FAQIcon from "@/assets/icons/help-circle.svg";
+import UrlJoin from "url-join";
 
 const S = CreateModuleClassMatcher(HeaderStyles);
 
 export const MobileMenu = observer(({menuControls}) => {
   return (
     <div className={S("menu")}>
-      <Linkish
-        onClick={() => {
-          rootStore.SetAttribute("showMyItems", true);
-          menuControls.Hide();
-        }}
-        className={S("menu__link", "opacity-hover")}
-      >
-        <SVG src={ItemsIcon} />
-        My Items
-      </Linkish>
+      {
+        pocketStore.contentType === "serial" ? null :
+          <Linkish
+            onClick={() => {
+              rootStore.SetAttribute("showMyItems", true);
+              menuControls.Hide();
+            }}
+            className={S("menu__link", "opacity-hover")}
+          >
+            <SVG src={ItemsIcon} />
+            My Items
+          </Linkish>
+      }
       <Linkish
         onClick={() => {
           rootStore.SetAttribute("showPurchaseHistory", true);
@@ -40,6 +45,16 @@ export const MobileMenu = observer(({menuControls}) => {
         <SVG src={PurchaseHistoryIcon} />
         Purchase History
       </Linkish>
+      {
+        !pocketStore.pocket.hasFAQ ? null :
+          <Linkish
+            href={UrlJoin(window.location.origin, pocketStore.pocket.slug || pocketStore.pocket.objectId, "faq", pocketStore.preview ? "?preview=" : "")}
+            className={S("menu__link", "opacity-hover")}
+          >
+            <SVG src={FAQIcon} />
+            FAQ
+          </Linkish>
+      }
       {
         !rootStore.useOryLogin ? null :
           <Button
@@ -103,18 +118,21 @@ const HeaderMenu = observer(() => {
         {
           !showMenu ? null :
             <div className={S("header-menu__dropdown")}>
-              <Linkish
-                autoFocus={true}
-                onClick={() => {
-                  rootStore.SetAttribute("showMyItems", true);
-                  rootStore.SetAttribute("showPurchaseHistory", false);
-                  setShowMenu(false);
-                }}
-                className={S("header-menu__option")}
-              >
-                <SVG src={ItemsIcon} />
-                <span>My Items</span>
-              </Linkish>
+              {
+                pocketStore.contentType === "serial" ? null :
+                  <Linkish
+                    autoFocus={true}
+                    onClick={() => {
+                      rootStore.SetAttribute("showMyItems", true);
+                      rootStore.SetAttribute("showPurchaseHistory", false);
+                      setShowMenu(false);
+                    }}
+                    className={S("header-menu__option")}
+                  >
+                    <SVG src={ItemsIcon} />
+                    <span>My Items</span>
+                  </Linkish>
+              }
               <Linkish
                 onClick={() => {
                   rootStore.SetAttribute("showPurchaseHistory", true);
@@ -125,6 +143,16 @@ const HeaderMenu = observer(() => {
                 <SVG src={PurchaseHistoryIcon} />
                 <span>Purchase History</span>
               </Linkish>
+              {
+                !pocketStore.pocket.hasFAQ ? null :
+                  <Linkish
+                    href={UrlJoin(window.location.origin, pocketStore.pocket.slug || pocketStore.pocket.objectId, "faq", pocketStore.preview ? "?preview=" : "")}
+                    className={S("header-menu__option")}
+                  >
+                    <SVG src={FAQIcon} />
+                    FAQ
+                  </Linkish>
+              }
               {
                 !rootStore.useOryLogin ? null :
                   <Button
@@ -235,14 +263,17 @@ const DesktopHeader = observer(({simple, text}) => {
         simple ? null :
           <HeaderMenu/>
       }
-      <div className={S("right")}>
-        <Linkish
-          title={mediaDisplayStore.hideSidebar ? "Show Sidebar" : "Hide Sidebar"}
-          onClick={() => mediaDisplayStore.SetHideSidebar(!mediaDisplayStore.hideSidebar)}
-        >
-          <SVG src={mediaDisplayStore.hideSidebar ? ChevronLeftIcon : ChevronRightIcon} />
-        </Linkish>
-      </div>
+      {
+        window.location.pathname.includes("/pay/") ? null :
+          <div className={S("right")}>
+            <Linkish
+              title={mediaDisplayStore.hideSidebar ? "Show Sidebar" : "Hide Sidebar"}
+              onClick={() => mediaDisplayStore.SetHideSidebar(!mediaDisplayStore.hideSidebar)}
+            >
+              <SVG src={mediaDisplayStore.hideSidebar ? ChevronLeftIcon : ChevronRightIcon} />
+            </Linkish>
+          </div>
+      }
     </header>
   );
 });

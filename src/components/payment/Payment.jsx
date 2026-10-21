@@ -6,7 +6,7 @@ import {rootStore, paymentStore, pocketStore} from "@/stores/index.js";
 import {Utils} from "@eluvio/elv-client-js/src/index.js";
 import {useEffect, useState} from "react";
 import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
-import {Linkish, Loader, RichText} from "@/components/common/Common.jsx";
+import {Linkish, Loader, PageLoader, RichText} from "@/components/common/Common.jsx";
 import {FormatPriceString} from "@/utils/Money.js";
 import QRCode from "@/components/common/QRCode.jsx";
 
@@ -317,13 +317,7 @@ const PaymentPage = observer(() => {
   }, []);
 
   if(!rootStore.initialized) {
-    return (
-      <div className={S("payment-page")}>
-        <div className={S("payment-page__loader")}>
-          <Loader/>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if(success) {

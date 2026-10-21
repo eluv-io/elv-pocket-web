@@ -33,8 +33,6 @@ const Modal = observer(({
     } else {
       rootStore.SetModalClosed();
     }
-
-    return () => rootStore.SetModalClosed();
   }, [open]);
 
   useEffect(() => {

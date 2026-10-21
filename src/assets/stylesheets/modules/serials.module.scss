@@ -287,6 +287,9 @@
   }
 
   &__controls-overlay {
+    align-items: center;
+    display: flex;
+    justify-content: center;
     transition: opacity 0.5s ease;
     z-index: 10;
   }
@@ -328,6 +331,39 @@
     &--active {
       opacity: 1;
       transition: opacity 0.2s ease;
+    }
+  }
+
+  &__big-play-button {
+    align-items: center;
+    background-color: rgb(0 0 0 / 60%);
+    border-radius: 100%;
+    color: white;
+    display: flex;
+    height: 85px;
+    justify-content: center;
+    opacity: 0.8;
+    position: absolute;
+    transition: all 0.3s ease;
+    width: 85px;
+    z-index: 101;
+
+    &--hidden {
+      opacity: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    svg {
+      height: 30px;
+      margin-left: 5px;
+      width: auto;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      opacity: 1;
     }
   }
 
@@ -425,10 +461,6 @@
   justify-content: center;
   min-width: 100%;
   user-select: none;
-
-  svg {
-    filter: drop-shadow(0 0 1px white);
-  }
 
   &--horizontal {
     svg {

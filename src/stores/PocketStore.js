@@ -566,13 +566,16 @@ class PocketStore {
     }
 
     this.pocket = {
+      slug: metadata.slug,
       objectId: this.pocketInfo.id || pocketSlugOrId,
       versionHash: this.pocketInfo.hash,
       tenantId: this.pocketInfo.tenantId,
+      hasFAQ: (metadata?.faq?.questions || []).length > 0,
+      contentType: metadata.content_type === "serial" ? "serial" : "media",
       metadata
     };
 
-    this.contentType = metadata.content_type === "serial" ? "serial" : "media";
+    this.contentType = this.pocket.contentType;
 
     if(!isPaymentFlow) {
       this.LoadAnalytics();

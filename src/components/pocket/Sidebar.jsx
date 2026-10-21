@@ -3,7 +3,7 @@ import SidebarStyles from "@/assets/stylesheets/modules/sidebar.module.scss";
 import {observer} from "mobx-react-lite";
 import {useParams} from "wouter";
 import {rootStore, pocketStore, mediaDisplayStore} from "@/stores/index.js";
-import {CreateModuleClassMatcher, JoinClassNames} from "@/utils/Utils.js";
+import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import {HashedLoaderImage, Linkish, MediaItemImageUrl} from "@/components/common/Common.jsx";
 import UrlJoin from "url-join";
 import SVG from "react-inlinesvg";
@@ -192,31 +192,7 @@ const Item = observer(({
   );
 });
 
-export const MyItemsContainer = observer(({className=""}) => {
-  const {pocketSlugOrId} = useParams();
-
-  return (
-    <div className={JoinClassNames(S("my-items-container"), className)}>
-      <MyItems/>
-      <div className={S("links")}>
-        <Linkish
-          href={pocketStore.pocket.metadata?.support_link || "https://eluviolive.zendesk.com/hc/en-us/requests/new"}>
-          Get Support
-        </Linkish>
-        {
-          (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
-            <Linkish
-              href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}
-            >
-              FAQ
-            </Linkish>
-        }
-      </div>
-    </div>
-  );
-});
-
-const MyItems = observer(() => {
+const MyItems = observer(({primaryMediaId}) => {
   return (
     <>
       <div className={S("media")}>
@@ -237,7 +213,7 @@ const MyItems = observer(() => {
                     subtitle={item.subtitle}
                     key={`item-${item.id}`}
                     contentItem={{type: "media-item", id: item.id}}
-                    primaryMediaId={primaryMediaItem.id}
+                    primaryMediaId={primaryMediaId}
                     noActions
                   />
                 )
@@ -268,7 +244,7 @@ const SidebarContent = observer(({primaryMediaItem}) => {
   }
 
   if(rootStore.showMyItems) {
-    return <MyItems />;
+    return <MyItems primaryMediaId={primaryMediaItem?.id} />;
   }
 
   if(pocketStore.hasSingleItem) {
@@ -555,7 +531,7 @@ const Sidebar = observer(({mediaItem, hideTitle}) => {
                   Get Support
                 </Linkish>
                 {
-                  (pocketStore.pocket.metadata?.faq?.questions || []).length === 0 ? null :
+                  !pocketStore.pocket.hasFAQ ? null :
                     <Linkish href={UrlJoin(window.location.origin, pocketSlugOrId, "faq", pocketStore.preview ? "?preview=" : "")}>
                       FAQ
                     </Linkish>

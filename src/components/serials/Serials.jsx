@@ -11,7 +11,6 @@ import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import SVG from "react-inlinesvg";
 import Modal from "@/components/common/Modal.jsx";
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
-import {MyItemsContainer} from "@/components/pocket/Sidebar.jsx";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -35,26 +34,6 @@ const PurchaseHistoryModal = observer(() => {
   );
 });
 
-const MyItemsModal = observer(() => {
-  const [modalControls, setModalControls] = useState(undefined);
-
-  useEffect(() => {
-    if(!modalControls) { return; }
-
-    if(rootStore.showMyItems) {
-      modalControls.Show();
-    } else {
-      modalControls.Hide();
-    }
-  }, [modalControls, rootStore.showMyItems]);
-
-  return (
-    <Modal align="center" SetMenuControls={setModalControls} onHide={() => rootStore.SetAttribute("showMyItems", false)}>
-      <MyItemsContainer className={S("serial-modal-menu")}/>
-    </Modal>
-  );
-});
-
 const Serials = observer(() => {
   const [ref, setRef] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -69,7 +48,9 @@ const Serials = observer(() => {
   }, []);
 
   useEffect(() => {
-    if(!ref) { return; }
+    if(!ref) {
+      return;
+    }
 
     let debounceTimeout;
     const FindCurrent = () => {
@@ -127,7 +108,6 @@ const Serials = observer(() => {
       >
         <SVG src={ChevronDownIcon}/>
       </button>
-      <MyItemsModal />
       <PurchaseHistoryModal />
     </div>
   );

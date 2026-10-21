@@ -89,16 +89,16 @@ const SwipeMessage = observer(() => {
 const Details = observer(({title, subtitle, ready}) => {
   const {pocketSlugOrId, serialSlugOrId} = useParams();
   const [menuControls, setMenuControls] = useState(undefined);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [shareMenuVisible, setShareMenuVisible] = useState(false);
   const [showCopyIcon, setShowCopyIcon] = useState(false);
 
   useEffect(() => {
-    if(menuVisible) {
+    if(shareMenuVisible) {
       rootStore.SetModalOpened();
     } else {
       rootStore.SetModalClosed();
     }
-  }, [menuVisible]);
+  }, [shareMenuVisible]);
 
   return (
     <>
@@ -118,12 +118,12 @@ const Details = observer(({title, subtitle, ready}) => {
           <button
             title="Share"
             onClick={async () => {
-              if(menuVisible) { return; }
+              if(shareMenuVisible) { return; }
 
               const url = new URL(window.location.origin);
               url.pathname = UrlJoin("/", pocketSlugOrId, "s", serialSlugOrId);
               try {
-                setMenuVisible(true);
+                setShareMenuVisible(true);
 
                 await navigator.share({
                   title: pocketStore.pocket.metadata?.meta_tags?.title || document.title,
@@ -141,7 +141,7 @@ const Details = observer(({title, subtitle, ready}) => {
 
                 setTimeout(() => setShowCopyIcon(false), 2000);
               } finally {
-                setMenuVisible(false);
+                setShareMenuVisible(false);
               }
             }}
             className={S("serial-video__detail-button", "serial-video__detail-button--share")}
@@ -160,10 +160,7 @@ const Details = observer(({title, subtitle, ready}) => {
           </button>
           <button
             title="Show Menu"
-            onClick={() => {
-              menuControls.Show();
-              setMenuVisible(!menuVisible);
-            }}
+            onClick={() => menuControls.Show()}
             className={S("serial-video__detail-button", "serial-video__detail-button--menu")}
           >
             <SVG src={MenuIcon}/>
@@ -174,8 +171,8 @@ const Details = observer(({title, subtitle, ready}) => {
             <SwipeMessage />
         }
       </div>
-      <Modal align="top" onHide={() => setMenuVisible(false)} SetMenuControls={setMenuControls}>
-        <MobileMenu menuControls={menuControls}/>
+      <Modal align="top" SetMenuControls={setMenuControls}>
+        <MobileMenu showItems={false} menuControls={menuControls}/>
       </Modal>
     </>
   );
@@ -233,6 +230,15 @@ const Controls = observer(({
           }
         </div>
       </SerialTitle>
+      {
+        !showPlayPause ? null :
+          <button
+            onClick={() => player?.controls?.Play()}
+            className={S("serial-video__big-play-button", !ready || playing ? "serial-video__big-play-button--hidden" : "")}
+          >
+            <SVG src={PlayIcon} />
+          </button>
+      }
       {
         !showDetails ? null :
           <Details
