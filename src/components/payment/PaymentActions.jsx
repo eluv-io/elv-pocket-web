@@ -39,7 +39,12 @@ const MintingStatus = observer(({permissionItemId, confirmationId}) => {
         });
 
         setTimeout(async () => {
-          await pocketStore.Reload();
+          await pocketStore.Reload({
+            toastMessage: {
+              title: permissionItem?.toast_message_title || "Purchase Successful",
+              subtitle: permissionItem?.toast_message_subtitle || permissionItem.title
+            }
+          });
           rootStore.SetAttribute("showAdditionalPurchaseOptions", false);
         }, 3500);
       } else if(status?.status === "failed") {

@@ -3,7 +3,6 @@
   display: flex;
   height: calc(100 * var(--vh));
   justify-content: center;
-  padding: 10px 0 0;
   transition: opacity 0.5s ease;
 
   &--loading {

@@ -5,12 +5,13 @@ import {rootStore, pocketStore} from "@/stores/index.js";
 import {CreateModuleClassMatcher} from "@/utils/Utils.js";
 import Serial from "@/components/serials/Serial.jsx";
 import {useEffect, useState} from "react";
-
-import ChevronUpIcon from "@/assets/icons/chevron-up.svg";
-import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
 import SVG from "react-inlinesvg";
 import Modal from "@/components/common/Modal.jsx";
 import PurchaseHistory from "@/components/pocket/PurchaseHistory.jsx";
+
+import ChevronUpIcon from "@/assets/icons/chevron-up.svg";
+import ChevronDownIcon from "@/assets/icons/chevron-down.svg";
+import {ToastMessage} from "@/components/common/Common.jsx";
 
 const S = CreateModuleClassMatcher(SerialStyles);
 
@@ -109,6 +110,7 @@ const Serials = observer(() => {
         <SVG src={ChevronDownIcon}/>
       </button>
       <PurchaseHistoryModal />
+      <ToastMessage className={S("serial-toast-message")} />
     </div>
   );
 });

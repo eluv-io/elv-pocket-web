@@ -42,7 +42,7 @@ export const MobileMenu = observer(({menuControls}) => {
         }}
         className={S("menu__link", "opacity-hover")}
       >
-        <SVG src={PurchaseHistoryIcon} />
+        <SVG src={pocketStore.contentType === "serial" ? ItemsIcon : PurchaseHistoryIcon} />
         Purchase History
       </Linkish>
       {
@@ -54,6 +54,22 @@ export const MobileMenu = observer(({menuControls}) => {
             <SVG src={FAQIcon} />
             FAQ
           </Linkish>
+      }
+      {
+        (pocketStore.pocket.metadata.nav_menu_links || [])
+          .map(({icon, text, link}, i) =>
+              <Linkish
+                key={`custom-link-${i}`}
+                href={link}
+                className={S("menu__link", "opacity-hover")}
+              >
+                {
+                  !icon?.url ? null :
+                    <img alt={text} src={icon.url} />
+                }
+                {text || ""}
+              </Linkish>
+          )
       }
       {
         !rootStore.useOryLogin ? null :
@@ -152,6 +168,22 @@ const HeaderMenu = observer(() => {
                     <SVG src={FAQIcon} />
                     FAQ
                   </Linkish>
+              }
+              {
+                (pocketStore.pocket.metadata.nav_menu_links || [])
+                  .map(({icon, text, link}, i) =>
+                    <Linkish
+                      key={`custom-link-${i}`}
+                      href={link}
+                      className={S("header-menu__option")}
+                    >
+                      {
+                        !icon?.url ? null :
+                          <img alt={text} src={icon.url} />
+                      }
+                      {text || ""}
+                    </Linkish>
+                  )
               }
               {
                 !rootStore.useOryLogin ? null :

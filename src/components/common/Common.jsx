@@ -7,12 +7,14 @@ import {decodeThumbHash, thumbHashToApproximateAspectRatio, thumbHashToDataURL} 
 import {Link} from "wouter";
 import SVG from "react-inlinesvg";
 import SanitizeHTML from "sanitize-html";
-
+import {FormatPriceString} from "@/utils/Money.js";
+import {rootStore} from "@/stores/index.js";
 const S = CreateModuleClassMatcher(CommonStyles);
 
 import CopyIcon from "@/assets/icons/copy.svg";
-import CheckIcon from "@/assets/icons/check-circle.svg";
-import {FormatPriceString} from "@/utils/Money.js";
+import CheckmarkCircleIcon from "@/assets/icons/check-circle.svg";
+import CheckmarkIcon from "@/assets/icons/check.svg";
+
 
 export const HashedLoaderImage = observer(({
   src,
@@ -214,7 +216,7 @@ export const CopyButton = observer(({value, onCopyChange, icon, ...props}) => {
       }
     >
       <SVG src={icon || CopyIcon} className={S("copy-button__icon", !copied ? "copy-button__icon--active" : "")} />
-      <SVG src={CheckIcon} className={S("copy-button__icon", copied ? "copy-button__icon--active" : "")} />
+      <SVG src={CheckmarkCircleIcon} className={S("copy-button__icon", copied ? "copy-button__icon--active" : "")} />
     </button>
   );
 });
@@ -493,6 +495,43 @@ export const SerialTitle = observer(({
         </div>
       </div>
       {children}
+    </div>
+  );
+});
+
+export const ToastMessage = observer(({className=""}) => {
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if(!rootStore.toastMessage) { return; }
+
+    setClosing(false);
+
+    let timeout = setTimeout(() => {
+      setClosing(true);
+      timeout = setTimeout(() => rootStore.SetAttribute("toastMessage", undefined), 1000);
+    }, 6500);
+
+    return () => clearTimeout(timeout);
+  }, [rootStore.toastMessage]);
+
+  if(!rootStore.toastMessage) {
+    return null;
+  }
+
+  return (
+    <div className={JoinClassNames(S("toast", closing ? "toast--closing" : ""), className)}>
+      <div className={S("toast__icon")}>
+        <SVG src={CheckmarkIcon} />
+      </div>
+      <div className={S("toast__text")}>
+        <div className={S("toast__title")}>
+          { rootStore.toastMessage.title }
+        </div>
+        <div className={S("toast__subtitle")}>
+          { rootStore.toastMessage.subtitle }
+        </div>
+      </div>
     </div>
   );
 });

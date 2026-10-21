@@ -59,8 +59,12 @@
     transition: color 0.5s ease;
     white-space: nowrap;
 
+    img,
     svg {
       height: 20px;
+      max-height: 20px;
+      max-width: 20px;
+      object-fit: contain;
       width: 20px;
     }
 
@@ -189,8 +193,12 @@
     font-size: 22px;
     gap: 25px;
 
+    img,
     svg {
       height: 30px;
+      max-height: 30px;
+      max-width: 30px;
+      object-fit: contain;
       width: 30px;
     }
   }

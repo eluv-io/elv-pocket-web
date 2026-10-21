@@ -848,10 +848,14 @@ class PocketStore {
     console.timeEnd("Load Media");
   });
 
-  Reload = flow(function * () {
+  Reload = flow(function * ({toastMessage}) {
     this.reloading = true;
 
     try {
+      if(toastMessage) {
+        this.rootStore.SetAttribute("toastMessage", toastMessage);
+      }
+
       yield pocketStore.LoadMedia();
     } finally {
       this.reloading = false;

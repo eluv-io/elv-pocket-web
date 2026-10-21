@@ -34,6 +34,7 @@ class RootStore {
   showMyItems = false;
   showPurchaseHistory = false;
   showAdditionalPurchaseOptions = false;
+  toastMessage = undefined;
 
   useOryLogin = false;
   userIdCode = localStorage.getItem("user-id-code") || Utils.B58(ParseUUID(UUID())).slice(0, 12);
