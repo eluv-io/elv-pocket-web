@@ -498,14 +498,19 @@ class PocketStore {
     if(this.preview) {
       mediaCatalogInfo = {};
       yield Promise.all(
-        (metadata.media_catalogs || []).map(async mediaCatalogId =>
-          mediaCatalogInfo[mediaCatalogId] = await this.client.ContentObjectMetadata({
-            versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
-            metadataSubtree: "/public/asset_metadata/info",
-            select: [ "media", "slug_map" ],
-            produceLinkUrls: true
-          })
-        )
+        (metadata.media_catalogs || []).map(async mediaCatalogId => {
+          try {
+            mediaCatalogInfo[mediaCatalogId] = await this.client.ContentObjectMetadata({
+              versionHash: await this.client.LatestVersionHash({objectId: mediaCatalogId}),
+              metadataSubtree: "/public/asset_metadata/info",
+              select: ["media", "slug_map"],
+              produceLinkUrls: true
+            });
+          } catch(error) {
+            console.error("Unable to load media catalog", mediaCatalogId);
+            console.error(error);
+          }
+        })
       );
     }
 
@@ -537,13 +542,18 @@ class PocketStore {
     if(this.preview) {
       permissionSetInfo = {};
       yield Promise.all(
-        (metadata.permission_sets || []).map(async permissionSetId =>
-          permissionSetInfo[permissionSetId] = await this.client.ContentObjectMetadata({
-            versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
-            metadataSubtree: "/public/asset_metadata/info",
-            produceLinkUrls: true
-          })
-        )
+        (metadata.permission_sets || []).map(async permissionSetId => {
+          try {
+            permissionSetInfo[permissionSetId] = await this.client.ContentObjectMetadata({
+              versionHash: await this.client.LatestVersionHash({objectId: permissionSetId}),
+              metadataSubtree: "/public/asset_metadata/info",
+              produceLinkUrls: true
+            });
+          } catch(error) {
+            console.error("Unable to load permission set", permissionSetId);
+            console.error(error);
+          }
+        })
       );
     }
 
