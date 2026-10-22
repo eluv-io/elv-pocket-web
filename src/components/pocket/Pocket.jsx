@@ -100,7 +100,7 @@ const Pocket = observer(() => {
           const item = group.content[0];
 
           if(item && !(item.id === mediaItemSlugOrId || (item.slug && item.slug === mediaItemSlugOrId))) {
-            return <Redirect to={UrlJoin("~/", pocketSlugOrId, item.slug || item.id)}/>;
+            return <Redirect to={UrlJoin("~/", pocketSlugOrId, item.slug || item.id || "")}/>;
           }
         }
       }
