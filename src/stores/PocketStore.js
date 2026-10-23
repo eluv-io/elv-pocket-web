@@ -546,8 +546,6 @@ class PocketStore {
       versionHash: this.pocketInfo.hash,
       metadataSubtree: "/public/asset_metadata/info",
       produceLinkUrls: true,
-      // Don't resolve catalog/permission links when previewing, since we will load them separately
-      resolveLinks: !this.preview,
       resolveIncludeSource: true,
       resolveIgnoreErrors: true,
       linkDepthLimit: 1
@@ -585,7 +583,22 @@ class PocketStore {
   LoadMedia = flow(function * () {
     console.time("Load Media");
 
-    const metadata = {...this.pocket.metadata};
+    const metadata = yield this.client.ContentObjectMetadata({
+      versionHash: this.pocketInfo.hash,
+      metadataSubtree: "/public/asset_metadata/info",
+      select: [
+        "media_catalogs",
+        "media_catalog_links",
+        "permission_sets",
+        "permission_set_links",
+      ],
+      produceLinkUrls: true,
+      // Don't resolve catalog/permission links when previewing, since we will load them separately
+      resolveLinks: !this.preview,
+      resolveIncludeSource: true,
+      resolveIgnoreErrors: true,
+      linkDepthLimit: 1
+    });
 
     let mediaCatalogInfo = {...metadata.media_catalog_links};
     if(this.preview) {
@@ -839,7 +852,10 @@ class PocketStore {
     this.bumpers = bumpers;
     this.pocket = {
       ...this.pocket,
-      metadata,
+      metadata: {
+        ...this.pocket.metadata,
+        ...metadata
+      },
       mediaLoaded: true,
       mediaLoadIndex: (this.pocket.mediaLoadIndex || 0) + 1
     };
