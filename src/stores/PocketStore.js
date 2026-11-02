@@ -277,7 +277,7 @@ class PocketStore {
       const displayStartDateLong = startTime?.toLocaleDateString?.(this.preferredLocale, {day: "numeric", month: "short"}).replace(/0(\d)/g, "$1");
       const displayStartTime = startTime?.toLocaleTimeString?.(this.preferredLocale, {hour: "numeric", minute: "numeric"}).replace(/^0(\d)/, "$1").replace(":00", "");
 
-      let isMultiviewable = !ended && multiviewSetting !== "none";
+      let isMultiviewable = multiviewSetting !== "none";
       if(["live", "live_and_vod"].includes(multiviewSetting)) {
         isMultiviewable = isMultiviewable && started;
       }
